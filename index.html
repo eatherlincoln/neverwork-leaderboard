@@ -1141,7 +1141,7 @@ async function submitBrand() {
   const displayHandle = '@' + clean;
 
   try {
-    await supabase.from('brand_requests').insert({ handle: clean });
+    await db.from('brand_requests').insert({ handle: clean });
   } catch(e) {
     console.warn('Could not save brand request:', e);
   }
@@ -1168,12 +1168,12 @@ function highlightRow(el) {
 // ── SUPABASE ──────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://jvkiscmfpsoyudqbuvke.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2a2lzY21mcHNveXVkcWJ1dmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODI5MjQsImV4cCI6MjA5NTc1ODkyNH0._BkmEVZL0zX8FyvX-KsOBOV4W2FdgqnGzb9bWRVQ6C0';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── INIT ──────────────────────────────────────────────────────
 async function init() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('latest_metrics')
       .select('*');
 
