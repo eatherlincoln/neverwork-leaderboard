@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brand Heat Leaderboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --purple: #6B4FBB; --purple-light: #8B6FDB; --purple-pale: #F0ECFF;
@@ -1133,10 +1134,18 @@ function filterBrands(q) {
   notFound.style.display = 'block';
 }
 
-function submitBrand() {
+async function submitBrand() {
   const handle = document.getElementById('addBrandHandle').value.trim();
   if (!handle || handle === '@') return;
-  const displayHandle = handle.startsWith('@') ? handle : '@' + handle;
+  const clean = handle.startsWith('@') ? handle.slice(1) : handle;
+  const displayHandle = '@' + clean;
+
+  try {
+    await supabase.from('brand_requests').insert({ handle: clean });
+  } catch(e) {
+    console.warn('Could not save brand request:', e);
+  }
+
   document.getElementById('addedHandle').textContent = displayHandle;
   document.getElementById('addSuccess').classList.add('show');
   document.querySelector('.add-brand-form').style.opacity = '0.4';
@@ -1156,8 +1165,56 @@ function highlightRow(el) {
   el.classList.toggle('active');
 }
 
+// ── SUPABASE ──────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://jvkiscmfpsoyudqbuvke.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2a2lzY21mcHNveXVkcWJ1dmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODI5MjQsImV4cCI6MjA5NTc1ODkyNH0._BkmEVZL0zX8FyvX-KsOBOV4W2FdgqnGzb9bWRVQ6C0';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ── INIT ──────────────────────────────────────────────────────
-render();
+async function init() {
+  try {
+    const { data, error } = await supabase
+      .from('latest_metrics')
+      .select('*');
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      // Group rows by category
+      const grouped = {};
+      data.forEach(row => {
+        if (!grouped[row.category]) grouped[row.category] = [];
+        grouped[row.category].push({
+          name:          row.name,
+          handle:        '@' + row.handle,
+          color:         row.color  || '#6B4FBB',
+          initials:      row.initials || '??',
+          tag:           row.tag   || 'Brand',
+          followers:     row.followers     || 0,
+          avgLikes:      parseFloat(row.avg_likes)    || 0,
+          avgComments:   parseFloat(row.avg_comments) || 0,
+          avgReelViews:  parseFloat(row.avg_reel_views) || 0,
+          posts30d:      row.posts_count   || 18,
+          momRank:       0,
+          momHeat:       0,
+        });
+      });
+
+      // Overwrite live categories; keep mock data for others (skate/snow/outdoor/lifestyle)
+      Object.keys(grouped).forEach(cat => {
+        if (INDUSTRY_DATA[cat]) {
+          INDUSTRY_DATA[cat].brands = grouped[cat];
+        }
+      });
+
+      console.log('Live data loaded from Supabase ✓');
+    }
+  } catch(err) {
+    console.warn('Supabase fetch failed — using mock data:', err.message);
+  }
+  render();
+}
+init();
 </script>
 </body>
 </html>
