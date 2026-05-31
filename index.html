@@ -284,9 +284,9 @@
   /* Formula panel */
   .formula-panel { display: none; }
   .formula-panel.visible { display: block; }
-  .fp-hero { background: linear-gradient(135deg,#10110F,#1a2418); border: 1px solid var(--border); color: var(--dark-text); border-radius: 14px; padding: 36px 40px; margin-bottom: 24px; }
-  .fp-hero h2 { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
-  .fp-hero p { font-size: 14px; opacity: 0.8; line-height: 1.7; max-width: 680px; }
+  .fp-hero { background: #141413; border-radius: 14px; padding: 36px 40px; margin-bottom: 24px; }
+  .fp-hero h2 { font-size: 26px; font-weight: 800; margin-bottom: 10px; color: #faf9f5; }
+  .fp-hero p { font-size: 14px; line-height: 1.75; max-width: 680px; color: rgba(250,249,245,0.8); }
   .fp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 24px; }
   .fp-card { background: var(--raised); border: 1px solid var(--border); border-radius: 14px; padding: 24px; color: var(--dark-text); }
   .fp-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
@@ -391,8 +391,11 @@
   <!-- Formula Panel (hidden until tab clicked) -->
   <div class="formula-panel" id="formulaPanel">
     <div class="fp-hero">
-      <h2>📖 Understanding Our Formulas</h2>
-      <p>We score every brand against the median of its own category — not against the whole market. That means a small boutique shaper can outrank a global brand if their audience is more engaged. Here's exactly what we measure and why it matters.</p>
+      <h2>What is Brand Heat?</h2>
+      <p>Think of it like this. You own a surf shop. There are 30 other surf shops in town. Some are big chains. Some are small boutiques with a loyal crew. Brand Heat is your reputation score — but only compared to the other surf shops, not Woolworths.</p>
+      <p style="margin-top:14px">Every month we look at three things: are people actually reacting when you post? Are they talking back, or just scrolling past? Are you showing up consistently? We score you against the other brands in your category. Not against Nike. Not against your mate's café. Just your competitors.</p>
+      <p style="margin-top:14px"><strong style="color:#7eb801">50</strong> = you're average for your category. <strong style="color:#7eb801">75</strong> = you're clearly outperforming most competitors. <strong style="color:#7eb801">100</strong> = you're leading the category.</p>
+      <p style="margin-top:14px;opacity:0.7">The bit that surprises people: follower count doesn't win this. A brand with 5,000 loyal followers who all talk back scores higher than a brand with 50,000 followers who scroll straight past. Passive audiences don't count. Active ones do.</p>
     </div>
 
     <div class="fp-score-guide">
