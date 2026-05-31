@@ -17,8 +17,9 @@ from collections import defaultdict
 # ── CONFIG ────────────────────────────────────────────────────
 APIFY_TOKEN     = sys.argv[1] if len(sys.argv) > 1 else ""
 SERVICE_KEY     = sys.argv[2] if len(sys.argv) > 2 else ""   # Supabase service_role key (bypasses RLS)
-POST_DATASET    = "ZCxkB2kUW1b4URvlS"
-PROFILE_DATASET = "On4aMufHSZNVI6FrJ"
+POST_DATASET     = "ZCxkB2kUW1b4URvlS"
+PROFILE_DATASET  = "On4aMufHSZNVI6FrJ"
+PROFILE_DATASET2 = sys.argv[3] if len(sys.argv) > 3 else ""  # optional extra profile dataset
 SUPABASE_URL    = "https://jvkiscmfpsoyudqbuvke.supabase.co"
 SUPABASE_KEY    = SERVICE_KEY if SERVICE_KEY else "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2a2lzY21mcHNveXVkcWJ1dmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODI5MjQsImV4cCI6MjA5NTc1ODkyNH0._BkmEVZL0zX8FyvX-KsOBOV4W2FdgqnGzb9bWRVQ6C0"
 PERIOD_END      = "2026-05-31"
@@ -218,13 +219,20 @@ def apify_fetch(dataset_id, fields=None, limit=200, offset=0):
 def fetch_all(dataset_id, fields=None):
     items, offset, limit = [], 0, 200
     while True:
-        batch = apify_fetch(dataset_id, fields=fields, limit=limit, offset=offset)
+        batch = None
+        for attempt in range(4):
+            try:
+                batch = apify_fetch(dataset_id, fields=fields, limit=limit, offset=offset)
+                break
+            except Exception as e:
+                print(f"  Retry {attempt+1}/4 after error: {e}")
+                time.sleep(6)
         if not batch: break
         items.extend(batch)
         print(f"  Fetched {len(items)} items...")
         if len(batch) < limit: break
         offset += limit
-        time.sleep(0.3)
+        time.sleep(0.5)
     return items
 
 
@@ -267,7 +275,10 @@ print(f"   Brands with post data: {len(agg)}")
 # ── 3. FETCH PROFILE DATA (followers) ─────────────────────────
 print("\n3. Fetching profile data (followers)...")
 profiles = fetch_all(PROFILE_DATASET, fields=["username","followersCount"])
-follower_map = {p["username"].lower(): p.get("followersCount",0) for p in profiles if p.get("username")}
+if PROFILE_DATASET2:
+    print("   Fetching supplementary profile data...")
+    profiles += fetch_all(PROFILE_DATASET2, fields=["username","followersCount"])
+follower_map = {p["username"].lower(): p.get("followersCount",0) for p in profiles if p.get("username") and p.get("followersCount",0) > 0}
 print(f"   Profiles loaded: {len(follower_map)}")
 
 # ── 4. GET EXISTING BRANDS + METRICS FROM SUPABASE ───────────
@@ -321,7 +332,8 @@ for handle, info in BRANDS.items():
         print(f"   WARNING: No brand_id for {handle}")
         continue
 
-    followers = follower_map.get(handle, 0) or existing_followers.get(handle, 0) or existing_followers.get('@'+handle, 0)
+    followers = (follower_map.get(handle, 0) or follower_map.get('@'+handle, 0) or
+                 existing_followers.get(handle, 0) or existing_followers.get('@'+handle, 0))
     post_agg  = agg.get(handle, {})
 
     if post_agg and post_agg["likes"]:
