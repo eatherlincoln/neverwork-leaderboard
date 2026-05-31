@@ -25,14 +25,15 @@
 <style>
   :root {
     /* Editorial dark palette (default) */
-    --bg:        #10110F;
-    --white:     #181A17;
-    --raised:    #20231F;
-    --dark:      #10110F;
-    --mid:       #AAA79D;
-    --muted:     #6B6B62;
-    --border:    #33362F;
-    --dark-text: #F4F0E6;
+    --bg:         #10110F;
+    --white:      #181A17;
+    --raised:     #20231F;
+    --dark:       #10110F;
+    --mid:        #AAA79D;
+    --muted:      #6B6B62;
+    --border:     #33362F;
+    --dark-text:  #F4F0E6;
+    --header-bg:  #10110F;  /* Always dark — never overridden by light mode */
 
     /* Accents */
     --accent:    #B7E34A;
@@ -56,18 +57,19 @@
     --white:     #FFFFFF;
     --raised:    #ECEAE3;
     --dark:      #F5F4EF;
-    --mid:       #5A5850;
-    --muted:     #9A9890;
-    --border:    #DDD9CE;
+    --mid:       #3A3830;  /* Darker for better contrast on light */
+    --muted:     #7A7870;
+    --border:    #D8D5CB;
     --dark-text: #1C1C1A;
+    /* header-bg intentionally NOT overridden — stays dark */
 
-    --accent:    #527A1A;  /* Darker lime for readability on light */
-    --info:      #4A7A7A;
-    --heat:      #C05A1E;
-    --negative:  #A83A2A;
-    --positive:  #3A6A2A;
-    --neutral:   #8A7A5A;
-    --warning:   #A87020;
+    --accent:    #3D6010;  /* Deep lime — contrast ratio 7:1 on light bg */
+    --info:      #336666;
+    --heat:      #A04010;
+    --negative:  #8A2A1A;
+    --positive:  #2A5A1A;
+    --neutral:   #6A5A3A;
+    --warning:   #8A5A10;
   }
 
   :root {
@@ -84,7 +86,7 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--dark-text); min-height: 100vh; }
 
   /* Header */
-  .header { background: var(--dark); color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .header { background: var(--header-bg); color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
   .header-left p { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }
   .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -186,7 +188,7 @@
   .drawer-item { font-size: 12px; color: var(--mid); padding: 7px 0; border-bottom: 1px solid var(--border); line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
   .drawer-item:last-child { border-bottom: none; }
   .drawer-item-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-  .drawer-meta { font-size: 11px; color: var(--muted); margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); line-height: 1.7; }
+  .drawer-meta { margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); }
   .brand-row:last-child { border-bottom: none; }
   .brand-row:hover { background: var(--raised); }
   .brand-row.active { background: var(--raised); border-left: 3px solid var(--accent); }
@@ -1445,6 +1447,21 @@ function setCat(el, cat) {
 function setMetricTab(el, tab) {} // legacy stub
 
 // ── BRAND DETAIL DRAWER ───────────────────────────────────────
+function getAction(b) {
+  const gap = b.mainGap;
+  if (gap === 'Low reach')
+    return 'Post Reels consistently for the next 30 days. Video is the fastest way to expand organic reach for an account this size — the algorithm actively distributes Reels to non-followers.';
+  if (gap === 'Weak engagement for size')
+    return 'Engagement is below what accounts this size typically get. Test stronger hooks in the first line of captions, and try posting Reels — they consistently outperform static posts on ER.';
+  if (gap === 'Low conversation')
+    return 'End the next 5 captions with a genuine question that\'s easy to answer. Comments signal content quality to the algorithm — and they\'re the clearest sign of a real community.';
+  if (gap === 'Inconsistent posting')
+    return 'Commit to 3 posts per week minimum for the next month. Consistency matters more than volume — regular posting trains the algorithm to distribute content more broadly.';
+  if (gap === 'Low confidence sample')
+    return 'Not enough data yet for a confident recommendation. Check back once there are more posts in the 30-day window.';
+  return 'Performing well across all metrics. Maintain posting consistency and focus on sparking conversation — that\'s the hardest metric to fake and the most valuable to grow.';
+}
+
 function openDrawer(brandIdx, rank) {
   const b = currentRanked[brandIdx];
   if (!b) return;
@@ -1495,12 +1512,36 @@ function openDrawer(brandIdx, rank) {
       <div class="drawer-item"><div class="drawer-item-dot" style="background:#D69E2E"></div>${b.conf.level} — ${b.conf.tip || ''} Based on ${b.posts30d||0} posts · ${b.tierName} account · ${(b.followers/1000).toFixed(0)}k followers</div>
     </div>
 
+    <div class="drawer-section">
+      <div class="drawer-section-label">⚡ One thing to do right now</div>
+      <div class="drawer-item" style="color:var(--dark-text);line-height:1.6">
+        <div class="drawer-item-dot" style="background:var(--accent);flex-shrink:0;margin-top:5px"></div>
+        ${getAction(b)}
+      </div>
+    </div>
+
     <div class="drawer-meta">
-      <strong>Engagement Rate</strong> ${b.engDepthRate.toFixed(2)}% (${b.vsEngCat >= 0 ? '+' : ''}${b.vsEngCat}% vs category median) &nbsp;·&nbsp;
-      <strong>Comment-to-Like</strong> ${(b.commentDepthRatio*100).toFixed(1)}% CTL &nbsp;·&nbsp;
-      <strong>Size</strong> ${b.sizeBenchmark}
-      ${b.hasReels && b.viewConvRate ? `<br><strong>Reel View Conversion</strong> ${b.viewConvRate.toFixed(1)}%` : ''}
-      <br><br><em style="font-size:10px">Interaction Quality uses public signals only. Saves and shares excluded — not reliably available from public Instagram data.</em>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Engagement Rate</span><br>
+          <span style="color:var(--dark-text);font-weight:700">${b.engDepthRate.toFixed(2)}%</span>
+          <span style="color:${b.vsEngCat >= 0 ? 'var(--accent)' : 'var(--negative)'};font-size:11px;margin-left:6px">${b.vsEngCat >= 0 ? '+' : ''}${b.vsEngCat}% vs category median</span>
+        </div>
+        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Comment-to-Like Ratio</span><br>
+          <span style="color:var(--dark-text);font-weight:700">${(b.commentDepthRatio*100).toFixed(1)}%</span>
+          <span style="color:var(--muted);font-size:11px;margin-left:6px">CTL — ${b.convQuality >= 1.1 ? 'above category average' : b.convQuality <= 0.85 ? 'below category average' : 'near category average'}</span>
+        </div>
+        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Size Fit</span><br>
+          <span style="color:var(--dark-text);font-weight:700">${b.sizeBenchmark}</span>
+          <span style="color:var(--muted);font-size:11px;margin-left:6px">${b.tierName} tier · ${(b.followers/1000).toFixed(0)}k followers</span>
+        </div>
+        ${b.hasReels && b.viewConvRate ? `<div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Reel View Conversion</span><br>
+          <span style="color:var(--dark-text);font-weight:700">${b.viewConvRate.toFixed(1)}%</span>
+          <span style="color:var(--muted);font-size:11px;margin-left:6px">of Reel views convert to engagement</span>
+        </div>` : ''}
+      </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)">
+        Saves and shares excluded — not publicly available from Instagram.
+      </div>
     </div>
   `;
 
