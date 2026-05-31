@@ -1507,44 +1507,54 @@ function setMetricTab(el, tab) {} // legacy stub
 
 // ── BRAND DETAIL DRAWER ───────────────────────────────────────
 function getAction(b) {
-  const gap          = b.mainGap;
   const posts        = b.posts30d || 0;
-  const postsPerWeek = (posts / 4.3).toFixed(1);
-  const er           = b.engDepthRate ? b.engDepthRate.toFixed(2) : '—';
+  const er           = b.engDepthRate || 0;
   const tier         = getFollowerTier(b.followers);
-  const ctl          = b.commentDepthRatio ? (b.commentDepthRatio * 100).toFixed(1) : '—';
-  const highVolume   = posts >= 15; // already posting a lot
+  const ctl          = b.commentDepthRatio || 0;
+  const ctlPct       = (ctl * 100).toFixed(1);
+  const highER       = b.catStrength >= 1.0;   // ER above category median
+  const highCTL      = b.convQuality >= 1.0;    // CTL above category median
+  const highVolume   = posts >= 15;
+  const farBelowSize = b.sizeEff < 0.5;         // ER less than half tier midpoint
 
-  if (gap === 'Low reach') {
-    if (highVolume)
-      return `At ${postsPerWeek}x/week you're already active — reach isn't a volume problem. Shift the mix toward Reels. Static posts mostly reach existing followers; Reels are actively pushed to non-followers by the algorithm. Even 2–3 Reels per week in the current mix can meaningfully lift distribution.`;
-    return `Post Reels consistently — video is the fastest organic reach lever for a ${tier.name}-tier account. The algorithm distributes Reels to non-followers by default; static posts don't get that treatment.`;
+  // ── Pattern: Strong ER but weak conversation ──────────────────
+  // People like the content but aren't talking. Broadcasting, not connecting.
+  if (highER && !highCTL) {
+    return `Your engagement rate is solid — people are liking the content. But the comment-to-like ratio (${ctlPct}%) shows they're not talking back. That gap usually means the content is visually appealing but doesn't invite a response. Try taking a position in your next few captions, or referencing something specific happening in the sport right now. Content that sparks agreement or debate gets comments. Content that looks nice gets likes.`;
   }
 
-  if (gap === 'Weak engagement for size') {
-    if (highVolume)
-      return `You're posting ${postsPerWeek}x/week — volume isn't the issue. A ${er}% ER is well below the ~${tier.mid}% expected for ${tier.name}-tier accounts. This usually means content isn't connecting: try leading with your strongest visual, cut captions to 2–3 lines, and make the first line earn the scroll stop. Quality beats frequency here.`;
-    return `A ${er}% ER sits below the ~${tier.mid}% expected for ${tier.name}-tier accounts. Try testing Reels vs static posts and watch which format your audience responds to more — for most brands this size, Reels consistently lift ER. Also audit your last 10 posts: what got the most comments, not just likes?`;
+  // ── Pattern: Weak ER but strong conversation ──────────────────
+  // The people who find the content engage deeply — distribution is the problem.
+  if (!highER && highCTL) {
+    const reelHint = b.hasReels
+      ? `Your Reels are getting views (avg ${b.avgReelViews >= 1000 ? (b.avgReelViews/1000).toFixed(0)+'K' : Math.round(b.avgReelViews||0)} per Reel) — lean further into that format.`
+      : `You have no Reels in the current window. This is the fastest way to change that: Reels push to non-followers by default.`;
+    return `When people find your content, they engage hard — your comment-to-like ratio (${ctlPct}%) is strong. The problem is distribution, not quality. ${reelHint} Static posts mostly reach existing followers; Reels actively expand to new ones.`;
   }
 
-  if (gap === 'Low conversation') {
-    if (parseFloat(ctl) < 1.5)
-      return `A ${ctl}% comment-to-like ratio means people are scrolling past without talking. End your next 5 captions with something specific only your audience would want to answer — not "tag a friend", not "what do you think?" — something tied directly to the content. Accounts that ask specific questions consistently see comment rates double within a month.`;
-    return `Conversation rate is below the category benchmark. Replying to every comment for 30 days is the fastest way to lift it — accounts that respond consistently generate more comments over time, and comment depth is a direct distribution signal to the algorithm.`;
+  // ── Pattern: Far below size benchmark ────────────────────────
+  // ER significantly below what the tier expects — often passive/accumulated audience.
+  if (farBelowSize) {
+    return `A ${er.toFixed(2)}% ER is well below the ~${tier.mid}% expected for a ${tier.name}-tier account. This gap often points to an accumulated audience — followers who joined over time but have become passive. The content isn't reactivating them. Try behind-the-scenes content, team or maker profiles, or anything that shows the people behind the brand rather than just the product. Human content consistently reactivates passive followers better than product shots.`;
   }
 
-  if (gap === 'Inconsistent posting') {
-    if (highVolume)
-      return `You've posted ${posts} times this month (${postsPerWeek}x/week) — above the category average. The issue may be uneven spacing: 5 posts one week, 1 the next. Try spreading evenly. Consistent cadence matters more than volume bursts — the algorithm rewards accounts that show up on a predictable schedule.`;
-    const target = Math.max(8, Math.round((b.med?.posts30d || 12)));
-    return `${posts} posts in 30 days is below the category average. Target at least ${target} this month — but the spacing matters as much as the number. Spreading posts evenly through the month signals reliability to the algorithm.`;
+  // ── Pattern: High volume, low ER ─────────────────────────────
+  if (highVolume && !highER) {
+    return `At ${posts} posts this month, volume isn't the issue. When posting frequency is high but engagement is low, the usual cause is content format or relevance — not cadence. Try auditing your last 20 posts: which 3 got the most comments (not likes)? What did those have in common? Build more of that, less of the rest. More of something that isn't working rarely fixes it.`;
   }
 
-  if (gap === 'Low confidence sample')
-    return `Only ${posts} posts in the analysis window — not enough data yet for a confident recommendation. Check back as we accumulate more posts.`;
+  // ── Pattern: Low CTL specifically ────────────────────────────
+  if (b.convQuality < 0.7) {
+    return `A ${ctlPct}% comment-to-like ratio is well below the category average. This means the audience is scrolling past without engaging in conversation. Two things that reliably move this metric: first, reply to every single comment you receive this month — accounts that respond consistently attract more comments over time. Second, try one post per week that takes a clear stance on something relevant to the community — opinion drives conversation in a way that product content rarely does.`;
+  }
 
-  // No major gap
-  return `Performing well across all metrics. The next lever is community depth — find the 10–15% of followers who comment most and engage with them directly. Loyal commenters drive disproportionate algorithm signals and are worth more than passive followers.`;
+  // ── No major gap — performing well ───────────────────────────
+  if (b.heatScore >= 70) {
+    return `You're performing well across all metrics. At this stage the growth lever shifts from fixing weaknesses to amplifying strengths. Identify 3–5 other accounts in adjacent categories — athletes, photographers, adjacent brands — and build genuine cross-community engagement with them. Collaboration and tagging from credible accounts in your space drives the kind of follower growth that maintains high engagement, not just inflates the number.`;
+  }
+
+  // ── Default: general low performance ─────────────────────────
+  return `Both engagement and conversation are below the category benchmark. For brands in this position, the most common cause is content that feels like promotion rather than community. Show the people, process, and culture behind the brand — not just the product. Authenticity drives engagement at every tier, and it's the variable that's hardest to fake and easiest to improve.`;
 }
 
 function openDrawer(brandIdx, rank) {
@@ -1616,7 +1626,16 @@ function openDrawer(brandIdx, rank) {
           <div style="font-size:10px;color:var(--muted);margin-top:3px">per post</div>
         </div>
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">Post type breakdown (Reels / Carousels / Static) and month-on-month follower change coming next data refresh.</div>
+      ${(b.reelsCount || b.carouselsCount || b.imagesCount) ? `
+      <div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Post Format Mix</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          ${b.reelsCount ? `<span style="font-size:11px;color:var(--dark-text)">🎬 <strong>${b.reelsCount}</strong> Reels</span>` : ''}
+          ${b.carouselsCount ? `<span style="font-size:11px;color:var(--dark-text)">📎 <strong>${b.carouselsCount}</strong> Carousels</span>` : ''}
+          ${b.imagesCount ? `<span style="font-size:11px;color:var(--dark-text)">🖼 <strong>${b.imagesCount}</strong> Static</span>` : ''}
+          ${b.collabsCount ? `<span style="font-size:11px;color:var(--accent)">🤝 <strong>${b.collabsCount}</strong> Collabs</span>` : ''}
+        </div>
+      </div>` : `<div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">Post format breakdown (Reels / Carousels / Static / Collabs) available after next data refresh.</div>`}
     </div>
 
     <div class="drawer-section">
