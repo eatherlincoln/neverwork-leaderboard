@@ -271,7 +271,7 @@
 
   /* Tooltip */
   [data-tooltip] { position: relative; }
-  [data-tooltip]:hover::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: var(--dark); color: white; font-size: 10px; padding: 5px 9px; border-radius: 5px; white-space: normal; pointer-events: none; z-index: 100; max-width: 220px; text-align: center; line-height: 1.4; }
+  [data-tooltip]:hover::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: #141413; color: #faf9f5; font-size: 10px; padding: 6px 10px; border-radius: 5px; white-space: normal; pointer-events: none; z-index: 100; max-width: 240px; text-align: center; line-height: 1.5; }
 
   /* No results */
   .no-results { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
@@ -1336,6 +1336,7 @@ function makeRow(b, rank, brandIdx, isPinned, isMatch) {
     <div>
       <div style="font-size:15px;font-weight:800;color:var(--dark-text)">${ctl}%</div>
       <div class="vs-median ${ctlCls}" style="font-size:10px;margin-top:2px">comment-to-like</div>
+      <div style="font-size:9px;color:transparent;margin-top:2px">–</div>
       <div class="metric-bar-wrap" style="margin-top:4px"><div class="metric-bar" style="width:${Math.min(100,b.convQuality*50)}%;background:var(--positive)"></div></div>
     </div>
     <div><span class="confidence-badge ${b.conf.cls}" style="font-size:9px">${b.conf.level}</span></div>
@@ -1503,18 +1504,44 @@ function setMetricTab(el, tab) {} // legacy stub
 
 // ── BRAND DETAIL DRAWER ───────────────────────────────────────
 function getAction(b) {
-  const gap = b.mainGap;
-  if (gap === 'Low reach')
-    return 'Post Reels consistently for the next 30 days. Video is the fastest way to expand organic reach for an account this size — the algorithm actively distributes Reels to non-followers.';
-  if (gap === 'Weak engagement for size')
-    return 'Engagement is below what accounts this size typically get. Test stronger hooks in the first line of captions, and try posting Reels — they consistently outperform static posts on ER.';
-  if (gap === 'Low conversation')
-    return 'End the next 5 captions with a genuine question that\'s easy to answer. Comments signal content quality to the algorithm — and they\'re the clearest sign of a real community.';
-  if (gap === 'Inconsistent posting')
-    return 'Commit to 3 posts per week minimum for the next month. Consistency matters more than volume — regular posting trains the algorithm to distribute content more broadly.';
+  const gap          = b.mainGap;
+  const posts        = b.posts30d || 0;
+  const postsPerWeek = (posts / 4.3).toFixed(1);
+  const er           = b.engDepthRate ? b.engDepthRate.toFixed(2) : '—';
+  const tier         = getFollowerTier(b.followers);
+  const ctl          = b.commentDepthRatio ? (b.commentDepthRatio * 100).toFixed(1) : '—';
+  const highVolume   = posts >= 15; // already posting a lot
+
+  if (gap === 'Low reach') {
+    if (highVolume)
+      return `At ${postsPerWeek}x/week you're already active — reach isn't a volume problem. Shift the mix toward Reels. Static posts mostly reach existing followers; Reels are actively pushed to non-followers by the algorithm. Even 2–3 Reels per week in the current mix can meaningfully lift distribution.`;
+    return `Post Reels consistently — video is the fastest organic reach lever for a ${tier.name}-tier account. The algorithm distributes Reels to non-followers by default; static posts don't get that treatment.`;
+  }
+
+  if (gap === 'Weak engagement for size') {
+    if (highVolume)
+      return `You're posting ${postsPerWeek}x/week — volume isn't the issue. A ${er}% ER is well below the ~${tier.mid}% expected for ${tier.name}-tier accounts. This usually means content isn't connecting: try leading with your strongest visual, cut captions to 2–3 lines, and make the first line earn the scroll stop. Quality beats frequency here.`;
+    return `A ${er}% ER sits below the ~${tier.mid}% expected for ${tier.name}-tier accounts. Try testing Reels vs static posts and watch which format your audience responds to more — for most brands this size, Reels consistently lift ER. Also audit your last 10 posts: what got the most comments, not just likes?`;
+  }
+
+  if (gap === 'Low conversation') {
+    if (parseFloat(ctl) < 1.5)
+      return `A ${ctl}% comment-to-like ratio means people are scrolling past without talking. End your next 5 captions with something specific only your audience would want to answer — not "tag a friend", not "what do you think?" — something tied directly to the content. Accounts that ask specific questions consistently see comment rates double within a month.`;
+    return `Conversation rate is below the category benchmark. Replying to every comment for 30 days is the fastest way to lift it — accounts that respond consistently generate more comments over time, and comment depth is a direct distribution signal to the algorithm.`;
+  }
+
+  if (gap === 'Inconsistent posting') {
+    if (highVolume)
+      return `You've posted ${posts} times this month (${postsPerWeek}x/week) — above the category average. The issue may be uneven spacing: 5 posts one week, 1 the next. Try spreading evenly. Consistent cadence matters more than volume bursts — the algorithm rewards accounts that show up on a predictable schedule.`;
+    const target = Math.max(8, Math.round((b.med?.posts30d || 12)));
+    return `${posts} posts in 30 days is below the category average. Target at least ${target} this month — but the spacing matters as much as the number. Spreading posts evenly through the month signals reliability to the algorithm.`;
+  }
+
   if (gap === 'Low confidence sample')
-    return 'Not enough data yet for a confident recommendation. Check back once there are more posts in the 30-day window.';
-  return 'Performing well across all metrics. Maintain posting consistency and focus on sparking conversation — that\'s the hardest metric to fake and the most valuable to grow.';
+    return `Only ${posts} posts in the analysis window — not enough data yet for a confident recommendation. Check back as we accumulate more posts.`;
+
+  // No major gap
+  return `Performing well across all metrics. The next lever is community depth — find the 10–15% of followers who comment most and engage with them directly. Loyal commenters drive disproportionate algorithm signals and are worth more than passive followers.`;
 }
 
 function openDrawer(brandIdx, rank) {
@@ -1563,8 +1590,35 @@ function openDrawer(brandIdx, rank) {
     ${noGaps        ? `<div class="drawer-section"><div class="drawer-item"><div class="drawer-item-dot" style="background:#6B4FBB"></div>Performing well across all metrics — no major gaps detected.</div></div>` : ''}
 
     <div class="drawer-section">
+      <div class="drawer-section-label">📊 Account Stats — 30-day window</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Posts</div>
+          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${b.posts30d||0}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">in rolling window</div>
+        </div>
+        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Followers</div>
+          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${b.followers >= 1000000 ? (b.followers/1000000).toFixed(1)+'M' : (b.followers/1000).toFixed(1)+'K'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">${b.tierName} tier</div>
+        </div>
+        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Avg Likes</div>
+          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${b.avgLikes >= 1000 ? (b.avgLikes/1000).toFixed(1)+'K' : Math.round(b.avgLikes||0)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">per post</div>
+        </div>
+        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Avg Comments</div>
+          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${Math.round(b.avgComments||0)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">per post</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">Post type breakdown (Reels / Carousels / Static) and month-on-month follower change coming next data refresh.</div>
+    </div>
+
+    <div class="drawer-section">
       <div class="drawer-section-label">📊 Data Coverage</div>
-      <div class="drawer-item"><div class="drawer-item-dot" style="background:#D69E2E"></div>${b.conf.level} — ${b.conf.tip || ''} Based on ${b.posts30d||0} posts · ${b.tierName} account · ${(b.followers/1000).toFixed(0)}k followers</div>
+      <div class="drawer-item"><div class="drawer-item-dot" style="background:var(--warning)"></div>${b.conf.level} — ${b.conf.tip || ''}</div>
     </div>
 
     <div class="drawer-section">
