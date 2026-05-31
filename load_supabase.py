@@ -255,20 +255,40 @@ def supabase_req(method, path, body=None):
 
 # ── 1. FETCH POST DATA ────────────────────────────────────────
 print("\n1. Fetching post data from Apify...")
-posts = fetch_all(POST_DATASET, fields=["ownerUsername","likesCount","commentsCount","videoViewCount","type","timestamp"])
+posts = fetch_all(POST_DATASET, fields=["ownerUsername","likesCount","commentsCount","videoViewCount","type","timestamp","coauthorProducers","productType"])
 print(f"   Total posts: {len(posts)}")
 
 # ── 2. AGGREGATE BY BRAND ─────────────────────────────────────
 print("\n2. Aggregating by brand...")
-agg = defaultdict(lambda: {"likes":[], "comments":[], "reel_views":[], "count":0})
+agg = defaultdict(lambda: {
+    "likes":[], "comments":[], "reel_views":[],
+    "count":0, "reels":0, "carousels":0, "images":0, "collabs":0
+})
 for p in posts:
     u = (p.get("ownerUsername") or "").lower().strip()
     if not u: continue
     agg[u]["likes"].append(p.get("likesCount") or 0)
     agg[u]["comments"].append(p.get("commentsCount") or 0)
-    if p.get("type") in ("Video","Reel","clips") and p.get("videoViewCount"):
-        agg[u]["reel_views"].append(p["videoViewCount"])
     agg[u]["count"] += 1
+
+    # Post type detection
+    ptype = (p.get("type") or "").lower()
+    ptype_product = (p.get("productType") or "").lower()
+    is_reel = ptype in ("video", "reel", "clips") or "reel" in ptype_product or "clips" in ptype_product
+    is_carousel = ptype in ("sidecar",) or "sidecar" in ptype_product or p.get("type") == "Sidecar"
+    if is_reel:
+        agg[u]["reels"] += 1
+        if p.get("videoViewCount"):
+            agg[u]["reel_views"].append(p["videoViewCount"])
+    elif is_carousel:
+        agg[u]["carousels"] += 1
+    else:
+        agg[u]["images"] += 1
+
+    # Collab detection (coauthorProducers list not empty)
+    coauthors = p.get("coauthorProducers") or []
+    if coauthors:
+        agg[u]["collabs"] += 1
 
 print(f"   Brands with post data: {len(agg)}")
 
@@ -341,18 +361,26 @@ for handle, info in BRANDS.items():
         avg_comments = round(sum(post_agg["comments"]) / len(post_agg["comments"]), 2)
         posts_count  = post_agg["count"]
         avg_reels    = round(sum(post_agg["reel_views"]) / len(post_agg["reel_views"]), 2) if post_agg["reel_views"] else None
+        reels_count    = post_agg["reels"]
+        carousels_count = post_agg["carousels"]
+        images_count   = post_agg["images"]
+        collabs_count  = post_agg["collabs"]
     else:
         no_data.append(handle)
-        continue   # skip brands with no post data — keep existing metrics
+        continue
 
     metrics_batch.append({
-        "brand_id":      brand_id,
-        "period_end":    PERIOD_END,
-        "followers":     followers,
-        "avg_likes":     avg_likes,
-        "avg_comments":  avg_comments,
-        "avg_reel_views": avg_reels,
-        "posts_count":   posts_count,
+        "brand_id":        brand_id,
+        "period_end":      PERIOD_END,
+        "followers":       followers,
+        "avg_likes":       avg_likes,
+        "avg_comments":    avg_comments,
+        "avg_reel_views":  avg_reels,
+        "posts_count":     posts_count,
+        "reels_count":     reels_count,
+        "carousels_count": carousels_count,
+        "images_count":    images_count,
+        "collabs_count":   collabs_count,
     })
 
 # Upsert in batches of 50
