@@ -192,6 +192,32 @@
   .brand-row:last-child { border-bottom: none; }
   .brand-row:hover { background: var(--raised); }
   .brand-row.active { background: var(--raised); border-left: 3px solid var(--accent); }
+
+  /* Report card styles */
+  .rc-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .rc-grade { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; flex-shrink: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .rc-brand-name { font-size: 16px; font-weight: 800; color: var(--dark-text); }
+  .rc-brand-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rc-heat { margin-left: auto; text-align: center; flex-shrink: 0; }
+  .rc-heat-num { font-size: 28px; font-weight: 900; line-height: 1; }
+  .rc-heat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
+
+  .rc-scores { margin-bottom: 18px; }
+  .rc-score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .rc-score-label { font-size: 11px; color: var(--mid); flex: 0 0 120px; }
+  .rc-score-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .rc-score-fill { height: 6px; border-radius: 3px; transition: width 0.4s ease; }
+  .rc-score-val { font-size: 11px; font-weight: 700; color: var(--dark-text); flex: 0 0 36px; text-align: right; }
+
+  .rc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .rc-tag { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .rc-tag-friction { background: rgba(198,90,74,0.1); color: #8A2A1A; border: 1px solid rgba(198,90,74,0.3); }
+  .rc-tag-strength { background: rgba(126,184,1,0.1); color: #3D6010; border: 1px solid rgba(126,184,1,0.3); }
+
+  .rc-rec { background: #141413; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .rc-rec-label { font-size: 9px; font-weight: 700; color: #7eb801; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .rc-rec-title { font-size: 13px; font-weight: 700; color: #faf9f5; margin-bottom: 6px; line-height: 1.3; }
+  .rc-rec-body { font-size: 11px; color: rgba(250,249,245,0.7); line-height: 1.6; }
   .brand-row.hidden { display: none; }
   .brand-row.pinned-sticky { position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
@@ -1557,122 +1583,146 @@ function getAction(b) {
   return `Both engagement and conversation are below the category benchmark. For brands in this position, the most common cause is content that feels like promotion rather than community. Show the people, process, and culture behind the brand — not just the product. Authenticity drives engagement at every tier, and it's the variable that's hardest to fake and easiest to improve.`;
 }
 
+function letterGrade(score) {
+  if (score >= 93) return { grade:'A+', bg:'#7eb801', color:'#141413' };
+  if (score >= 85) return { grade:'A',  bg:'#7eb801', color:'#141413' };
+  if (score >= 78) return { grade:'B+', bg:'#081F2C', color:'#faf9f5' };
+  if (score >= 70) return { grade:'B',  bg:'#081F2C', color:'#faf9f5' };
+  if (score >= 62) return { grade:'C+', bg:'#CFC493', color:'#141413' };
+  if (score >= 52) return { grade:'C',  bg:'#D99A3D', color:'#141413' };
+  if (score >= 42) return { grade:'D+', bg:'#C65A4A', color:'#faf9f5' };
+  return                  { grade:'D',  bg:'#8A2A1A', color:'#faf9f5' };
+}
+
+function calcSubScores(b) {
+  const erScore   = Math.round(Math.min(35, b.catStrength  * 17.5));
+  const volScore  = Math.round(Math.min(25, b.consistency  * 12.5));
+  const convScore = Math.round(Math.min(20, b.convQuality  * 10));
+  // Format score: bonus for Reels, view conversion, collab mix
+  const fmtBase   = b.hasReels ? 12 : 6;
+  const fmtBoost  = (b.viewConvRate && b.med?.viewConvRate) ? Math.min(6, (b.viewConvRate/(b.med.viewConvRate||1))*3) : 3;
+  const fmtScore  = Math.round(Math.min(20, fmtBase + fmtBoost));
+  return { erScore, volScore, convScore, fmtScore, total: erScore+volScore+convScore+fmtScore };
+}
+
+function getFrictionTags(b) {
+  const tags = [];
+  if (b.sizeEff < 0.6)                       tags.push(`${b.engDepthRate.toFixed(2)}% ER — well below ${b.tierName} tier expectation`);
+  if (b.posts30d >= 18 && b.catStrength<0.9)  tags.push(`${b.posts30d} posts/month — volume not converting`);
+  if (b.convQuality < 0.6)                    tags.push(`CTL ${(b.commentDepthRatio*100).toFixed(1)}% — below floor`);
+  if (!b.hasReels)                             tags.push('No Reels in 30-day window');
+  if (b.vsEngCat < -30)                        tags.push(`${b.vsEngCat}% vs category median`);
+  if (b.consistency < 0.5 && b.posts30d < 5)  tags.push(`Only ${b.posts30d||0} posts this month`);
+  return tags;
+}
+
+function getStrengthTags(b) {
+  const tags = [];
+  if (b.catStrength >= 1.15)  tags.push(`ER ${b.engDepthRate.toFixed(2)}% — above category median`);
+  if (b.convQuality >= 1.2)   tags.push(`Strong conversation — ${(b.commentDepthRatio*100).toFixed(1)}% CTL`);
+  if (b.sizeEff >= 1.1)       tags.push(`Punching above ${b.tierName} tier`);
+  if (b.hasReels && b.viewConvRate && b.med?.viewConvRate && b.viewConvRate > b.med.viewConvRate)
+                               tags.push('Reels converting above category average');
+  if (b.consistency >= 1.15)  tags.push(`Consistent — ${b.posts30d} posts this month`);
+  if (b.vsEngCat >= 30)        tags.push(`+${b.vsEngCat}% vs category median`);
+  return tags;
+}
+
+function getRecommendations(b, rank) {
+  const ranked = currentRanked.filter(x => !x.isMicro);
+  const leader  = ranked[0];
+  const above   = rank > 1 ? ranked[rank - 2] : null;
+  const bestCTL = [...ranked].sort((a,x) => x.convQuality - a.convQuality)[0];
+  const recs = [];
+
+  if (leader && leader.name !== b.name) {
+    const gap = Math.abs(b.vsEngCat);
+    recs.push({
+      n:'G1',
+      title:`${leader.name} leads — here's the gap`,
+      body:`${leader.name} is #1 in this category at ${leader.engDepthRate.toFixed(2)}% ER with ${leader.posts30d||0} posts/month. Your ${b.engDepthRate.toFixed(2)}% ER sits ${gap}% ${b.vsEngCat<0?'below':'above'} the category median. ${gap > 40 ? 'The gap is structural — this won\'t close with posting frequency alone.' : 'The gap is closeable with consistent format and content focus.'}`
+    });
+  }
+
+  if (above && above.name !== b.name) {
+    const reelDiff = above.hasReels && !b.hasReels ? ` They're running Reels — you're not. That format gap likely explains part of the ranking difference.` :
+                     !above.hasReels && b.hasReels ? ` Interestingly, they don't use Reels but still outrank you — their content quality is the differentiator.` : '';
+    recs.push({
+      n:'G2',
+      title:`${above.name} is the nearest target (ranked #${rank-1})`,
+      body:`${above.name} posts ${above.posts30d||0}x/month, earns ${above.engDepthRate.toFixed(2)}% ER, and gets a ${(above.commentDepthRatio*100).toFixed(1)}% CTL.${reelDiff} Close that gap and you move up one position in the category.`
+    });
+  }
+
+  if (bestCTL && bestCTL.name !== b.name && b.convQuality < 1.0) {
+    recs.push({
+      n:'G3',
+      title:`Study ${bestCTL.name}'s conversation strategy`,
+      body:`${bestCTL.name} has the highest comment-to-like ratio in the category at ${(bestCTL.commentDepthRatio*100).toFixed(1)}%. Your ${(b.commentDepthRatio*100).toFixed(1)}% is ${b.convQuality < 0.6 ? 'well ' : ''}below that. The difference is almost always in how captions invite response — specific questions, not generic ones.`
+    });
+  }
+
+  return recs;
+}
+
 function openDrawer(brandIdx, rank) {
   const b = currentRanked[brandIdx];
   if (!b) return;
 
-  const strong = [], weak = [];
+  const lg    = letterGrade(b.heatScore);
+  const subs  = calcSubScores(b);
+  const frict = getFrictionTags(b);
+  const strgs = getStrengthTags(b);
+  const recs  = getRecommendations(b, rank);
 
-  // Category engagement
-  if (b.vsEngCat >= 10)      strong.push(`Engagement is +${b.vsEngCat}% above the category median`);
-  else if (b.vsEngCat <= -10) weak.push(`Engagement is ${b.vsEngCat}% below the category median`);
-
-  // Size benchmark
-  if (b.sizeBenchmark === 'Above size benchmark') strong.push(`Beats similar-sized accounts — performing above the ${b.tierName} tier expectation`);
-  else if (b.sizeBenchmark === 'Below size benchmark') weak.push(`Below what's expected for a ${b.tierName} tier account`);
-
-  // Conversation
-  if (b.convQuality >= 1.15)     strong.push(`Gets people talking — comment-to-like ratio is above the category median`);
-  else if (b.convQuality <= 0.8) weak.push(`Low conversation — comment-to-like ratio is below the category median`);
-
-  // Consistency
-  if (b.consistency >= 1.15)     strong.push(`Posts consistently — above the category average posting frequency`);
-  else if (b.consistency <= 0.7) weak.push(`Posts less frequently than the category average`);
-
-  const makeItems = (arr, colour) => arr.map(s =>
-    `<div class="drawer-item"><div class="drawer-item-dot" style="background:${colour}"></div>${s}</div>`
-  ).join('');
-
-  const noGaps = strong.length === 0 && weak.length === 0;
+  const scoreLabels = ['Engagement Rate','Format Mix','Volume Health','Conversation'];
+  const scoreColors = ['#7eb801','#081F2C','#CFC493','#C65A4A'];
+  const scoreVals   = [subs.erScore, subs.fmtScore, subs.volScore, subs.convScore];
+  const scoreMaxes  = [35, 20, 25, 20];
+  const scoreBars   = scoreVals.map((v,i) => `
+    <div class="rc-score-row">
+      <div class="rc-score-label">${scoreLabels[i]}</div>
+      <div class="rc-score-track"><div class="rc-score-fill" style="width:${(v/scoreMaxes[i])*100}%;background:${scoreColors[i]}"></div></div>
+      <div class="rc-score-val">${v}/${scoreMaxes[i]}</div>
+    </div>`).join('');
 
   document.getElementById('drawerContent').innerHTML = `
-    <div class="drawer-hero">
-      <div class="brand-avatar" style="background:${b.color};width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:white;overflow:hidden;flex-shrink:0">
-        <img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" onerror="this.parentNode.innerHTML='${b.initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
-      </div>
+    <div class="rc-header">
+      <div class="rc-grade" style="background:${lg.bg};color:${lg.color}">${lg.grade}</div>
       <div style="flex:1;overflow:hidden">
-        <div class="drawer-title">${b.name}</div>
-        <div class="drawer-handle">${b.handle} · #${rank} in category</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="brand-avatar" style="background:${b.color};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:9px;color:white;overflow:hidden;flex-shrink:0">
+            <img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" onerror="this.parentNode.innerHTML='${b.initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+          </div>
+          <div class="rc-brand-name">${b.name}</div>
+        </div>
+        <div class="rc-brand-sub">${b.handle} · #${rank} in category · ${b.tierName} tier</div>
       </div>
-      <div class="heat-score ${heatCls(b.heatScore)}" style="font-size:22px;padding:8px 14px;flex-shrink:0">${b.heatScore}</div>
-    </div>
-    <div class="drawer-why">Why ${b.name} scores ${b.heatScore}</div>
-
-    ${strong.length ? `<div class="drawer-section"><div class="drawer-section-label">💪 Strong</div>${makeItems(strong,'#38A169')}</div>` : ''}
-    ${weak.length   ? `<div class="drawer-section"><div class="drawer-section-label">🎯 Holding it back</div>${makeItems(weak,'#E53E3E')}</div>` : ''}
-    ${noGaps        ? `<div class="drawer-section"><div class="drawer-item"><div class="drawer-item-dot" style="background:#6B4FBB"></div>Performing well across all metrics — no major gaps detected.</div></div>` : ''}
-
-    <div class="drawer-section">
-      <div class="drawer-section-label">📊 Account Stats — 30-day window</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
-        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Posts</div>
-          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${b.posts30d||0}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">in rolling window</div>
-        </div>
-        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Followers</div>
-          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${b.followers >= 1000000 ? (b.followers/1000000).toFixed(1)+'M' : (b.followers/1000).toFixed(1)+'K'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">${b.tierName} tier</div>
-        </div>
-        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Avg Likes</div>
-          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${b.avgLikes >= 1000 ? (b.avgLikes/1000).toFixed(1)+'K' : Math.round(b.avgLikes||0)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">per post</div>
-        </div>
-        <div style="padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Avg Comments</div>
-          <div style="font-size:22px;font-weight:800;color:var(--dark-text);line-height:1">${Math.round(b.avgComments||0)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">per post</div>
-        </div>
-      </div>
-      ${(b.reelsCount || b.carouselsCount || b.imagesCount) ? `
-      <div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Post Format Mix</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          ${b.reelsCount ? `<span style="font-size:11px;color:var(--dark-text)">🎬 <strong>${b.reelsCount}</strong> Reels</span>` : ''}
-          ${b.carouselsCount ? `<span style="font-size:11px;color:var(--dark-text)">📎 <strong>${b.carouselsCount}</strong> Carousels</span>` : ''}
-          ${b.imagesCount ? `<span style="font-size:11px;color:var(--dark-text)">🖼 <strong>${b.imagesCount}</strong> Static</span>` : ''}
-          ${b.collabsCount ? `<span style="font-size:11px;color:var(--accent)">🤝 <strong>${b.collabsCount}</strong> Collabs</span>` : ''}
-        </div>
-      </div>` : `<div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">Post format breakdown (Reels / Carousels / Static / Collabs) available after next data refresh.</div>`}
-    </div>
-
-    <div class="drawer-section">
-      <div class="drawer-section-label">📊 Data Coverage</div>
-      <div class="drawer-item"><div class="drawer-item-dot" style="background:var(--warning)"></div>${b.conf.level} — ${b.conf.tip || ''}</div>
-    </div>
-
-    <div class="drawer-section">
-      <div class="drawer-section-label">⚡ One thing to do right now</div>
-      <div class="drawer-item" style="color:var(--dark-text);line-height:1.6">
-        <div class="drawer-item-dot" style="background:var(--accent);flex-shrink:0;margin-top:5px"></div>
-        ${getAction(b)}
+      <div class="rc-heat">
+        <div class="rc-heat-num" style="color:${lg.bg}">${b.heatScore}</div>
+        <div class="rc-heat-label">Brand Heat</div>
       </div>
     </div>
 
-    <div class="drawer-meta">
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Engagement Rate</span><br>
-          <span style="color:var(--dark-text);font-weight:700">${b.engDepthRate.toFixed(2)}%</span>
-          <span style="color:${b.vsEngCat >= 0 ? 'var(--accent)' : 'var(--negative)'};font-size:11px;margin-left:6px">${b.vsEngCat >= 0 ? '+' : ''}${b.vsEngCat}% vs category median</span>
-        </div>
-        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Comment-to-Like Ratio</span><br>
-          <span style="color:var(--dark-text);font-weight:700">${(b.commentDepthRatio*100).toFixed(1)}%</span>
-          <span style="color:var(--muted);font-size:11px;margin-left:6px">CTL — ${b.convQuality >= 1.1 ? 'above category average' : b.convQuality <= 0.85 ? 'below category average' : 'near category average'}</span>
-        </div>
-        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Size Fit</span><br>
-          <span style="color:var(--dark-text);font-weight:700">${b.sizeBenchmark}</span>
-          <span style="color:var(--muted);font-size:11px;margin-left:6px">${b.tierName} tier · ${(b.followers/1000).toFixed(0)}k followers</span>
-        </div>
-        ${b.hasReels && b.viewConvRate ? `<div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.6px">Reel View Conversion</span><br>
-          <span style="color:var(--dark-text);font-weight:700">${b.viewConvRate.toFixed(1)}%</span>
-          <span style="color:var(--muted);font-size:11px;margin-left:6px">of Reel views convert to engagement</span>
-        </div>` : ''}
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Composite Score — ${subs.total}/100</div>
+    <div class="rc-scores">${scoreBars}</div>
+
+    ${frict.length ? `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Friction</div><div class="rc-tags">${frict.map(t=>`<span class="rc-tag rc-tag-friction">${t}</span>`).join('')}</div></div>` : ''}
+    ${strgs.length ? `<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Strengths</div><div class="rc-tags">${strgs.map(t=>`<span class="rc-tag rc-tag-strength">${t}</span>`).join('')}</div></div>` : ''}
+
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Strategic Recommendations</div>
+    ${recs.length ? recs.map(r=>`<div class="rc-rec"><div class="rc-rec-label">${r.n} — Recommendation</div><div class="rc-rec-title">${r.title}</div><div class="rc-rec-body">${r.body}</div></div>`).join('') : `<div class="rc-rec"><div class="rc-rec-label">G1 — Recommendation</div><div class="rc-rec-title">Maintain and amplify</div><div class="rc-rec-body">You're performing well. Focus on community depth — identify the followers who comment most and engage with them directly. Loyal commenters drive disproportionate algorithm signals.</div></div>`}
+
+    <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Posts (30d)</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${b.posts30d||0}</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Followers</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${b.followers>=1000000?(b.followers/1000000).toFixed(1)+'M':(b.followers/1000).toFixed(1)+'K'}</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Avg Likes</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${b.avgLikes>=1000?(b.avgLikes/1000).toFixed(1)+'K':Math.round(b.avgLikes||0)}</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Avg Comments</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${Math.round(b.avgComments||0)}</div></div>
       </div>
-      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)">
-        Saves and shares excluded — not publicly available from Instagram.
-      </div>
+      ${(b.reelsCount||b.carouselsCount||b.imagesCount) ? `<div style="margin-top:10px;font-size:11px;color:var(--mid)">${[b.reelsCount?`🎬 ${b.reelsCount} Reels`:'',b.carouselsCount?`📎 ${b.carouselsCount} Carousels`:'',b.imagesCount?`🖼 ${b.imagesCount} Static`:'',b.collabsCount?`🤝 ${b.collabsCount} Collabs`:''].filter(Boolean).join(' · ')}</div>` : `<div style="margin-top:8px;font-size:10px;color:var(--muted)">Format breakdown available after next data refresh</div>`}
+      <div style="margin-top:10px;font-size:10px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px">Saves and shares excluded — not publicly available from Instagram. ${b.conf?.level||''}.</div>
     </div>
   `;
 
