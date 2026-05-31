@@ -24,24 +24,47 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    /* Editorial dark palette */
-    --bg:     #10110F;
-    --white:  #181A17;
-    --raised: #20231F;
-    --dark:   #10110F;
-    --mid:    #AAA79D;
-    --muted:  #6B6B62;
-    --border: #33362F;
+    /* Editorial dark palette (default) */
+    --bg:        #10110F;
+    --white:     #181A17;
+    --raised:    #20231F;
+    --dark:      #10110F;
+    --mid:       #AAA79D;
+    --muted:     #6B6B62;
+    --border:    #33362F;
     --dark-text: #F4F0E6;
 
     /* Accents */
-    --accent:    #B7E34A;  /* Dirty Lime — primary */
-    --info:      #7FA9A8;  /* Washed Blue */
-    --heat:      #E87D3E;  /* Heat Orange */
-    --negative:  #C65A4A;  /* Clay Red */
-    --positive:  #7FB069;  /* Positive Green */
-    --neutral:   #D6C7A1;  /* Sand */
-    --warning:   #D99A3D;  /* Amber */
+    --accent:    #B7E34A;
+    --info:      #7FA9A8;
+    --heat:      #E87D3E;
+    --negative:  #C65A4A;
+    --positive:  #7FB069;
+    --neutral:   #D6C7A1;
+    --warning:   #D99A3D;
+  }
+
+  /* ── Light mode overrides ── */
+  .light {
+    --bg:        #F5F4EF;
+    --white:     #FFFFFF;
+    --raised:    #ECEAE3;
+    --dark:      #F5F4EF;
+    --mid:       #5A5850;
+    --muted:     #9A9890;
+    --border:    #DDD9CE;
+    --dark-text: #1C1C1A;
+
+    --accent:    #527A1A;  /* Darker lime for readability on light */
+    --info:      #4A7A7A;
+    --heat:      #C05A1E;
+    --negative:  #A83A2A;
+    --positive:  #3A6A2A;
+    --neutral:   #8A7A5A;
+    --warning:   #A87020;
+  }
+
+  :root {
 
     /* Legacy aliases — map old names to new palette */
     --purple:       #B7E34A;
@@ -61,8 +84,10 @@
   .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 8px; padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
   .pill select { background: transparent; border: none; color: white; font-size: 12px; cursor: pointer; outline: none; appearance: none; }
-  .pill select option { background: #2D2D4E; color: white; }
-  .window-badge { background: var(--purple); color: white; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; }
+  .pill select option { background: #2D2D2A; color: var(--dark-text); }
+  .window-badge { background: var(--accent); color: #10110F; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; }
+  .theme-toggle { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); border-radius: 8px; padding: 5px 10px; font-size: 15px; cursor: pointer; line-height: 1; transition: all 0.15s; }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
   /* Layout */
   .container { max-width: 1360px; margin: 0 auto; padding: 22px 20px; }
@@ -331,6 +356,7 @@
       </select>
     </div>
     <div class="window-badge" id="windowBadge">Apr 30 – May 30, 2026</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
   </div>
 </div>
 
@@ -1379,6 +1405,25 @@ function showFormulas(el) {
   document.getElementById('brandFinder').style.display = 'none';
   document.querySelector('.main-grid').style.display = 'none';
 }
+
+// ── THEME TOGGLE ─────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('themeToggle').textContent = isLight ? '🌑' : '🌙';
+  localStorage.setItem('nw-theme', isLight ? 'light' : 'dark');
+}
+
+// Apply saved theme on load
+(function() {
+  const saved = localStorage.getItem('nw-theme');
+  if (saved === 'light') {
+    document.documentElement.classList.add('light');
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = '🌑';
+    });
+  }
+})();
 
 function setCat(el, cat) {
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
