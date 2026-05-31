@@ -45,6 +45,12 @@
   }
 
   /* ── Light mode overrides ── */
+  .light .rank-1     { background: #FFF3CD; color: #9A6F00; }
+  .light .rank-2     { background: #E8E8E8; color: #555; }
+  .light .rank-3     { background: #FFE8D6; color: #9A4400; }
+  .light .rank-other { background: #F0EFE9; color: #9A9890; }
+  .light .theme-toggle { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.12); color: #5A5850; }
+
   .light {
     --bg:        #F5F4EF;
     --white:     #FFFFFF;
@@ -131,7 +137,7 @@
   /* Leaderboard card */
   .leaderboard-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; color: var(--dark-text); }
   .leaderboard-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .leaderboard-header h2 { font-size: 15px; font-weight: 700; }
+  .leaderboard-header h2 { font-size: 15px; font-weight: 700; color: var(--dark-text); }
   .lh-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
   .date-range { font-size: 11px; color: var(--muted); background: var(--bg); border-radius: 5px; padding: 3px 8px; }
   .confidence-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -172,7 +178,7 @@
   .drawer-close button { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--muted); padding: 4px 8px; }
   .drawer-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
   .drawer-score-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-  .drawer-title { font-size: 17px; font-weight: 800; }
+  .drawer-title { font-size: 17px; font-weight: 800; color: var(--dark-text); }
   .drawer-handle { font-size: 12px; color: var(--muted); }
   .drawer-why { font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
   .drawer-section { margin-bottom: 18px; }
@@ -188,16 +194,16 @@
   .brand-row.pinned-sticky { position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
   .rank-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
-  .rank-1 { background: #FFF3CD; color: #9A6F00; }
-  .rank-2 { background: #E8E8F0; color: #555; }
-  .rank-3 { background: #FFE8D6; color: #9A4400; }
-  .rank-other { background: var(--bg); color: var(--muted); font-size: 10px; }
+  .rank-1     { background: #3A2E00; color: #E8C44A; }
+  .rank-2     { background: #2A2A2A; color: #AAA79D; }
+  .rank-3     { background: #3A1800; color: #E87D3E; }
+  .rank-other { background: var(--raised); color: var(--muted); font-size: 10px; }
 
   .brand-info { display: flex; align-items: center; gap: 8px; overflow: hidden; }
   .brand-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; color: white; flex-shrink: 0; overflow: hidden; }
   .brand-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
-  .brand-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .brand-handle { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-name { font-size: 12px; font-weight: 700; color: var(--dark-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-handle { font-size: 10px; color: var(--mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand-tag { font-size: 8px; font-weight: 700; text-transform: uppercase; background: var(--raised); color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; margin-top: 1px; display: inline-block; letter-spacing: 0.5px; }
   .your-brand-chip { font-size: 8px; font-weight: 700; text-transform: uppercase; background: #FEF3C7; color: #92400E; border-radius: 3px; padding: 1px 5px; margin-left: 4px; display: inline-block; }
 
@@ -252,7 +258,7 @@
   .insight-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
   .insight-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
   .insight-text { font-size: 11px; line-height: 1.55; color: var(--mid); }
-  .insight-text strong { color: var(--dark); }
+  .insight-text strong { color: var(--dark-text); }
 
   /* Formula panel */
   .formula-row { background: var(--bg); border-radius: 10px; padding: 12px 14px; }
@@ -283,14 +289,14 @@
   .fp-card { background: var(--raised); border: 1px solid var(--border); border-radius: 14px; padding: 24px; color: var(--dark-text); }
   .fp-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
   .fp-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .fp-card h3 { font-size: 15px; font-weight: 700; }
+  .fp-card h3 { font-size: 15px; font-weight: 700; color: var(--dark-text); }
   .fp-card .fp-def { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 8px; }
   .fp-card p { font-size: 13px; line-height: 1.7; color: var(--mid); }
   .fp-card .fp-formula { background: var(--bg); border-radius: 7px; padding: 10px 13px; font-size: 11px; font-family: monospace; color: var(--info); margin-top: 12px; font-weight: 600; border: 1px solid var(--border); }
   .fp-example { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-top: 4px; font-size: 12px; color: var(--mid); line-height: 1.7; }
   .fp-example strong { color: var(--neutral); }
   .fp-score-guide { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 24px; }
-  .fp-score-guide h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .fp-score-guide h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--dark-text); }
   .score-bar-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
   .score-label { font-size: 12px; font-weight: 700; width: 80px; flex-shrink: 0; }
   .score-track { flex: 1; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
@@ -300,7 +306,7 @@
   .fp-faq h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
   .faq-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
   .faq-item:last-child { border-bottom: none; }
-  .faq-q { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 7px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .faq-q { font-size: 13px; font-weight: 700; color: var(--dark-text); margin-bottom: 7px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .faq-a { font-size: 13px; color: var(--mid); line-height: 1.7; }
 
   /* Search not-found / add-brand UI */
