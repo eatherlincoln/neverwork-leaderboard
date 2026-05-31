@@ -79,7 +79,7 @@
   .summary-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
   /* Main grid */
-  .main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+  .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
 
   /* Leaderboard card */
   .leaderboard-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
@@ -101,7 +101,7 @@
   .info-icon { width: 12px; height: 12px; border-radius: 50%; background: var(--border); font-size: 8px; display: flex; align-items: center; justify-content: center; cursor: help; flex-shrink: 0; }
 
   /* Brand rows */
-  .brand-rows-wrap { max-height: 600px; overflow-y: auto; }
+  .brand-rows-wrap { overflow: visible; }
   .brand-row { display: grid; grid-template-columns: 38px 1fr 64px 130px 145px 155px 72px; gap: 6px; padding: 12px 18px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.12s; cursor: pointer; }
 
   /* Size benchmark badges */
@@ -266,10 +266,28 @@
 
   @media (max-width: 960px) {
     .main-grid { grid-template-columns: 1fr; }
-    .table-cols, .brand-row { grid-template-columns: 32px 1fr 52px 100px 100px; }
-    .brand-row > :nth-child(6), .brand-row > :nth-child(7) { display: none; }
-    .table-cols > :nth-child(6), .table-cols > :nth-child(7) { display: none; }
+    .table-cols, .brand-row { grid-template-columns: 28px 1fr 52px 110px; }
+    /* On mobile: show Rank, Brand, Heat, Engagement only */
+    .brand-row > :nth-child(5),
+    .brand-row > :nth-child(6),
+    .brand-row > :nth-child(7) { display: none; }
+    .table-cols > :nth-child(5),
+    .table-cols > :nth-child(6),
+    .table-cols > :nth-child(7) { display: none; }
     .brand-drawer { width: 100vw; right: -100vw; }
+    .header { padding: 14px 16px; }
+    .container { padding: 14px 12px; }
+    .summary-strip { grid-template-columns: 1fr 1fr; }
+    .brand-finder { padding: 14px 16px; flex-direction: column; align-items: stretch; gap: 10px; }
+    .brand-finder-label { display: none; }
+    .heat-score { font-size: 13px; padding: 4px 6px; }
+    .size-badge, .gap-badge { font-size: 9px; padding: 3px 6px; }
+    .chart-wrap { height: 160px; }
+  }
+
+  @media (max-width: 480px) {
+    .summary-strip { grid-template-columns: 1fr; }
+    .table-cols, .brand-row { grid-template-columns: 24px 1fr 48px 100px; }
   }
 </style>
 </head>
@@ -511,45 +529,16 @@
           <div class="col-head" data-tooltip="How far above or below the category median engagement rate. Click a brand to see full breakdown.">Engagement <div class="info-icon">i</div></div>
           <div class="col-head" data-tooltip="How this account performs vs others at the same follower count. Above/Within/Below the expected range for its tier.">Size Fit <div class="info-icon">i</div></div>
           <div class="col-head" data-tooltip="The main factor holding this brand back. Click the brand row for a full explanation.">Main Gap <div class="info-icon">i</div></div>
-          <div class="col-head" data-tooltip="Based on posts analysed and brands in category. Low = treat as directional only.">Confidence <div class="info-icon">i</div></div>
+          <div class="col-head" data-tooltip="How much data backs this category. More brands and posts = more reliable rankings. Coverage improves as we add more brands.">Coverage <div class="info-icon">i</div></div>
         </div>
         <div class="brand-rows-wrap" id="leaderboardRows"></div>
-      </div>
-
-      <div class="insights-card" style="margin-top:14px;">
-        <h3>💡 Key Insights</h3>
-        <div id="insightsList"></div>
-      </div>
-      <div class="formula-row" style="margin-top:14px;">
-        <h4>How scores are calculated</h4>
-        <div class="formula-chips">
-          <div class="formula-chip"><span>Brand Heat Score</span> = Reach 25% + Tier-Adj Engagement 35% + Activity/Community 25% + IQ 15%</div>
-          <div class="formula-chip"><span>Tier-Adj Engagement</span> = Raw ER ÷ Expected ER for follower tier — levels the field between large and small accounts</div>
-          <div class="formula-chip"><span>Activity/Community</span> = Tier-Adj Comment Depth (60%) × Frequency Boost (40%, capped 12/month)</div>
-          <div class="formula-chip"><span>IQ Score (full)</span> = Comment Rate×40% + Eng Depth×30% + View Conversion×20% + Consistency×10%</div>
-          <div class="formula-chip"><span>IQ Score (fallback)</span> = Comment Rate×50% + Eng Depth×35% + Consistency×15% — used when Reel views unavailable</div>
-          <div class="formula-chip"><span>Follower Tier ER benchmarks</span> = &lt;5K: 6% · 5–20K: 4% · 20–100K: 2.5% · 100–250K: 1.75% · 250–500K: 1.25% · 500K+: 0.8%</div>
-          <div class="formula-chip"><span>Engagement Depth</span> = (Likes + Comments) / Followers × 100</div>
-          <div class="formula-chip"><span>Comment Rate</span> = Comments / Followers × 100</div>
-          <div class="formula-chip"><span>View Conversion</span> = (Likes + Comments) / Reel Views × 100</div>
-          <div class="formula-chip"><span>Reach Rate</span> = Est. reach / Followers × 100</div>
-          <div class="formula-chip"><span>% vs Category</span> = (Brand ÷ Median − 1) × 100</div>
-          <div class="formula-chip"><span>Confidence</span> = Low (&lt;5 brands / &lt;10 posts) · Medium · High (10+ brands, 50+ posts)</div>
-          <div class="formula-chip" style="background:#FFF3CD;border-color:#D69E2E;color:#744210">⚠️ Saves and shares are not included — not reliably available from public Instagram data</div>
-        </div>
       </div>
     </div>
 
     <div class="right-panel">
-      <div class="metric-detail-card">
-        <div class="metric-detail-header"><h3>📊 Engagement vs Category</h3></div>
-        <div class="metric-definition">"Raw engagement rate + how far above or below the category median."</div>
-        <div class="metric-rows" id="engagementRows"></div>
-      </div>
-      <div class="metric-detail-card">
-        <div class="metric-detail-header"><h3>💬 Interaction Quality Score</h3></div>
-        <div class="metric-definition">"Public signals only: Comment Rate + Engagement Depth + View Conversion (where available). Saves and shares excluded."</div>
-        <div class="metric-rows" id="contentRows"></div>
+      <div class="insights-card">
+        <h3>💡 Key Insights</h3>
+        <div id="insightsList"></div>
       </div>
     </div>
   </div>
@@ -679,44 +668,211 @@ const INDUSTRY_DATA = {
   skate: {
     label: "Skate",
     brands: [
-      { name:"Girl Skateboards",  handle:"@girlskateboards",      color:"#E91E8C", initials:"GR", tag:"Street",   followers:310000, avgLikes:2800, avgComments:140, avgSaves:520, avgShares:120, posts30d:28, momRank:0,  momHeat:+1.2 },
-      { name:"Anti Hero",         handle:"@antihero_skateboards", color:"#F44336", initials:"AH", tag:"Street",   followers:245000, avgLikes:2200, avgComments:108, avgSaves:390, avgShares:95,  posts30d:21, momRank:+1, momHeat:+2.8 },
-      { name:"Baker Skateboards", handle:"@bakerskateboards",     color:"#795548", initials:"BK", tag:"Street",   followers:198000, avgLikes:1950, avgComments:88,  avgSaves:310, avgShares:77,  posts30d:18, momRank:-1, momHeat:-1.1 },
-      { name:"Polar Skate Co",    handle:"@polarskate",           color:"#3F51B5", initials:"PL", tag:"Euro",     followers:142000, avgLikes:1750, avgComments:75,  avgSaves:420, avgShares:68,  posts30d:15, momRank:+2, momHeat:+4.1 },
-      { name:"Santa Cruz",        handle:"@santacruzskateboards", color:"#FF5722", initials:"SC", tag:"Legacy",   followers:280000, avgLikes:2100, avgComments:95,  avgSaves:280, avgShares:80,  posts30d:24, momRank:0,  momHeat:+0.3 },
+      { name:"Thrasher",         handle:"@thrashermag",          color:"#D32F2F", initials:"TH", tag:"Media",       followers:5100000, avgLikes:51000, avgComments:2040, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Nike SB",          handle:"@nikesb",               color:"#111111", initials:"NS", tag:"Footwear",    followers:4200000, avgLikes:42000, avgComments:1680, posts30d:20, momRank:0, momHeat:0 },
+      { name:"Vans Skate",       handle:"@vansskate",            color:"#CC3333", initials:"VS", tag:"Footwear",    followers:3100000, avgLikes:31000, avgComments:1240, posts30d:18, momRank:0, momHeat:0 },
+      { name:"DC Skate",         handle:"@dc_skateboarding",     color:"#1A1A2E", initials:"DC", tag:"Footwear",    followers:2100000, avgLikes:21000, avgComments:840,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Berrics",          handle:"@berrics",              color:"#2D3142", initials:"BE", tag:"Media",       followers:1600000, avgLikes:24000, avgComments:960,  posts30d:22, momRank:0, momHeat:0 },
+      { name:"HUF",              handle:"@hufworldwide",         color:"#4A4E69", initials:"HF", tag:"Lifestyle",   followers:1200000, avgLikes:18000, avgComments:720,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"etnies",           handle:"@etnies",               color:"#3D2C8D", initials:"ET", tag:"Footwear",    followers:1100000, avgLikes:16500, avgComments:660,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Volcom Skate",     handle:"@volcomskate",          color:"#1B1B1B", initials:"VK", tag:"Lifestyle",   followers:850000,  avgLikes:12750, avgComments:510,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Street League",    handle:"@sls",                  color:"#E53935", initials:"SL", tag:"Competition", followers:800000,  avgLikes:12000, avgComments:480,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Spitfire Wheels",  handle:"@spitfirewheels",       color:"#FF6D00", initials:"SF", tag:"Hardware",    followers:780000,  avgLikes:11700, avgComments:468,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Thunder Trucks",   handle:"@thundertrucks",        color:"#424242", initials:"TT", tag:"Hardware",    followers:700000,  avgLikes:10500, avgComments:420,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Primitive",        handle:"@primitiveskate",       color:"#6A1B9A", initials:"PR", tag:"Street",      followers:620000,  avgLikes:13950, avgComments:558,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Santa Cruz",       handle:"@santacruzskateboards", color:"#FF5722", initials:"SC", tag:"Legacy",      followers:580000,  avgLikes:13050, avgComments:522,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"REAL",             handle:"@realskateboards",      color:"#212121", initials:"RL", tag:"Street",      followers:430000,  avgLikes:9675,  avgComments:387,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Deathwish",        handle:"@deathwishskateboards", color:"#B71C1C", initials:"DW", tag:"Street",      followers:510000,  avgLikes:11475, avgComments:459,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"GIRL",             handle:"@girlskateboards",      color:"#E91E8C", initials:"GR", tag:"Street",      followers:500000,  avgLikes:11250, avgComments:450,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Transworld Skate", handle:"@transworldskate",      color:"#1565C0", initials:"TW", tag:"Media",       followers:490000,  avgLikes:11025, avgComments:441,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Bones Wheels",     handle:"@boneswheels",          color:"#37474F", initials:"BW", tag:"Hardware",    followers:400000,  avgLikes:9000,  avgComments:360,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Toy Machine",      handle:"@toymachine",           color:"#F57F17", initials:"TM", tag:"Street",      followers:370000,  avgLikes:8325,  avgComments:333,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Krooked",          handle:"@krooked",              color:"#4527A0", initials:"KR", tag:"Street",      followers:310000,  avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Converse Cons",    handle:"@converse_cons",        color:"#1A1A2E", initials:"CC", tag:"Footwear",    followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Zero Skateboards", handle:"@zeroskateboards",      color:"#263238", initials:"ZR", tag:"Street",      followers:280000,  avgLikes:6300,  avgComments:252,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"NB Numeric",       handle:"@nbnumeric",            color:"#5D4037", initials:"NB", tag:"Footwear",    followers:210000,  avgLikes:4725,  avgComments:189,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"RedBull Skate",    handle:"@redbullskate",         color:"#D32F2F", initials:"RB", tag:"Energy",      followers:520000,  avgLikes:11700, avgComments:468,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Stance",           handle:"@stanceofficial",       color:"#37474F", initials:"ST", tag:"Lifestyle",   followers:1050000, avgLikes:15750, avgComments:630,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Skullcandy",       handle:"@skullcandy",           color:"#6D6570", initials:"SK", tag:"Audio",       followers:820000,  avgLikes:12300, avgComments:492,  posts30d:12, momRank:0, momHeat:0 },
     ]
   },
 
   snow: {
     label: "Snow",
     brands: [
-      { name:"Burton",         handle:"@burton",             color:"#5C6BC0", initials:"BU", tag:"Premium",     followers:520000, avgLikes:4200, avgComments:195, avgSaves:680, avgShares:155, posts30d:30, momRank:0,  momHeat:+0.8 },
-      { name:"Capita",         handle:"@capitasnowboarding",color:"#E53935", initials:"CA", tag:"Premium",     followers:285000, avgLikes:2950, avgComments:128, avgSaves:510, avgShares:98,  posts30d:22, momRank:+1, momHeat:+2.2 },
-      { name:"Salomon Snow",   handle:"@salomonsports",      color:"#00897B", initials:"SA", tag:"Performance", followers:380000, avgLikes:3100, avgComments:142, avgSaves:480, avgShares:115, posts30d:35, momRank:-1, momHeat:-0.5 },
-      { name:"Lib Tech",       handle:"@libtechnologies",    color:"#6D4C41", initials:"LT", tag:"Eco",         followers:165000, avgLikes:1820, avgComments:84,  avgSaves:390, avgShares:72,  posts30d:18, momRank:+1, momHeat:+1.9 },
-      { name:"Jones Snowboards",handle:"@jonessnowboards",   color:"#37474F", initials:"JN", tag:"Backcountry", followers:128000, avgLikes:1550, avgComments:70,  avgSaves:420, avgShares:60,  posts30d:14, momRank:0,  momHeat:+0.6 },
+      { name:"Burton",           handle:"@burton",             color:"#1A237E", initials:"BU", tag:"Premium",     followers:820000,  avgLikes:18450, avgComments:738,  posts30d:22, momRank:0, momHeat:0 },
+      { name:"Teton Gravity",    handle:"@tetongravity",       color:"#1565C0", initials:"TG", tag:"Film",        followers:780000,  avgLikes:17550, avgComments:702,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Union Bindings",   handle:"@unionbindingco",     color:"#263238", initials:"UB", tag:"Hardware",    followers:420000,  avgLikes:9450,  avgComments:378,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Salomon Snowboards",handle:"@salomonsnowboards", color:"#00695C", initials:"SN", tag:"Performance", followers:400000,  avgLikes:9000,  avgComments:360,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Vans Snow",        handle:"@vanssnow",           color:"#CC3333", initials:"VS", tag:"Lifestyle",   followers:390000,  avgLikes:8775,  avgComments:351,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Red Bull Snow",    handle:"@redbullsnow",        color:"#D32F2F", initials:"RB", tag:"Energy",      followers:310000,  avgLikes:6975,  avgComments:279,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"686 Snow",         handle:"@686",                color:"#37474F", initials:"68", tag:"Outerwear",   followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Volcom Snow",      handle:"@volcomsnow",         color:"#1B1B1B", initials:"VN", tag:"Outerwear",   followers:290000,  avgLikes:6525,  avgComments:261,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Anon Optics",      handle:"@anonoptics",         color:"#4A4E69", initials:"AN", tag:"Eyewear",     followers:220000,  avgLikes:4950,  avgComments:198,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Snowboard Mag",    handle:"@snowboardmag",       color:"#2D3142", initials:"SM", tag:"Media",       followers:210000,  avgLikes:4725,  avgComments:189,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Method Mag",       handle:"@methodmag",          color:"#6B4FBB", initials:"MM", tag:"Media",       followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Lib Tech",         handle:"@libtechnologies",    color:"#6D4C41", initials:"LT", tag:"Eco",         followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Ride Snowboards",  handle:"@ridesnowboards",     color:"#546E7A", initials:"RD", tag:"Performance", followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"ThirtyTwo",        handle:"@thirtytwo",          color:"#5D4037", initials:"32", tag:"Boots",       followers:195000,  avgLikes:4388,  avgComments:175,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Snowboarder Mag",  handle:"@snowboardermag",     color:"#37474F", initials:"SB", tag:"Media",       followers:150000,  avgLikes:3375,  avgComments:135,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Jones Snowboards", handle:"@jonessnowboards",    color:"#263238", initials:"JN", tag:"Backcountry", followers:150000,  avgLikes:3375,  avgComments:135,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"CAPiTA",           handle:"@capitasupercorp",    color:"#E53935", initials:"CA", tag:"Premium",     followers:140000,  avgLikes:3150,  avgComments:126,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Whitespace",       handle:"@whitespace_____",    color:"#ECEFF1", initials:"WS", tag:"Premium",     followers:120000,  avgLikes:2700,  avgComments:108,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Rome Snowboards",  handle:"@romesnowboards",     color:"#4A148C", initials:"RM", tag:"Performance", followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"YES Snowboards",   handle:"@yes_snowboards",     color:"#F57F17", initials:"YS", tag:"Performance", followers:100000,  avgLikes:2250,  avgComments:90,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"Nidecker",         handle:"@nideckersnowboards", color:"#1A1A2E", initials:"ND", tag:"Swiss",       followers:80000,   avgLikes:1800,  avgComments:72,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Bataleon",         handle:"@bataleonsnowboards", color:"#3F51B5", initials:"BT", tag:"Performance", followers:78000,   avgLikes:1755,  avgComments:70,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Forum Snow",       handle:"@forum_snow",         color:"#5C6BC0", initials:"FM", tag:"Legacy",      followers:75000,   avgLikes:1688,  avgComments:68,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Deeluxe",          handle:"@deeluxeboots",       color:"#795548", initials:"DL", tag:"Boots",       followers:62000,   avgLikes:1395,  avgComments:56,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Yuki Threads",     handle:"@yukithreads",        color:"#4A4E69", initials:"YT", tag:"Outerwear",   followers:30000,   avgLikes:1125,  avgComments:45,   posts30d:10, momRank:0, momHeat:0 },
     ]
   },
 
   outdoor: {
     label: "Outdoor",
     brands: [
-      { name:"Patagonia",     handle:"@patagonia",    color:"#4CAF50", initials:"PA", tag:"Sustainability", followers:5200000,avgLikes:38000,avgComments:520,avgSaves:4200,avgShares:980, posts30d:18, momRank:0,  momHeat:+1.1 },
-      { name:"Arc'teryx",     handle:"@arcteryx",     color:"#212121", initials:"AR", tag:"Technical",      followers:2800000,avgLikes:29000,avgComments:380,avgSaves:3800,avgShares:720, posts30d:22, momRank:+1, momHeat:+3.4 },
-      { name:"The North Face",handle:"@thenorthface", color:"#E53935", initials:"NF", tag:"Heritage",       followers:6100000,avgLikes:42000,avgComments:610,avgSaves:3900,avgShares:850, posts30d:28, momRank:-1, momHeat:-0.9 },
-      { name:"Black Diamond", handle:"@blackdiamond", color:"#546E7A", initials:"BD", tag:"Climbing",       followers:720000, avgLikes:7200, avgComments:195,avgSaves:980, avgShares:185, posts30d:20, momRank:+1, momHeat:+2.1 },
-      { name:"Cotopaxi",      handle:"@cotopaxi",     color:"#FF7043", initials:"CO", tag:"Colorful",       followers:580000, avgLikes:6800, avgComments:215,avgSaves:1100,avgShares:210, posts30d:24, momRank:0,  momHeat:+0.8 },
+      { name:"The North Face",   handle:"@thenorthface",         color:"#E53935", initials:"NF", tag:"Heritage",      followers:6100000, avgLikes:61000, avgComments:2440, posts30d:22, momRank:0, momHeat:0 },
+      { name:"Patagonia",        handle:"@patagonia",            color:"#4CAF50", initials:"PA", tag:"Sustainability", followers:5200000, avgLikes:52000, avgComments:2080, posts30d:16, momRank:0, momHeat:0 },
+      { name:"On Running",       handle:"@on",                   color:"#212121", initials:"ON", tag:"Performance",   followers:3100000, avgLikes:31000, avgComments:1240, posts30d:20, momRank:0, momHeat:0 },
+      { name:"Arc'teryx",        handle:"@arcteryx",             color:"#1A1A2E", initials:"AR", tag:"Technical",     followers:2800000, avgLikes:28000, avgComments:1120, posts30d:18, momRank:0, momHeat:0 },
+      { name:"HOKA",             handle:"@hoka",                 color:"#FF6D00", initials:"HO", tag:"Running",       followers:1200000, avgLikes:18000, avgComments:720,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"REI",              handle:"@rei",                  color:"#2E7D32", initials:"RI", tag:"Retail",        followers:1500000, avgLikes:22500, avgComments:900,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Salomon",          handle:"@salomon",              color:"#00695C", initials:"SL", tag:"Performance",   followers:1400000, avgLikes:21000, avgComments:840,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"YETI",             handle:"@yeti",                 color:"#1565C0", initials:"YT", tag:"Gear",          followers:1100000, avgLikes:16500, avgComments:660,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Fjällräven",       handle:"@fjallravenofficial",   color:"#5D4037", initials:"FJ", tag:"Heritage",      followers:1200000, avgLikes:18000, avgComments:720,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Merrell",          handle:"@merrell",              color:"#795548", initials:"ME", tag:"Footwear",      followers:600000,  avgLikes:13500, avgComments:540,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Helly Hansen",     handle:"@hellyhansen",          color:"#1565C0", initials:"HH", tag:"Marine",        followers:820000,  avgLikes:18450, avgComments:738,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Black Diamond",    handle:"@blackdiamond",         color:"#546E7A", initials:"BD", tag:"Climbing",      followers:760000,  avgLikes:17100, avgComments:684,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Cotopaxi",         handle:"@cotopaxi",             color:"#FF7043", initials:"CO", tag:"Colorful",      followers:600000,  avgLikes:13500, avgComments:540,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"La Sportiva",      handle:"@lasportivagram",       color:"#D32F2F", initials:"LS", tag:"Climbing",      followers:430000,  avgLikes:9675,  avgComments:387,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Peak Performance", handle:"@peakperformance",      color:"#37474F", initials:"PP", tag:"Performance",   followers:400000,  avgLikes:9000,  avgComments:360,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Columbia",         handle:"@columbia1938",         color:"#1565C0", initials:"CL", tag:"Heritage",      followers:800000,  avgLikes:18000, avgComments:720,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Osprey",           handle:"@ospreypacks",          color:"#2E7D32", initials:"OS", tag:"Packs",         followers:420000,  avgLikes:9450,  avgComments:378,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Mammut",           handle:"@mammut",               color:"#263238", initials:"MM", tag:"Alpine",        followers:620000,  avgLikes:13950, avgComments:558,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Marmot",           handle:"@marmot",               color:"#E65100", initials:"MT", tag:"Heritage",      followers:410000,  avgLikes:9225,  avgComments:369,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Smartwool",        handle:"@smartwool",            color:"#8D6E63", initials:"SW", tag:"Wool",          followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Altra Running",    handle:"@altrarunning",         color:"#FF6D00", initials:"AL", tag:"Running",       followers:310000,  avgLikes:6975,  avgComments:279,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Icebreaker",       handle:"@icebreakernz",         color:"#37474F", initials:"IB", tag:"Merino",        followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Mountain Hardwear",handle:"@mountainhardwear",     color:"#4A4E69", initials:"MH", tag:"Alpine",        followers:390000,  avgLikes:8775,  avgComments:351,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Outdoor Research", handle:"@outdoorresearch",      color:"#33691E", initials:"OR", tag:"Technical",     followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Rab",              handle:"@rab.equipment",        color:"#1A1A2E", initials:"RB", tag:"Alpine",        followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Gregory Packs",    handle:"@gregorypacks",         color:"#5D4037", initials:"GP", tag:"Packs",         followers:155000,  avgLikes:3488,  avgComments:140,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"KÜHL",             handle:"@kuhl",                 color:"#6D4C41", initials:"KL", tag:"Lifestyle",     followers:210000,  avgLikes:4725,  avgComments:189,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Klättermusen",     handle:"@klattermusen",         color:"#37474F", initials:"KM", tag:"Scandinavian",  followers:82000,   avgLikes:1845,  avgComments:74,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Haglöfs",          handle:"@haglofs",              color:"#2E7D32", initials:"HG", tag:"Scandinavian",  followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Houdini",          handle:"@houdinisportswear",    color:"#0288D1", initials:"HD", tag:"Sustainable",   followers:82000,   avgLikes:1845,  avgComments:74,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Nemo Equipment",   handle:"@nemoequipment",        color:"#FF6D00", initials:"NE", tag:"Camping",       followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Snow Peak",        handle:"@snowpeak_official",    color:"#263238", initials:"SP", tag:"Japanese",      followers:520000,  avgLikes:11700, avgComments:468,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"And Wander",       handle:"@andwander_official",   color:"#546E7A", initials:"AW", tag:"Japanese",      followers:150000,  avgLikes:3375,  avgComments:135,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Nanamica",         handle:"@nanamica",             color:"#37474F", initials:"NA", tag:"Japanese",      followers:80000,   avgLikes:1800,  avgComments:72,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Goldwin",          handle:"@goldwin_global",       color:"#1A1A2E", initials:"GW", tag:"Japanese",      followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"ROA Hiking",       handle:"@roa_hiking",           color:"#6D4C41", initials:"RO", tag:"Hiking",        followers:82000,   avgLikes:1845,  avgComments:74,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"18 East",          handle:"@18eastofficial",       color:"#4A4E69", initials:"1E", tag:"Workwear",      followers:52000,   avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Nanga",            handle:"@nanga_official",       color:"#1565C0", initials:"NG", tag:"Down",          followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Ostrya",           handle:"@ostryaequipment",      color:"#37474F", initials:"OT", tag:"Technical",     followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Hiking Patrol",    handle:"@hikingpatrol",         color:"#5D4037", initials:"HP", tag:"Community",     followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Manresa",          handle:"@manresamfg",           color:"#263238", initials:"MN", tag:"Workwear",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"William Ellery",   handle:"@william_ellery",       color:"#4A4E69", initials:"WE", tag:"Workwear",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"F/CE.",            handle:"@fce_tools",            color:"#1A1A2E", initials:"FC", tag:"Japanese",      followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Mountain Research",handle:"@mountain_research",    color:"#37474F", initials:"MR", tag:"Japanese",      followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Meanswhile",       handle:"@meanswhile",           color:"#546E7A", initials:"MW", tag:"Japanese",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"CMF Outdoor",      handle:"@cmfoutdoorgarment_official", color:"#263238", initials:"CM", tag:"Japanese", followers:32000, avgLikes:1200, avgComments:48,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"CAYL",             handle:"@cayl_official",        color:"#4A4E69", initials:"CY", tag:"Korean",        followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Earth Studies",    handle:"@earthstudiesproject",  color:"#5D4037", initials:"ES", tag:"Boutique",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Sansan Gear",      handle:"@sansan_gear",          color:"#37474F", initials:"SG", tag:"Boutique",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"PaaGo Works",      handle:"@paagoworks.official",  color:"#546E7A", initials:"PW", tag:"Japanese",      followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Big Rock Candy",   handle:"@bigrockcandymountaineering", color:"#6D4C41", initials:"BR", tag:"Boutique", followers:12000,  avgLikes:690,   avgComments:28,   posts30d:6,  momRank:0, momHeat:0 },
     ]
   },
 
   lifestyle: {
     label: "Lifestyle",
     brands: [
-      { name:"Billabong",  handle:"@billabong",  color:"#F9A825", initials:"BI", tag:"Heritage",    followers:1800000,avgLikes:12000,avgComments:280,avgSaves:1500,avgShares:320, posts30d:32, momRank:0,  momHeat:+0.4 },
-      { name:"Quiksilver", handle:"@quiksilver", color:"#1565C0", initials:"QS", tag:"Heritage",    followers:2200000,avgLikes:14500,avgComments:310,avgSaves:1800,avgShares:380, posts30d:36, momRank:-1, momHeat:-0.6 },
-      { name:"Rip Curl",   handle:"@ripcurl",    color:"#D32F2F", initials:"RC", tag:"Performance", followers:1500000,avgLikes:11200,avgComments:250,avgSaves:1350,avgShares:290, posts30d:28, momRank:+1, momHeat:+1.8 },
-      { name:"RVCA",       handle:"@rvca",        color:"#4A148C", initials:"RV", tag:"Arts",        followers:920000, avgLikes:8800, avgComments:195,avgSaves:1200,avgShares:225, posts30d:24, momRank:+2, momHeat:+3.2 },
-      { name:"O'Neill",    handle:"@oneill",      color:"#00695C", initials:"ON", tag:"Heritage",    followers:850000, avgLikes:7200, avgComments:165,avgSaves:980, avgShares:195, posts30d:22, momRank:0,  momHeat:+0.2 },
+      { name:"Nike",             handle:"@nike",                color:"#111111", initials:"NK", tag:"Sportswear",   followers:310000000,avgLikes:310000,avgComments:12400,posts30d:20, momRank:0, momHeat:0 },
+      { name:"adidas",           handle:"@adidas",              color:"#000000", initials:"AD", tag:"Sportswear",   followers:80000000, avgLikes:80000, avgComments:3200, posts30d:22, momRank:0, momHeat:0 },
+      { name:"Jordan Brand",     handle:"@jumpman23",           color:"#D32F2F", initials:"JB", tag:"Sneaker",      followers:14000000, avgLikes:140000,avgComments:5600, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Supreme",          handle:"@supremenewyork",      color:"#D32F2F", initials:"SU", tag:"Streetwear",   followers:16000000, avgLikes:160000,avgComments:6400, posts30d:12, momRank:0, momHeat:0 },
+      { name:"adidas Originals", handle:"@adidasoriginals",     color:"#212121", initials:"AO", tag:"Lifestyle",    followers:45000000, avgLikes:450000,avgComments:18000,posts30d:18, momRank:0, momHeat:0 },
+      { name:"Converse",         handle:"@converse",            color:"#1A1A2E", initials:"CV", tag:"Footwear",     followers:40000000, avgLikes:400000,avgComments:16000,posts30d:16, momRank:0, momHeat:0 },
+      { name:"Red Bull",         handle:"@redbull",             color:"#D32F2F", initials:"RB", tag:"Energy",       followers:19000000, avgLikes:190000,avgComments:7600, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Puma",             handle:"@puma",                color:"#E53935", initials:"PU", tag:"Sportswear",   followers:14000000, avgLikes:140000,avgComments:5600, posts30d:18, momRank:0, momHeat:0 },
+      { name:"GoPro",            handle:"@gopro",               color:"#0288D1", initials:"GP", tag:"Tech",         followers:18000000, avgLikes:180000,avgComments:7200, posts30d:16, momRank:0, momHeat:0 },
+      { name:"DJI",              handle:"@djiglobal",            color:"#1A1A2E", initials:"DJ", tag:"Tech",         followers:5100000,  avgLikes:51000, avgComments:2040, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Uniqlo",           handle:"@uniqlousa",           color:"#E53935", initials:"UQ", tag:"Basics",       followers:5000000,  avgLikes:50000, avgComments:2000, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Stüssy",           handle:"@stussy",              color:"#1A1A2E", initials:"ST", tag:"Streetwear",   followers:5000000,  avgLikes:50000, avgComments:2000, posts30d:10, momRank:0, momHeat:0 },
+      { name:"Fear Of God",      handle:"@fearofgod",           color:"#424242", initials:"FG", tag:"Luxury",       followers:4200000,  avgLikes:42000, avgComments:1680, posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Levi's",           handle:"@levis",               color:"#1565C0", initials:"LV", tag:"Denim",        followers:7000000,  avgLikes:70000, avgComments:2800, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Oakley",           handle:"@oakley",              color:"#212121", initials:"OK", tag:"Sports",       followers:4500000,  avgLikes:45000, avgComments:1800, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Carhartt WIP",     handle:"@carharttwip",         color:"#5D4037", initials:"CW", tag:"Workwear",     followers:3000000,  avgLikes:30000, avgComments:1200, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Jacquemus",        handle:"@jacquemus",           color:"#F5F5F5", initials:"JQ", tag:"Luxury",       followers:3000000,  avgLikes:30000, avgComments:1200, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Acne Studios",     handle:"@acnestudios",         color:"#FF80AB", initials:"AS", tag:"Luxury",       followers:2000000,  avgLikes:30000, avgComments:1200, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Stone Island",     handle:"@stoneisland",         color:"#37474F", initials:"SI", tag:"Technical",    followers:3500000,  avgLikes:35000, avgComments:1400, posts30d:10, momRank:0, momHeat:0 },
+      { name:"Palace",           handle:"@palaceskateboards",   color:"#1A1A2E", initials:"PL", tag:"Skate",        followers:2500000,  avgLikes:37500, avgComments:1500, posts30d:10, momRank:0, momHeat:0 },
+      { name:"KITH",             handle:"@kith",                color:"#212121", initials:"KT", tag:"Luxury",       followers:3000000,  avgLikes:30000, avgComments:1200, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Aimé Leon Dore",   handle:"@aimeleondore",        color:"#6D6570", initials:"AL", tag:"Luxury",       followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Human Made",       handle:"@humanmade",           color:"#5D4037", initials:"HM", tag:"Japanese",     followers:1000000,  avgLikes:15000, avgComments:600,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"BMW",              handle:"@bmw",                 color:"#1565C0", initials:"BM", tag:"Auto",         followers:36000000, avgLikes:360000,avgComments:14400,posts30d:18, momRank:0, momHeat:0 },
+      { name:"Mercedes-Benz",    handle:"@mercedesbenz",        color:"#212121", initials:"MB", tag:"Auto",         followers:34000000, avgLikes:340000,avgComments:13600,posts30d:18, momRank:0, momHeat:0 },
+      { name:"Audi",             handle:"@audi",                color:"#D32F2F", initials:"AU", tag:"Auto",         followers:18000000, avgLikes:180000,avgComments:7200, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Fujifilm",         handle:"@fujifilmx_us",        color:"#FF6D00", initials:"FJ", tag:"Camera",       followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Leica",            handle:"@leica_camera",        color:"#D32F2F", initials:"LC", tag:"Camera",       followers:1200000,  avgLikes:18000, avgComments:720,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Canon",            handle:"@canonusa",            color:"#D32F2F", initials:"CN", tag:"Camera",       followers:2000000,  avgLikes:30000, avgComments:1200, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Nikon",            handle:"@nikonusa",            color:"#F9A825", initials:"NK", tag:"Camera",       followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Ethika",           handle:"@ethika",              color:"#E91E8C", initials:"ET", tag:"Underwear",    followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"The Hundreds",     handle:"@thehundreds",         color:"#D32F2F", initials:"TH", tag:"Streetwear",   followers:1000000,  avgLikes:15000, avgComments:600,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Bose",             handle:"@bose",                color:"#1A1A2E", initials:"BS", tag:"Audio",        followers:2000000,  avgLikes:30000, avgComments:1200, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Stance",           handle:"@stanceofficial",      color:"#37474F", initials:"SN", tag:"Socks",        followers:1050000,  avgLikes:15750, avgComments:630,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Nixon",            handle:"@nixon",               color:"#263238", initials:"NX", tag:"Watches",      followers:1200000,  avgLikes:18000, avgComments:720,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"John Elliott",     handle:"@johnelliottco",       color:"#424242", initials:"JE", tag:"Luxury",       followers:820000,   avgLikes:12300, avgComments:492,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Wrangler",         handle:"@wrangleraustralia",   color:"#5D4037", initials:"WR", tag:"Denim",        followers:800000,   avgLikes:12000, avgComments:480,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Dime",             handle:"@dimemtl",             color:"#1A1A2E", initials:"DM", tag:"Skate",        followers:800000,   avgLikes:12000, avgComments:480,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"END Clothing",     handle:"@endclothing",         color:"#37474F", initials:"EN", tag:"Retail",       followers:700000,   avgLikes:10500, avgComments:420,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Noah Clothing",    handle:"@noahclothing",        color:"#1565C0", initials:"NC", tag:"Menswear",     followers:800000,   avgLikes:12000, avgComments:480,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Bang & Olufsen",   handle:"@bangolufsen",         color:"#1A1A2E", initials:"BO", tag:"Audio",        followers:620000,   avgLikes:13950, avgComments:558,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Bellroy",          handle:"@bellroy",             color:"#5D4037", initials:"BL", tag:"Accessories",  followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Brain Dead",       handle:"@wearebraindead",      color:"#4A148C", initials:"BD", tag:"Art",          followers:510000,   avgLikes:11475, avgComments:459,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Denim Tears",      handle:"@denimtears",          color:"#5D4037", initials:"DT", tag:"Cultural",     followers:510000,   avgLikes:11475, avgComments:459,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Our Legacy",       handle:"@ourlegacy",           color:"#546E7A", initials:"OL", tag:"Scandinavian", followers:620000,   avgLikes:13950, avgComments:558,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Thrills",          handle:"@thrillsco",           color:"#1565C0", initials:"TR", tag:"Surf-Life",    followers:410000,   avgLikes:9225,  avgComments:369,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Stampd",           handle:"@stampd",              color:"#212121", initials:"SD", tag:"Luxury",       followers:420000,   avgLikes:9450,  avgComments:378,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Aries",            handle:"@ariesarise",          color:"#6A1B9A", initials:"AR", tag:"Art",          followers:430000,   avgLikes:9675,  avgComments:387,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Online Ceramics",  handle:"@onlineceramics",      color:"#5D4037", initials:"OC", tag:"Art",          followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Awake NY",         handle:"@awakenewyorkclothing",color:"#1A1A2E", initials:"AW", tag:"NY",           followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Common Projects",  handle:"@commonprojects",      color:"#F5F5F5", initials:"CP", tag:"Luxury",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Needles",          handle:"@needles_tokyo_official",color:"#1565C0",initials:"NE", tag:"Japanese",    followers:420000,   avgLikes:9450,  avgComments:378,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Undercover",       handle:"@undercover_lab",      color:"#1A1A2E", initials:"UC", tag:"Japanese",     followers:510000,   avgLikes:11475, avgComments:459,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Neighborhood",     handle:"@neighborhood_official",color:"#37474F",initials:"NH", tag:"Japanese",     followers:410000,   avgLikes:9225,  avgComments:369,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Kapital",          handle:"@kapitalglobal",       color:"#5D4037", initials:"KP", tag:"Japanese",     followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Reigning Champ",   handle:"@reigningchamp",       color:"#424242", initials:"RC", tag:"Basics",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Saturdays NYC",    handle:"@saturdaysnyc",        color:"#1565C0", initials:"SN", tag:"Surf-Life",    followers:420000,   avgLikes:9450,  avgComments:378,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Sonos",            handle:"@sonos",               color:"#212121", initials:"SO", tag:"Audio",        followers:1000000,  avgLikes:15000, avgComments:600,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Skullcandy",       handle:"@skullcandy",          color:"#6D6570", initials:"SK", tag:"Audio",        followers:820000,   avgLikes:12300, avgComments:492,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Moment",           handle:"@moment",              color:"#37474F", initials:"MO", tag:"Camera",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Valley Eyewear",   handle:"@valleyeyewear",       color:"#6D6570", initials:"VE", tag:"Eyewear",      followers:155000,   avgLikes:3488,  avgComments:140,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Garrett Leight",   handle:"@garrettleight",       color:"#5D4037", initials:"GL", tag:"Eyewear",      followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Assembly Label",   handle:"@assemblylabel",       color:"#546E7A", initials:"AL", tag:"Australian",   followers:155000,   avgLikes:3488,  avgComments:140,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Bode",             handle:"@bode",                color:"#8D6E63", initials:"BO", tag:"Artisanal",    followers:430000,   avgLikes:9675,  avgComments:387,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Engineered Garments",handle:"@engineered_garments_official",color:"#5D4037",initials:"EG",tag:"Workwear",followers:510000,avgLikes:11475,avgComments:459, posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Mophie",           handle:"@mophie",              color:"#1565C0", initials:"MP", tag:"Tech",         followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Clae",             handle:"@clae",                color:"#2E7D32", initials:"CL", tag:"Footwear",     followers:82000,    avgLikes:1845,  avgComments:74,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Dylan Kain",       handle:"@dylan_kain",          color:"#E91E8C", initials:"DK", tag:"Australian",   followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"I Love Ugly",      handle:"@iloveugly",           color:"#212121", initials:"IU", tag:"NZ",           followers:155000,   avgLikes:3488,  avgComments:140,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Neuw Denim",       handle:"@neuwdenim",           color:"#1565C0", initials:"ND", tag:"Denim",        followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Mr Simple",        handle:"@mrsimplegoods",       color:"#546E7A", initials:"MS", tag:"Australian",   followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"HAVEN",            handle:"@havenshop",           color:"#263238", initials:"HV", tag:"Retail",       followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Highs & Lows",     handle:"@highs_and_lows",      color:"#1A1A2E", initials:"HL", tag:"Australian",   followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Concepts",         handle:"@cncpts",              color:"#5D4037", initials:"CO", tag:"Retail",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Undefeated",       handle:"@undefeatedinc",       color:"#212121", initials:"UN", tag:"Retail",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Union LA",         handle:"@unionlosangeles",     color:"#1565C0", initials:"UL", tag:"Retail",       followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Supply Store",     handle:"@supplystore",         color:"#546E7A", initials:"SS", tag:"Australian",   followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Incu",             handle:"@incu_clothing",       color:"#37474F", initials:"IN", tag:"Australian",   followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Adsum",            handle:"@adsumnyc",            color:"#546E7A", initials:"AD", tag:"NY",           followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Above The Clouds", handle:"@abovethecloudsstore", color:"#5D4037", initials:"AT", tag:"Retail",       followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"APC",              handle:"@apc_paris",           color:"#1A1A2E", initials:"AP", tag:"French",       followers:820000,   avgLikes:12300, avgComments:492,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Noah NY",          handle:"@noahny",              color:"#1565C0", initials:"NY", tag:"Menswear",     followers:600000,   avgLikes:13500, avgComments:540,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Quartz Co",        handle:"@quartz_co",           color:"#546E7A", initials:"QC", tag:"Canadian",     followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"wings+horns",      handle:"@wingsandhorns",       color:"#37474F", initials:"WH", tag:"Canadian",     followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Outlier",          handle:"@outlier",             color:"#263238", initials:"OT", tag:"Technical",    followers:82000,    avgLikes:1845,  avgComments:74,   posts30d:6,  momRank:0, momHeat:0 },
     ]
   },
 
@@ -830,12 +986,16 @@ function getFollowerTier(followers) {
   return                          { name:'Mega',     min:0.5, max:1.5, mid:1.00 };
 }
 
-// Size benchmark: is brand ER inside, above or below its tier range?
+// Size benchmark: is brand ER inside, above or below its tier range? Includes % delta.
 function getSizeBenchmark(followers, er) {
   const t = getFollowerTier(followers);
-  if (er >= t.max) return 'Above size benchmark';
+  if (er >= t.max) {
+    const pct = Math.round((er / t.max - 1) * 100);
+    return `Above size benchmark (+${pct}%)`;
+  }
   if (er >= t.min) return 'Within size benchmark';
-  return 'Below size benchmark';
+  const pct = Math.round((1 - er / t.min) * 100);
+  return `Below size benchmark (−${pct}%)`;
 }
 
 // Expected CDR by tier — small accounts naturally get more comments per like
@@ -951,9 +1111,9 @@ function getMainGap(raw, med, heat, conf) {
 
 function confidence(brands) {
   const n = brands.length, p = brands.reduce((s,b) => s + (b.posts30d||0), 0);
-  if (n < 5 || p < 10)    return { level:'Low',    cls:'conf-low' };
-  if (n >= 10 && p >= 50) return { level:'High',   cls:'conf-high' };
-  return                         { level:'Medium', cls:'conf-medium' };
+  if (n < 5 || p < 10)    return { level:'Early data',  cls:'conf-low',    tip:'Small sample — rankings are directional. Coverage grows as we add more brands.' };
+  if (n >= 10 && p >= 50) return { level:'Strong data', cls:'conf-high',   tip:'Large sample across many brands and posts — rankings are reliable.' };
+  return                         { level:'Solid data',  cls:'conf-medium', tip:'Good sample — rankings reflect real trends in this category.' };
 }
 
 let currentRanked = [];
@@ -987,7 +1147,7 @@ function fmt(val) {
 function heatCls(s) { return s >= 75 ? 'hot' : s >= 50 ? 'warm' : 'cool'; }
 function engSign(v)  { return v >= 0 ? '+' : ''; }
 function engCls(v)   { return v > 5 ? 'above' : v < -5 ? 'below' : 'flat'; }
-function sizeCls(s)  { return s.split(' ')[0].toLowerCase(); } // 'above'|'within'|'below'
+function sizeCls(s)  { const w = s.split(' ')[0].toLowerCase(); return w === 'above' ? 'above' : w === 'within' ? 'within' : 'below'; }
 
 // ── RENDER ────────────────────────────────────────────────────
 function render() {
@@ -1245,8 +1405,8 @@ function openDrawer(brandIdx, rank) {
     ${noGaps        ? `<div class="drawer-section"><div class="drawer-item"><div class="drawer-item-dot" style="background:#6B4FBB"></div>Performing well across all metrics — no major gaps detected.</div></div>` : ''}
 
     <div class="drawer-section">
-      <div class="drawer-section-label">📊 Confidence</div>
-      <div class="drawer-item"><div class="drawer-item-dot" style="background:#D69E2E"></div>${b.conf.level} confidence · ${b.posts30d||0} posts analysed · ${b.tierName} account (${(b.followers/1000).toFixed(0)}k followers)</div>
+      <div class="drawer-section-label">📊 Data Coverage</div>
+      <div class="drawer-item"><div class="drawer-item-dot" style="background:#D69E2E"></div>${b.conf.level} — ${b.conf.tip || ''} Based on ${b.posts30d||0} posts · ${b.tierName} account · ${(b.followers/1000).toFixed(0)}k followers</div>
     </div>
 
     <div class="drawer-meta">
