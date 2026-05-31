@@ -302,7 +302,7 @@
       <div class="score-bar-row">
         <div class="score-label" style="color:#C05621">🔥 90–100</div>
         <div class="score-track"><div class="score-fill" style="width:100%;background:#C05621"></div></div>
-        <div class="score-note">Category-leading. Firing on all cylinders — reach, engagement depth, and interaction quality all above median.</div>
+        <div class="score-note">Category-leading. Firing on all cylinders — reach, tier-adjusted engagement, community activity, and interaction quality all above median.</div>
       </div>
     </div>
 
@@ -313,27 +313,38 @@
           <div class="fp-icon" style="background:#FFF0F0">🔥</div>
           <div><div class="fp-def">Overall Score</div><h3>Brand Heat Score</h3></div>
         </div>
-        <p>Your Brand Heat Score rolls three things into one number: how many people your posts are reaching, how much your audience is actually engaging, and whether that engagement is the good kind (saves and shares — not just likes).</p>
+        <p>Your Brand Heat Score rolls four things into one number: how many people you're reaching, whether your engagement is strong <em>for your size</em>, how active and conversational your community is, and the overall quality of interactions.</p>
         <p style="margin-top:10px">The score is built so that <strong>50 always means average for your category</strong>. If you scored 64, you're beating more than half the category. If you scored 38, your peers are outperforming you — and this tool will show you exactly where the gap is.</p>
         <div class="fp-formula">Heat = Reach(25%) + Tier-Adj Engagement(35%) + Activity/Community(25%) + IQ Score(15%)</div>
-        <div class="fp-example"><strong>Why does it matter?</strong> A brand with 200k followers and 0.8% engagement can score lower than a brand with 30k followers and 3% engagement. Audience size alone doesn't win.</div>
+        <div class="fp-example"><strong>Why does it matter?</strong> A brand with 500k followers and below-tier engagement can score lower than a brand with 30k followers that punches above its weight and has an audience that actually talks back. Size alone doesn't win.</div>
       </div>
 
       <div class="fp-card">
         <div class="fp-card-head">
           <div class="fp-icon" style="background:#F0F7FF">📊</div>
-          <div><div class="fp-def">Metric 1</div><h3>Engagement Rate</h3></div>
+          <div><div class="fp-def">Metric 1</div><h3>Tier-Adjusted Engagement</h3></div>
         </div>
-        <p>Engagement rate measures how many people in your audience are actually doing something when they see your post — liking, commenting, saving, or sharing.</p>
-        <p style="margin-top:10px">We divide the total number of those actions by your follower count, then multiply by 100 to get a percentage. <strong>A 1% engagement rate means 1 in every 100 followers is reacting to your posts.</strong></p>
-        <div class="fp-formula">(Likes + Comments + Saves + Shares) ÷ Followers × 100</div>
-        <div class="fp-example"><strong>Example:</strong> Brand has 80,000 followers. A post gets 900 likes, 40 comments, 180 saves, 30 shares = 1,150 total. 1,150 ÷ 80,000 × 100 = <strong>1.44% engagement rate</strong>. If the category median is 1.1%, that's +31% above median.</div>
+        <p>Raw engagement rate is biased — a brand with 5,000 followers will almost always have a higher ER than one with 500,000. That's just how Instagram works. So we don't compare raw ER directly.</p>
+        <p style="margin-top:10px">Instead, we divide each brand's ER by the <strong>expected ER for their follower tier</strong>. A score of 1.0× means meeting tier expectation. 2.0× means double. This lets a large brand with great engagement compete fairly against a small brand with great engagement.</p>
+        <div class="fp-formula">Tier-Adj ER = Raw ER ÷ Expected ER for follower tier<br><br>&lt;5K: 6% · 5–20K: 4% · 20–100K: 2.5% · 100–250K: 1.75% · 250–500K: 1.25% · 500K+: 0.8%</div>
+        <div class="fp-example"><strong>Example:</strong> Brand A has 300K followers and 1.4% ER. Their tier expects 1.25%, so their tier-adjusted score is 1.12× — above expectation. Brand B has 15K followers and 3.5% ER. Their tier expects 4%, so they're only at 0.88× — actually underperforming for their size despite the higher raw number.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#F0FFF8">💬</div>
+          <div><div class="fp-def">Metric 2</div><h3>Activity / Community Score</h3></div>
+        </div>
+        <p>This metric rewards brands whose audiences genuinely talk back — not just scroll and like. It uses the <strong>comment-to-like ratio</strong> as a proxy for two-way community engagement, since saves and shares aren't publicly available.</p>
+        <p style="margin-top:10px">Like engagement rate, comment-to-like ratios are naturally higher for smaller accounts. So we tier-adjust this too — comparing each brand's ratio against what's expected for their size. Consistent posting amplifies the score, but volume is capped so you can't game it by posting 30 times a month.</p>
+        <div class="fp-formula">Activity = Tier-Adj Comment Depth (60%) × Frequency Boost (40%)<br><br>Frequency Boost = smooth reward curve, capped at 12 posts/month</div>
+        <div class="fp-example"><strong>Why comments?</strong> A brand that responds to comments, sparks conversation, and builds a real community will naturally attract more comments relative to likes — regardless of size. It's the best public signal we have for genuine community health.</div>
       </div>
 
       <div class="fp-card">
         <div class="fp-card-head">
           <div class="fp-icon" style="background:#FFFBEB">🎯</div>
-          <div><div class="fp-def">Metric 2</div><h3>Interaction Quality Score</h3></div>
+          <div><div class="fp-def">Metric 3</div><h3>Interaction Quality Score</h3></div>
         </div>
         <p>Interaction Quality measures how meaningfully an audience responds using only <strong>public, scrapeable signals</strong>. Saves and shares are excluded — Instagram doesn't make them publicly available.</p>
         <p style="margin-top:10px">The score weights comment rate most heavily (it takes the most effort), then engagement depth (likes + comments together), then view conversion on Reels where available.</p>
@@ -344,7 +355,7 @@
       <div class="fp-card">
         <div class="fp-card-head">
           <div class="fp-icon" style="background:#F0FFF4">📡</div>
-          <div><div class="fp-def">Metric 3</div><h3>Reach Rate</h3></div>
+          <div><div class="fp-def">Metric 4</div><h3>Reach Rate</h3></div>
         </div>
         <p>Reach rate estimates what percentage of your followers actually see each post. Instagram doesn't show every post to every follower — the algorithm decides based on how engaging your recent content has been.</p>
         <p style="margin-top:10px"><strong>Bigger accounts typically have lower reach rates.</strong> A brand with 500k followers might only reach 12% of them per post, while a 25k-follower brand might reach 28%. This is normal — and it's why smaller brands can outperform on this metric.</p>
@@ -392,7 +403,7 @@
       </div>
       <div class="faq-item">
         <div class="faq-q">My brand posts a lot but the score is still low. Why?</div>
-        <div class="faq-a">Posting frequency is tracked but isn't heavily weighted in the Heat Score. Volume only helps if the content is landing. If you're posting 30 times a month but engagement is below the category median, the algorithm starts showing your posts to fewer people. Less, but better-performing content is usually more effective.</div>
+        <div class="faq-a">Posting frequency contributes to the Activity/Community Score, but it's a multiplier on your comment depth — not a score in itself. Volume only helps if your audience is actually talking. Posting 30 times a month with low comment-to-like ratios won't outperform a brand posting 8 times with a highly conversational community. Also, the frequency reward caps at around 12 posts/month, so there's no benefit to posting more than that.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">How often is this data updated?</div>
@@ -1244,7 +1255,7 @@ async function init() {
           avgLikes:      parseFloat(row.avg_likes)    || 0,
           avgComments:   parseFloat(row.avg_comments) || 0,
           avgReelViews:  parseFloat(row.avg_reel_views) || 0,
-          posts30d:      row.posts_count   || 18,
+          posts30d:      row.posts_count   || 4,
           momRank:       0,
           momHeat:       0,
         });
