@@ -1175,21 +1175,38 @@ function confidence(brands) {
 
 let currentRanked = [];
 
+const MICRO_THRESHOLD = 5000; // Brands below this are excluded from scoring
+
 function computeRanked(brands) {
-  const med  = calcMedians(brands);
-  const conf = confidence(brands);
-  currentRanked = brands.map(b => {
+  // Split into rankable brands and micro accounts
+  const rankable = brands.filter(b => (b.followers || 0) >= MICRO_THRESHOLD);
+  const micro    = brands.filter(b => (b.followers || 0) > 0 && (b.followers || 0) < MICRO_THRESHOLD);
+
+  // Medians and confidence only from rankable brands
+  const med  = calcMedians(rankable);
+  const conf = confidence(rankable);
+
+  const ranked = rankable.map(b => {
     const raw      = calcRaw(b);
     const iq       = calcIQ(raw, med);
     const activity = calcActivity(raw, med, b.posts30d);
     const h        = calcHeat(raw, med, iq, activity);
     const mainGap  = getMainGap(raw, med, h, activity, iq, conf);
     return {
-      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap,
-      // vsEngCat: vs raw category median ER (human-readable display)
+      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap, isMicro: false,
       vsEngCat: Math.round((raw.engDepthRate / (med.engDepthRate || 1) - 1) * 100),
     };
   }).sort((a, b) => b.heatScore - a.heatScore);
+
+  // Append micro accounts at the bottom, flagged
+  const microTagged = micro.map(b => ({
+    ...b, isMicro: true, heatScore: null, med, conf,
+    engDepthRate: b.followers > 0 ? ((b.avgLikes + b.avgComments) / b.followers) * 100 : 0,
+    commentDepthRatio: b.avgLikes > 0 ? b.avgComments / b.avgLikes : 0,
+    tierName: getFollowerTier(b.followers).name,
+  }));
+
+  currentRanked = [...ranked, ...microTagged];
   return currentRanked;
 }
 // ── STATE ─────────────────────────────────────────────────────
@@ -1259,17 +1276,44 @@ function renderSummary(ranked, label) {
 }
 
 function makeRow(b, rank, brandIdx, isPinned, isMatch) {
+  const rowStyle = isPinned
+    ? 'border-left:3px solid var(--warning);background:rgba(207,196,147,0.08)'
+    : isMatch ? 'border-left:3px solid var(--accent);background:rgba(126,184,1,0.06)' : '';
+  const stickyClass = isPinned ? ' pinned-sticky' : '';
+
+  // ── Micro account treatment ───────────────────────────────
+  if (b.isMicro) {
+    return `<div class="brand-row${stickyClass}" data-name="${b.name.toLowerCase()} ${b.handle.toLowerCase()}" style="${rowStyle};opacity:0.6" onclick="openDrawer(${brandIdx},'—')">
+      <div><div class="rank-badge rank-other">—</div></div>
+      <div class="brand-info">
+        <div class="brand-avatar" style="background:${b.color}"><img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentNode.innerHTML='${b.initials}'"></div>
+        <div style="overflow:hidden">
+          <div class="brand-name">${b.name}</div>
+          <div class="brand-handle">${b.handle}</div>
+          <div class="brand-tag">${b.tag}</div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;font-weight:600;color:var(--muted);text-align:center;padding:4px 6px;border:1px solid var(--border);border-radius:5px;line-height:1.4">Micro<br>account</div>
+      </div>
+      <div style="grid-column:span 2">
+        <div style="font-size:11px;color:var(--muted)">Under 5K followers — not enough audience data to rank in category</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${(b.followers/1000).toFixed(1)}k followers · ${b.tierName} tier</div>
+      </div>
+      <div></div>
+    </div>`;
+  }
+
+  // ── Standard row ─────────────────────────────────────────
   const rc   = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
   const sign = b.vsEngCat >= 0 ? '+' : '';
   const ec   = engCls(b.vsEngCat);
-  // CTL = comment-to-like ratio as a %
-  const ctl     = b.commentDepthRatio ? (b.commentDepthRatio * 100).toFixed(1) : '—';
-  const ctlMed  = b.med?.tierAdjCDR ? (b.med.tierAdjCDR * (b.followers < 10000 ? 0.07 : b.followers < 50000 ? 0.05 : b.followers < 500000 ? 0.025 : b.followers < 1000000 ? 0.015 : 0.01)).toFixed(1) : null;
-  const ctlCls  = b.convQuality >= 1.1 ? 'above' : b.convQuality <= 0.85 ? 'below' : 'flat';
-  const rowStyle = isPinned
-    ? 'border-left:3px solid #D69E2E;background:#FFFBEB'
-    : isMatch ? 'border-left:3px solid var(--purple);background:var(--purple-pale)' : '';
-  const stickyClass = isPinned ? ' pinned-sticky' : '';
+  const ctl  = b.commentDepthRatio ? (b.commentDepthRatio * 100).toFixed(1) : '—';
+  const ctlCls = b.convQuality >= 1.1 ? 'above' : b.convQuality <= 0.85 ? 'below' : 'flat';
+  // Tier context for ER — what's expected for this size account
+  const tier       = getFollowerTier(b.followers);
+  const tierCtx    = `expected ~${tier.mid}% for ${tier.name} tier`;
+
   return `<div class="brand-row${stickyClass}" data-name="${b.name.toLowerCase()} ${b.handle.toLowerCase()}" style="${rowStyle}" onclick="openDrawer(${brandIdx},${rank})">
     <div><div class="rank-badge ${rc}">${rank}</div></div>
     <div class="brand-info">
@@ -1284,21 +1328,24 @@ function makeRow(b, rank, brandIdx, isPinned, isMatch) {
       <div class="heat-score ${heatCls(b.heatScore)}">${b.heatScore}</div>
     </div>
     <div>
-      <div style="font-size:15px;font-weight:800;color:var(--dark)">${b.engDepthRate.toFixed(2)}%</div>
+      <div style="font-size:15px;font-weight:800;color:var(--dark-text)">${b.engDepthRate.toFixed(2)}%</div>
       <div class="vs-median ${ec}" style="font-size:10px;margin-top:2px">${sign}${b.vsEngCat}% vs category</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px">${tierCtx}</div>
       <div class="metric-bar-wrap" style="margin-top:4px"><div class="metric-bar" style="width:${Math.min(100,b.engIdx*50)}%"></div></div>
     </div>
     <div>
-      <div style="font-size:15px;font-weight:800;color:var(--dark)">${ctl}%</div>
+      <div style="font-size:15px;font-weight:800;color:var(--dark-text)">${ctl}%</div>
       <div class="vs-median ${ctlCls}" style="font-size:10px;margin-top:2px">comment-to-like</div>
-      <div class="metric-bar-wrap" style="margin-top:4px"><div class="metric-bar" style="width:${Math.min(100,b.convQuality*50)}%;background:#38A169"></div></div>
+      <div class="metric-bar-wrap" style="margin-top:4px"><div class="metric-bar" style="width:${Math.min(100,b.convQuality*50)}%;background:var(--positive)"></div></div>
     </div>
     <div><span class="confidence-badge ${b.conf.cls}" style="font-size:9px">${b.conf.level}</span></div>
   </div>`;
 }
 
 function renderLeaderboard(ranked, searchTerm) {
-  const top10 = ranked.slice(0, 10);
+  const scoredBrands = ranked.filter(b => !b.isMicro);
+  const microBrands  = ranked.filter(b => b.isMicro);
+  const top10 = scoredBrands.slice(0, 10);
   let rows = '';
 
   if (pinnedBrand) {
@@ -1323,6 +1370,14 @@ function renderLeaderboard(ranked, searchTerm) {
     });
   } else {
     top10.forEach((b, i) => { rows += makeRow(b, i + 1, currentRanked.indexOf(b), false, false); });
+  }
+
+  // Append micro brands after the main ranking
+  if (microBrands.length) {
+    rows += `<div style="padding:8px 18px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;border-top:1px solid var(--border);margin-top:4px">Micro accounts — under 5K followers</div>`;
+    microBrands.forEach(b => {
+      rows += makeRow(b, '—', currentRanked.indexOf(b), false, false);
+    });
   }
 
   document.getElementById('leaderboardRows').innerHTML = rows || '<div class="no-results">No brands found.</div>';
