@@ -848,22 +848,20 @@ function getExpectedCDR(followers) {
 }
 
 function calcRaw(b) {
-  const f   = b.followers;
-  const t   = getFollowerTier(f);
-  // Category Strength input: raw ER vs category median
-  const engDepthRate = ((b.avgLikes + b.avgComments) / f) * 100;
-  // Size Efficiency input: raw ER vs tier midpoint
-  const sizeEfficiency = engDepthRate / t.mid;
-  // Conversation Quality input: tier-adjusted comment-to-like ratio
+  const f = b.followers;
+  const t = getFollowerTier(f);
+  const engDepthRate      = ((b.avgLikes + b.avgComments) / f) * 100;
+  const commentRate       = (b.avgComments / f) * 100;
+  // Tier-adjusted ER: removes size bias so brands compare fairly within category
+  const tierAdjEngRate    = engDepthRate / t.mid;
+  // Comment Depth Ratio + tier adjustment (small accounts get more comments per like naturally)
   const commentDepthRatio = b.avgLikes > 0 ? b.avgComments / b.avgLikes : 0;
   const tierAdjCDR        = commentDepthRatio / getExpectedCDR(f);
-  // Reel view conversion (detail drawer only, not main score)
-  const hasReels     = b.avgReelViews && b.avgReelViews > 0;
-  const viewConvRate = hasReels ? ((b.avgLikes + b.avgComments) / b.avgReelViews) * 100 : null;
-  // Reach estimate (size-decaying)
-  const reachRate = Math.max(8, 28 - Math.max(0, (Math.log10(f) - 4.5) * 8));
+  const hasReels          = b.avgReelViews && b.avgReelViews > 0;
+  const viewConvRate      = hasReels ? ((b.avgLikes + b.avgComments) / b.avgReelViews) * 100 : null;
+  const reachRate         = Math.max(8, 28 - Math.max(0, (Math.log10(f) - 4.5) * 8));
   return {
-    engDepthRate, sizeEfficiency, commentDepthRatio, tierAdjCDR,
+    engDepthRate, commentRate, tierAdjEngRate, commentDepthRatio, tierAdjCDR,
     viewConvRate, reachRate, hasReels,
     sizeBenchmark: getSizeBenchmark(f, engDepthRate),
     tierName: t.name,
@@ -877,25 +875,65 @@ function median(arr) {
 
 function calcMedians(brands) {
   const r = brands.map(calcRaw);
+  const vcRates = r.filter(x => x.viewConvRate !== null).map(x => x.viewConvRate);
   return {
     engDepthRate:    median(r.map(x => x.engDepthRate)),
-    sizeEfficiency:  median(r.map(x => x.sizeEfficiency)),
+    commentRate:     median(r.map(x => x.commentRate)),
+    tierAdjEngRate:  median(r.map(x => x.tierAdjEngRate)),
     tierAdjCDR:      median(r.map(x => x.tierAdjCDR)),
+    viewConvRate:    vcRates.length >= 3 ? median(vcRates) : null,
     reachRate:       median(r.map(x => x.reachRate)),
     posts30d:        median(brands.map(b => b.posts30d || 0)),
   };
 }
 
-function cap(v) { return Math.min(v, 2.0); }
+function cap(v)  { return Math.min(v, 2.0); }
+function idx(brand, med) { return cap(brand / (med || 1)); }
 
-// Brand Heat Score: Category Strength 45% + Size Efficiency 30% + Conversation Quality 15% + Consistency 10%
-function calcHeat(raw, med, posts30d) {
-  const catStrength = cap(raw.engDepthRate   / (med.engDepthRate   || 1));
-  const sizeEff     = cap(raw.sizeEfficiency); // already = ER / tier midpoint
-  const convQuality = cap(raw.tierAdjCDR     / (med.tierAdjCDR     || 1));
-  const consistency = cap((posts30d || 0)    / (med.posts30d       || 1));
-  const heatScore   = Math.min(100, Math.round((catStrength*0.45 + sizeEff*0.30 + convQuality*0.15 + consistency*0.10) * 50));
-  return { catStrength, sizeEff, convQuality, consistency, heatScore };
+// IQ Score: public signals only (comment rate, engagement depth, view conversion)
+function calcIQ(raw, med) {
+  const commentIdx  = idx(raw.commentRate,  med.commentRate);
+  const engDepthIdx = idx(raw.engDepthRate, med.engDepthRate);
+  let iqRaw;
+  if (raw.hasReels && med.viewConvRate) {
+    const viewConvIdx = idx(raw.viewConvRate, med.viewConvRate);
+    iqRaw = commentIdx*0.40 + engDepthIdx*0.30 + viewConvIdx*0.20 + 1.0*0.10;
+  } else {
+    iqRaw = commentIdx*0.50 + engDepthIdx*0.35 + 1.0*0.15;
+  }
+  const iqIdx   = Math.min(iqRaw, 2.0);
+  const iqScore = Math.min(100, Math.round(iqIdx * 50));
+  return { commentIdx, engDepthIdx, iqIdx, iqScore };
+}
+
+// Activity/Community: tier-adj CDR (60%) × frequency boost (40%, capped 12/month)
+function calcActivity(raw, med, posts30d) {
+  const commentDepthIdx = med.tierAdjCDR > 0 ? cap(raw.tierAdjCDR / med.tierAdjCDR) : 1.0;
+  const freqBoost       = Math.min(1.0, Math.sqrt((posts30d || 0) / 12));
+  const activityIdx     = Math.min(2.0, commentDepthIdx * (0.6 + 0.4 * freqBoost));
+  return { commentDepthIdx, freqBoost, activityIdx };
+}
+
+// Brand Heat Score: Reach 25% + Tier-Adj Engagement 35% + Activity/Community 25% + IQ 15%
+// All inputs are tier-normalised before category comparison — size bias removed.
+function calcHeat(raw, med, iq, activity) {
+  const ri = idx(raw.reachRate,       med.reachRate);
+  const ei = idx(raw.tierAdjEngRate,  med.tierAdjEngRate);
+  const heatScore = Math.min(100, Math.round((ri*0.25 + ei*0.35 + activity.activityIdx*0.25 + iq.iqIdx*0.15) * 50));
+  return { reachIdx: ri, engIdx: ei, heatScore };
+}
+
+// Main Gap: plain-English diagnosis of the weakest scoring component
+function getMainGap(raw, med, h, activity, iq, conf) {
+  if (conf.level === 'Low') return 'Low confidence sample';
+  const gaps = [
+    { label:'Low reach',               score: h.reachIdx },
+    { label:'Weak engagement for size', score: idx(raw.tierAdjEngRate, med.tierAdjEngRate) },
+    { label:'Low conversation',        score: activity.commentDepthIdx },
+    { label:'Inconsistent posting',    score: Math.min(1.0, Math.sqrt((raw.posts30d||0) / 12)) + 0.5 },
+  ];
+  const weakest = gaps.reduce((a, b) => a.score < b.score ? a : b);
+  return weakest.score >= 0.9 ? 'No major gap' : weakest.label;
 }
 
 // Main Gap: plain-English diagnosis of the weakest metric
@@ -924,20 +962,18 @@ function computeRanked(brands) {
   const med  = calcMedians(brands);
   const conf = confidence(brands);
   currentRanked = brands.map(b => {
-    const raw     = calcRaw(b);
-    const h       = calcHeat(raw, med, b.posts30d);
-    const mainGap = getMainGap(raw, med, h, conf);
+    const raw      = calcRaw(b);
+    const iq       = calcIQ(raw, med);
+    const activity = calcActivity(raw, med, b.posts30d);
+    const h        = calcHeat(raw, med, iq, activity);
+    const mainGap  = getMainGap(raw, med, h, activity, iq, conf);
     return {
-      ...b, ...raw, ...h, med, conf, mainGap,
-      vsEngCat: Math.round((raw.engDepthRate / (med.engDepthRate||1) - 1) * 100),
+      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap,
+      // vsEngCat: vs raw category median ER (human-readable display)
+      vsEngCat: Math.round((raw.engDepthRate / (med.engDepthRate || 1) - 1) * 100),
     };
-  }).sort((a,b) => b.heatScore - a.heatScore);
+  }).sort((a, b) => b.heatScore - a.heatScore);
   return currentRanked;
-}
-
-// legacy stub — replaced by drawer
-function computeRanked_UNUSED(brands) {
-  return computeRanked(brands);
 }
 // ── STATE ─────────────────────────────────────────────────────
 let currentCat = 'surfboards';
