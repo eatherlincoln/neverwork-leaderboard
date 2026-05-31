@@ -315,7 +315,7 @@
         </div>
         <p>Your Brand Heat Score rolls three things into one number: how many people your posts are reaching, how much your audience is actually engaging, and whether that engagement is the good kind (saves and shares — not just likes).</p>
         <p style="margin-top:10px">The score is built so that <strong>50 always means average for your category</strong>. If you scored 64, you're beating more than half the category. If you scored 38, your peers are outperforming you — and this tool will show you exactly where the gap is.</p>
-        <div class="fp-formula">Heat = Reach(35%) + Engagement Depth(35%) + IQ Score(30%)</div>
+        <div class="fp-formula">Heat = Reach(25%) + Tier-Adj Engagement(35%) + Activity/Community(25%) + IQ Score(15%)</div>
         <div class="fp-example"><strong>Why does it matter?</strong> A brand with 200k followers and 0.8% engagement can score lower than a brand with 30k followers and 3% engagement. Audience size alone doesn't win.</div>
       </div>
 
@@ -462,9 +462,10 @@
           <div class="col-head">Brand</div>
           <div class="col-head" data-tooltip="Engagement Rate = (Likes + Comments + Saves + Shares) / Followers × 100, vs category median">Eng vs Cat <div class="info-icon">i</div></div>
           <div class="col-head" data-tooltip="Interaction Quality Score: Comment Rate 50% + Engagement Depth 35% + Consistency 15% vs category median. Public signals only — saves/shares excluded.">IQ Score <div class="info-icon">i</div></div>
+
           <div class="col-head" data-tooltip="Reach Rate: estimated post reach / followers, vs category median">Reach vs Cat <div class="info-icon">i</div></div>
           <div class="col-head" data-tooltip="Posts in rolling window">Posts <div class="info-icon">i</div></div>
-          <div class="col-head" data-tooltip="Brand Heat Score: Reach 35% + Engagement Depth 35% + IQ Score 30%. 50=median, 75=strong, 100=leading">Heat <div class="info-icon">i</div></div>
+          <div class="col-head" data-tooltip="Brand Heat Score: Reach 25% + Tier-Adj Engagement 35% + Activity/Community 25% + IQ 15%. 50=median, 75=strong, 100=leading">Heat <div class="info-icon">i</div></div>
         </div>
         <div class="brand-rows-wrap" id="leaderboardRows"></div>
       </div>
@@ -476,9 +477,12 @@
       <div class="formula-row" style="margin-top:14px;">
         <h4>How scores are calculated</h4>
         <div class="formula-chips">
-          <div class="formula-chip"><span>Brand Heat Score</span> = Reach Index 35% + Engagement Depth Index 35% + IQ Index 30%</div>
+          <div class="formula-chip"><span>Brand Heat Score</span> = Reach 25% + Tier-Adj Engagement 35% + Activity/Community 25% + IQ 15%</div>
+          <div class="formula-chip"><span>Tier-Adj Engagement</span> = Raw ER ÷ Expected ER for follower tier — levels the field between large and small accounts</div>
+          <div class="formula-chip"><span>Activity/Community</span> = Tier-Adj Comment Depth (60%) × Frequency Boost (40%, capped 12/month)</div>
           <div class="formula-chip"><span>IQ Score (full)</span> = Comment Rate×40% + Eng Depth×30% + View Conversion×20% + Consistency×10%</div>
           <div class="formula-chip"><span>IQ Score (fallback)</span> = Comment Rate×50% + Eng Depth×35% + Consistency×15% — used when Reel views unavailable</div>
+          <div class="formula-chip"><span>Follower Tier ER benchmarks</span> = &lt;5K: 6% · 5–20K: 4% · 20–100K: 2.5% · 100–250K: 1.75% · 250–500K: 1.25% · 500K+: 0.8%</div>
           <div class="formula-chip"><span>Engagement Depth</span> = (Likes + Comments) / Followers × 100</div>
           <div class="formula-chip"><span>Comment Rate</span> = Comments / Followers × 100</div>
           <div class="formula-chip"><span>View Conversion</span> = (Likes + Comments) / Reel Views × 100</div>
@@ -676,22 +680,50 @@ const INDUSTRY_DATA = {
 // Note: saves and shares excluded — not reliably available from public Instagram data.
 // Interaction Quality uses comment rate, engagement depth, and view conversion only.
 
+// Expected engagement rate by follower tier (industry benchmarks)
+// Used to normalise ER so small and large brands compete on a level playing field
+function getExpectedER(followers) {
+  if (followers <   5000) return 6.0;
+  if (followers <  20000) return 4.0;
+  if (followers < 100000) return 2.5;
+  if (followers < 250000) return 1.75;
+  if (followers < 500000) return 1.25;
+  return 0.8;
+}
+
+// Expected comment-to-like ratio by follower tier
+// Small accounts naturally get more comments per like — this normalises that bias
+// so community dialogue is compared fairly regardless of account size
+function getExpectedCDR(followers) {
+  if (followers <   5000) return 0.07;
+  if (followers <  20000) return 0.05;
+  if (followers < 100000) return 0.03;
+  if (followers < 250000) return 0.02;
+  if (followers < 500000) return 0.015;
+  return 0.01;
+}
+
 function calcRaw(b) {
   const f = b.followers;
   // Engagement Depth Rate = (Likes + Comments) / Followers × 100 (public signals only)
   const engDepthRate = ((b.avgLikes + b.avgComments) / f) * 100;
   // Comment Rate = Comments / Followers × 100
   const commentRate  = (b.avgComments / f) * 100;
+  // Tier-Adjusted Engagement Rate — divides raw ER by the expected ER for this follower tier
+  // Result of 1.0 = meeting tier expectation; 2.0 = double expectation. Removes size bias.
+  const tierAdjEngRate = engDepthRate / getExpectedER(f);
+  // Comment Depth Ratio — comments ÷ likes. Proxy for genuine two-way community activity.
+  const commentDepthRatio = b.avgLikes > 0 ? b.avgComments / b.avgLikes : 0;
+  // Tier-Adjusted CDR — normalises CDR against what's expected for this follower tier.
+  // Small accounts naturally get more comments per like, so raw CDR still favours them.
+  const tierAdjCDR = commentDepthRatio / getExpectedCDR(f);
   // View Conversion Rate = (Likes + Comments) / Reel Views × 100 (if available)
   const hasReels = b.avgReelViews && b.avgReelViews > 0;
   const viewConvRate = hasReels ? ((b.avgLikes + b.avgComments) / b.avgReelViews) * 100 : null;
-  // Reach rate: decays with size, small boost from frequency
+  // Reach rate: decays with size (frequency removed — handled separately in activity score)
   const sizePenalty  = Math.max(0, (Math.log10(f) - 4.5) * 8);
-  const freqBonus    = Math.min(4, b.posts30d * 0.12);
-  const reachRate    = Math.max(8, 28 - sizePenalty + freqBonus);
-  // Consistency: proxy from posts30d (post-level data not available; will be 1.0 fallback)
-  const consistencyRate = 1.0;
-  return { engDepthRate, commentRate, viewConvRate, reachRate, consistencyRate, hasReels };
+  const reachRate    = Math.max(8, 28 - sizePenalty);
+  return { engDepthRate, commentRate, tierAdjEngRate, commentDepthRatio, tierAdjCDR, viewConvRate, reachRate, hasReels };
 }
 
 function median(arr) {
@@ -703,11 +735,13 @@ function calcMedians(brands) {
   const r = brands.map(calcRaw);
   const vcRates = r.filter(x => x.viewConvRate !== null).map(x => x.viewConvRate);
   return {
-    engDepthRate:  median(r.map(x => x.engDepthRate)),
-    commentRate:   median(r.map(x => x.commentRate)),
-    viewConvRate:  vcRates.length >= 3 ? median(vcRates) : null,
-    reachRate:     median(r.map(x => x.reachRate)),
-    consistencyRate: 1.0,
+    engDepthRate:      median(r.map(x => x.engDepthRate)),
+    commentRate:       median(r.map(x => x.commentRate)),
+    tierAdjEngRate:    median(r.map(x => x.tierAdjEngRate)),
+    commentDepthRatio: median(r.map(x => x.commentDepthRatio)),
+    tierAdjCDR:        median(r.map(x => x.tierAdjCDR)),
+    viewConvRate:      vcRates.length >= 3 ? median(vcRates) : null,
+    reachRate:         median(r.map(x => x.reachRate)),
   };
 }
 
@@ -737,11 +771,25 @@ function calcIQ(raw, med) {
   return { commentIdx, engDepthIdx, consIdx, iqIdx, iqScore, usedViewConv };
 }
 
-function calcHeat(raw, med, iq) {
-  const ri = idx(raw.reachRate,    med.reachRate);
-  const ei = idx(raw.engDepthRate, med.engDepthRate);
-  // Brand Heat Score: Reach 35% + Engagement Depth 35% + IQ 30%
-  const heatScore = Math.min(100, Math.round((ri*0.35 + ei*0.35 + iq.iqIdx*0.30) * 50));
+// Activity / Community Score — rewards genuine two-way community engagement
+// Comment Depth Ratio (60%): comments ÷ likes vs category median — brands whose audiences
+// actively converse score higher. Consistent posting (40%) amplifies the score via a smooth
+// reward curve capped at 12 posts/month. No hard penalty for low posting — small brands
+// with fewer resources aren't punished, they just don't earn the activity reward.
+function calcActivity(raw, med, posts30d) {
+  const commentDepthIdx = med.tierAdjCDR > 0 ? cap(raw.tierAdjCDR / med.tierAdjCDR) : 1.0;
+  // Frequency boost: 0 posts = no boost, 12+ posts = full boost. Soft sqrt curve, capped at 1.0.
+  const freqBoost = Math.min(1.0, Math.sqrt(posts30d / 12));
+  // Comment depth drives the score; frequency multiplies it (not punishes absence)
+  const activityIdx = Math.min(2.0, commentDepthIdx * (0.6 + 0.4 * freqBoost));
+  return { commentDepthIdx, freqBoost, activityIdx };
+}
+
+function calcHeat(raw, med, iq, activity) {
+  const ri = idx(raw.reachRate,      med.reachRate);
+  const ei = idx(raw.tierAdjEngRate, med.tierAdjEngRate);
+  // Brand Heat Score: Reach 25% + Tier-Adj Engagement 35% + Activity/Community 25% + IQ 15%
+  const heatScore = Math.min(100, Math.round((ri*0.25 + ei*0.35 + activity.activityIdx*0.25 + iq.iqIdx*0.15) * 50));
   return { reachIdx: ri, engIdx: ei, heatScore };
 }
 
@@ -755,15 +803,17 @@ function confidence(brands) {
 function computeRanked(brands) {
   const med = calcMedians(brands);
   return brands.map(b => {
-    const raw = calcRaw(b);
-    const iq  = calcIQ(raw, med);
-    const h   = calcHeat(raw, med, iq);
+    const raw      = calcRaw(b);
+    const iq       = calcIQ(raw, med);
+    const activity = calcActivity(raw, med, b.posts30d);
+    const h        = calcHeat(raw, med, iq, activity);
     return {
-      ...b, ...raw, ...iq, ...h, med,
-      vsEng:     vsPct(raw.engDepthRate, med.engDepthRate),
-      vsReach:   vsPct(raw.reachRate,    med.reachRate),
-      vsComment: vsPct(raw.commentRate,  med.commentRate),
-      vsIQ:      Math.round((iq.iqIdx - 1) * 100),
+      ...b, ...raw, ...iq, ...activity, ...h, med,
+      vsEng:      vsPct(raw.tierAdjEngRate,    med.tierAdjEngRate),
+      vsReach:    vsPct(raw.reachRate,         med.reachRate),
+      vsComment:  vsPct(raw.commentRate,       med.commentRate),
+      vsIQ:       Math.round((iq.iqIdx - 1) * 100),
+      vsActivity: Math.round((activity.activityIdx - 1) * 100),
     };
   }).sort((a,b) => b.heatScore - a.heatScore);
 }
