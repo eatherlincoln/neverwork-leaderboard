@@ -107,8 +107,8 @@
   /* Category tabs */
   .cat-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
   .cat-tab { padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); color: var(--mid); background: var(--raised); transition: all 0.15s; }
-  .cat-tab.active { background: var(--accent); color: #10110F; border-color: var(--accent); }
-  .cat-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+  .cat-tab.active { background: #7eb801; color: #141413; border-color: #7eb801; }
+  .cat-tab:hover:not(.active) { border-color: #7eb801; color: #527A1A; }
 
   /* Search */
   /* Hero brand search */
@@ -151,13 +151,13 @@
   .chart-wrap { padding: 14px 18px 18px; height: 200px; position: relative; }
 
   /* Column headers */
-  .table-cols { display: grid; grid-template-columns: 38px 1fr 64px 150px 140px 90px; gap: 6px; padding: 9px 18px; background: var(--raised); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+  .table-cols { display: grid; grid-template-columns: 38px 210px 70px 1fr 1fr 105px; gap: 8px; padding: 9px 18px; background: var(--raised); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
   .col-head { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; display: flex; align-items: center; gap: 3px; }
   .info-icon { width: 12px; height: 12px; border-radius: 50%; background: var(--border); font-size: 8px; display: flex; align-items: center; justify-content: center; cursor: help; flex-shrink: 0; }
 
   /* Brand rows */
   .brand-rows-wrap { overflow: visible; }
-  .brand-row { display: grid; grid-template-columns: 38px 1fr 64px 150px 140px 90px; gap: 6px; padding: 12px 18px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.12s; cursor: pointer; }
+  .brand-row { display: grid; grid-template-columns: 38px 210px 70px 1fr 1fr 105px; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.12s; cursor: pointer; }
 
   /* Size benchmark badges */
   .size-badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-align: center; white-space: nowrap; }
@@ -327,7 +327,7 @@
 
   @media (max-width: 960px) {
     .main-grid { grid-template-columns: 1fr; }
-    .table-cols, .brand-row { grid-template-columns: 28px 1fr 52px 110px; }
+    .table-cols, .brand-row { grid-template-columns: 28px 1fr 54px 120px; }
     /* On mobile: show Rank, Brand, Heat, Engagement only */
     .brand-row > :nth-child(5), .brand-row > :nth-child(6) { display: none; }
     .table-cols > :nth-child(5), .table-cols > :nth-child(6) { display: none; }
