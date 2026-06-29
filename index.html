@@ -1944,8 +1944,14 @@ async function init() {
       });
 
       // Overwrite live categories; keep mock data for others (skate/snow/outdoor)
+      // For lifestyle: merge real brands in — real data takes priority, mock fills the rest
       Object.keys(grouped).forEach(cat => {
-        if (INDUSTRY_DATA[cat]) {
+        if (!INDUSTRY_DATA[cat]) return;
+        if (cat === 'lifestyle') {
+          const realHandles = new Set(grouped[cat].map(b => (b.handle||'').toLowerCase()));
+          const mockRemainder = INDUSTRY_DATA[cat].brands.filter(b => !realHandles.has((b.handle||'').toLowerCase()));
+          INDUSTRY_DATA[cat].brands = [...grouped[cat], ...mockRemainder];
+        } else {
           INDUSTRY_DATA[cat].brands = grouped[cat];
         }
       });
