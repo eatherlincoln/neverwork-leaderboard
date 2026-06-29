@@ -874,6 +874,7 @@ const INDUSTRY_DATA = {
   lifestyle: {
     label: "Lifestyle",
     brands: [
+      { name:"EPOKHE",           handle:"@epokhe",              color:"#1A1A2E", initials:"EP", tag:"Eyewear",      followers:0,        avgLikes:0,     avgComments:0,   posts30d:0,  momRank:0, momHeat:0 },
       { name:"Nike",             handle:"@nike",                color:"#111111", initials:"NK", tag:"Sportswear",   followers:310000000,avgLikes:310000,avgComments:12400,posts30d:20, momRank:0, momHeat:0 },
       { name:"adidas",           handle:"@adidas",              color:"#000000", initials:"AD", tag:"Sportswear",   followers:80000000, avgLikes:80000, avgComments:3200, posts30d:22, momRank:0, momHeat:0 },
       { name:"Jordan Brand",     handle:"@jumpman23",           color:"#D32F2F", initials:"JB", tag:"Sneaker",      followers:14000000, avgLikes:140000,avgComments:5600, posts30d:16, momRank:0, momHeat:0 },
@@ -1694,14 +1695,43 @@ function openDrawer(brandIdx, rank) {
       <div class="rc-score-val">${v}/${scoreMaxes[i]}</div>
     </div>`).join('');
 
+  // Auto-generate verdict sentence
+  const ranked_all  = currentRanked.filter(x => !x.isMicro);
+  const total       = ranked_all.length;
+  const topPct      = total > 0 ? Math.round((rank / total) * 100) : 50;
+  const leader      = ranked_all[0];
+
+  let verdict;
+  if (b.heatScore >= 75)
+    verdict = `Top ${100 - topPct + 1}% of the category. ${strgs[0] || 'Strong across the board'}.`;
+  else if (b.heatScore >= 55)
+    verdict = `Above the median, ranked #${rank} of ${total}. ${frict[0] || 'Solid but room to grow'}.`;
+  else if (b.heatScore >= 45)
+    verdict = `Right at the category median — #${rank} of ${total}. Engagement needs to move to climb the rankings.`;
+  else
+    verdict = `Below the category benchmark — #${rank} of ${total}. ${frict[0] || 'Engagement and conversation need attention'}.`;
+
+  // Competitive gap sentence
+  let gapText = '';
+  if (leader && leader.name !== b.name) {
+    const leaderAvgLikes = leader.avgLikes || 0;
+    const myAvgLikes     = b.avgLikes || 0;
+    const likesRatio     = leaderAvgLikes > 0 && myAvgLikes > 0 ? (leaderAvgLikes / myAvgLikes).toFixed(1) : null;
+    gapText = `<strong>${leader.name}</strong> leads the category at ${leader.engDepthRate.toFixed(2)}% ER with ${leader.posts30d||0} posts/month.${likesRatio && parseFloat(likesRatio) > 1.5 ? ` They average ${likesRatio}× more likes per post than ${b.name}.` : ''} Close the gap on engagement quality and the ranking will follow.`;
+  }
+
+  // Single action (first recommendation body, condensed)
+  const action = getAction(b);
+
   document.getElementById('drawerContent').innerHTML = `
+
     <div class="rc-header">
-      <div class="brand-avatar" style="background:${b.color};width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:white;overflow:hidden;flex-shrink:0">
+      <div class="brand-avatar" style="background:${b.color};width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:white;overflow:hidden;flex-shrink:0">
         <img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" onerror="this.parentNode.innerHTML='${b.initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
       </div>
       <div style="flex:1;overflow:hidden">
         <div class="rc-brand-name">${b.name}</div>
-        <div class="rc-brand-sub">${b.handle} · #${rank} in category · ${b.tierName} tier</div>
+        <div class="rc-brand-sub">${b.handle} · ${b.tierName} tier · ${(b.followers/1000).toFixed(0)}k followers</div>
       </div>
       <div class="rc-heat">
         <div class="rc-heat-num" style="color:${lg.bg}">${b.heatScore}</div>
@@ -1709,25 +1739,54 @@ function openDrawer(brandIdx, rank) {
       </div>
     </div>
 
-    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Composite Score — ${subs.total}/100</div>
-    <div class="rc-scores">${scoreBars}</div>
+    <div style="font-size:14px;line-height:1.6;color:var(--dark-text);padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:18px">
+      ${verdict}
+    </div>
 
-    ${frict.length ? `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Friction</div><div class="rc-tags">${frict.map(t=>`<span class="rc-tag rc-tag-friction">${t}</span>`).join('')}</div></div>` : ''}
-    ${strgs.length ? `<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Strengths</div><div class="rc-tags">${strgs.map(t=>`<span class="rc-tag rc-tag-strength">${t}</span>`).join('')}</div></div>` : ''}
-
-    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Strategic Recommendations</div>
-    ${recs.length ? recs.map(r=>`<div class="rc-rec"><div class="rc-rec-label">${r.n} — Recommendation</div><div class="rc-rec-title">${r.title}</div><div class="rc-rec-body">${r.body}</div></div>`).join('') : `<div class="rc-rec"><div class="rc-rec-label">G1 — Recommendation</div><div class="rc-rec-title">Maintain and amplify</div><div class="rc-rec-body">You're performing well. Focus on community depth — identify the followers who comment most and engage with them directly. Loyal commenters drive disproportionate algorithm signals.</div></div>`}
-
-    <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Posts (30d)</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${b.posts30d||0}</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Followers</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${b.followers>=1000000?(b.followers/1000000).toFixed(1)+'M':(b.followers/1000).toFixed(1)+'K'}</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Avg Likes</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${b.avgLikes>=1000?(b.avgLikes/1000).toFixed(1)+'K':Math.round(b.avgLikes||0)}</div></div>
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Avg Comments</div><div style="font-size:20px;font-weight:800;color:var(--dark-text)">${Math.round(b.avgComments||0)}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+      <div style="text-align:center;padding:12px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:22px;font-weight:900;color:${b.vsEngCat >= 0 ? '#3D6010' : '#8A2A1A'};line-height:1">${b.engDepthRate.toFixed(2)}%</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-top:4px">Eng Rate</div>
+        <div style="font-size:10px;color:${b.vsEngCat>=0?'#3D6010':'#8A2A1A'};margin-top:2px">${b.vsEngCat>=0?'+':''}${b.vsEngCat}% vs cat</div>
       </div>
-      ${(b.reelsCount||b.carouselsCount||b.imagesCount) ? `<div style="margin-top:10px;font-size:11px;color:var(--mid)">${[b.reelsCount?`🎬 ${b.reelsCount} Reels`:'',b.carouselsCount?`📎 ${b.carouselsCount} Carousels`:'',b.imagesCount?`🖼 ${b.imagesCount} Static`:'',b.collabsCount?`🤝 ${b.collabsCount} Collabs`:''].filter(Boolean).join(' · ')}</div>` : `<div style="margin-top:8px;font-size:10px;color:var(--muted)">Format breakdown available after next data refresh</div>`}
-      <div style="margin-top:10px;font-size:10px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px">Saves and shares excluded — not publicly available from Instagram. ${b.conf?.level||''}.</div>
+      <div style="text-align:center;padding:12px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:22px;font-weight:900;color:var(--dark-text);line-height:1">${(b.commentDepthRatio*100).toFixed(1)}%</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-top:4px">CTL Ratio</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${(b.engIdx||0)>=1.1?'above avg':'near avg'}</div>
+      </div>
+      <div style="text-align:center;padding:12px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:22px;font-weight:900;color:var(--dark-text);line-height:1">${b.posts30d||0}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-top:4px">Posts/Mo</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${(b.freqBoost||0)>=0.8?'above avg':'below avg'}</div>
+      </div>
+    </div>
+
+    ${frict.length || strgs.length ? `
+    <div style="margin-bottom:16px">
+      ${strgs.length ? `<div class="rc-tags" style="margin-bottom:6px">${strgs.map(t=>`<span class="rc-tag rc-tag-strength">${t}</span>`).join('')}</div>` : ''}
+      ${frict.length ? `<div class="rc-tags">${frict.map(t=>`<span class="rc-tag rc-tag-friction">${t}</span>`).join('')}</div>` : ''}
+    </div>` : ''}
+
+    ${gapText ? `
+    <div class="rc-rec" style="margin-bottom:12px">
+      <div class="rc-rec-label">The Competitive Gap</div>
+      <div class="rc-rec-body" style="font-size:12px;line-height:1.65">${gapText}</div>
+    </div>` : ''}
+
+    <div class="rc-rec">
+      <div class="rc-rec-label">One Thing To Do</div>
+      <div class="rc-rec-body" style="font-size:12px;line-height:1.65">${action}</div>
+    </div>
+
+    <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
+      <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Avg Likes</div><div style="font-size:15px;font-weight:800;color:var(--dark-text)">${b.avgLikes>=1000?(b.avgLikes/1000).toFixed(1)+'K':Math.round(b.avgLikes||0)}</div></div>
+      <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Avg Comments</div><div style="font-size:15px;font-weight:800;color:var(--dark-text)">${Math.round(b.avgComments||0)}</div></div>
+      ${b.hasReels ? `<div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Reel Views</div><div style="font-size:15px;font-weight:800;color:var(--dark-text)">${b.avgReelViews>=1000?(b.avgReelViews/1000).toFixed(0)+'K':b.avgReelViews||'—'}</div></div>` : ''}
+      ${(b.reelsCount||b.carouselsCount||b.imagesCount) ? `<div style="flex-basis:100%;font-size:10px;color:var(--muted)">${[b.reelsCount?`🎬 ${b.reelsCount} Reels`:'',b.carouselsCount?`📎 ${b.carouselsCount} Carousels`:'',b.imagesCount?`🖼 ${b.imagesCount} Static`:'',b.collabsCount?`🤝 ${b.collabsCount} Collabs`:''].filter(Boolean).join(' · ')}</div>` : ''}
+    </div>
+
+    <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.6">
+      Ranked #${rank} of ${total} in category · ${b.conf?.level||''} · Saves and shares excluded (not publicly available from Instagram)
     </div>
   `;
 
@@ -1884,7 +1943,7 @@ async function init() {
         });
       });
 
-      // Overwrite live categories; keep mock data for others (skate/snow/outdoor/lifestyle)
+      // Overwrite live categories; keep mock data for others (skate/snow/outdoor)
       Object.keys(grouped).forEach(cat => {
         if (INDUSTRY_DATA[cat]) {
           INDUSTRY_DATA[cat].brands = grouped[cat];
