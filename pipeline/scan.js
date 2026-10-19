@@ -11,7 +11,7 @@
    ========================================================================== */
 const IGEngine = require('./engine.js');
 const APIFY = 'https://api.apify.com/v2';
-const TOKEN = process.env.APIFY_TOKEN;
+const TOKEN = (process.env.APIFY_TOKEN || '').replace(/\s+/g, '');   // strip stray spaces / line breaks from a pasted secret
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function need() { if (!TOKEN) throw new Error('APIFY_TOKEN is not set'); }
@@ -155,4 +155,14 @@ async function postsCheck(handles, days) {
   });
 }
 
-module.exports = { scanProfiles, deepScan, postsCheck };
+// Quick sanity check before spending anything. Prints facts about the token, never the token itself.
+async function checkToken() {
+  need();
+  const shape = `token length ${TOKEN.length}, starts "${TOKEN.slice(0, 9)}"`;
+  const r = await fetch(`${APIFY}/users/me?token=${TOKEN}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status} from Apify (${shape}). Expected a ~46 character token starting "apify_api_".`);
+  const u = (await r.json()).data || {};
+  return `Apify token OK for "${u.username}" (${shape})`;
+}
+
+module.exports = { scanProfiles, deepScan, postsCheck, checkToken };

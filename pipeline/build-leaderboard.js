@@ -33,6 +33,11 @@ if (!process.env.APIFY_TOKEN) {
 }
 const SCAN = require('./scan.js');
 
+async function preflight() {
+  try { console.log(await SCAN.checkToken()); }
+  catch (e) { console.error(`\nApify token check failed: ${e.message}\nNothing was written.`); process.exit(1); }
+}
+
 async function scan(handles, attempt = 1) {
   try { return await SCAN.scanProfiles(handles, DAYS); }
   catch (e) {
@@ -51,6 +56,7 @@ async function scan(handles, attempt = 1) {
 }
 
 (async () => {
+  await preflight();
   const entries = DIR.list.map(([handle, name, type, discipline, category]) =>
     ({ handle: handle.toLowerCase(), name, type, discipline, category }));
   const byHandle = {};
