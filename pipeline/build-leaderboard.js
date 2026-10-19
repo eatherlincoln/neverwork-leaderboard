@@ -1,23 +1,17 @@
-#!/usr/bin/env node
 /* ============================================================================
-   build-leaderboard.js — full-directory scan → static leaderboard.json
+   build-leaderboard.js — full-directory scan → leaderboard.json
 
-   Usage:
-     node build-leaderboard.js --base https://YOUR-APP.vercel.app [--days 90] [--out leaderboard.json]
-     (or set LEADERBOARD_BASE_URL env var instead of --base)
+   Usage (from the repo root):
+     APIFY_TOKEN=xxxx node pipeline/build-leaderboard.js --out pipeline/leaderboard.json
+     ... --retry                        re-scan only accounts that failed last time
+     ... --retry --only arcteryx,on     re-scan just these
 
-   Retry mode (re-scan only the accounts that failed last time, ~$0.03):
-     node build-leaderboard.js --base https://YOUR-APP.vercel.app --retry
-     node build-leaderboard.js --base ... --retry --only arcteryx,oneillusa   (just these)
-   Keeps every good row already in leaderboard.json, merges in any new wins,
-   re-ranks, and updates the failed list. Uses the same --days window as the
-   existing file so scores stay comparable (it refuses if they differ).
-
-   Reads directory.js (curated Master), calls the deployed /api/scan in chunks
-   of 40 handles, groups results into type×discipline ladders (same buckets as
-   the baselines), ranks by score, writes leaderboard.json. ~$0.70 per full run.
-
-   Deploy after: `vercel --prod` (leaderboard.json is served statically).
+   Talks to Apify directly through ./scan.js. In GitHub Actions the token comes from
+   the APIFY_TOKEN secret. Three passes:
+     1. profile scraper: followers + latest ~12 posts for every account
+     2. deep scan: for anyone who posted more than that inside the window, pull EVERY post
+     3. post scraper: explains accounts with nothing scorable (hidden likes, inactive, collabs)
+   Reads directory.js (curated Master), groups into type x discipline ladders, ranks by score.
    ========================================================================== */
 const fs = require('fs');
 const path = require('path');
@@ -27,33 +21,27 @@ function arg(name, dflt) {
   const i = process.argv.indexOf('--' + name);
   return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : dflt;
 }
-const BASE = (arg('base', process.env.LEADERBOARD_BASE_URL || '')).replace(/\/+$/, '');
 const DAYS = Math.min(365, Math.max(30, +arg('days', 90)));
 const OUT  = arg('out', path.join(__dirname, 'leaderboard.json'));
-const CHUNK = 40; // /api/scan max
+const CHUNK = 40;   // handles per profile-scraper run
 const RETRY = process.argv.includes('--retry');
 const ONLY = arg('only', '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-if (!BASE) {
-  console.error('No base URL. Pass --base https://YOUR-APP.vercel.app or set LEADERBOARD_BASE_URL.');
+if (!process.env.APIFY_TOKEN) {
+  console.error('APIFY_TOKEN is not set. Add it as a GitHub Actions secret, or run: APIFY_TOKEN=xxxx node pipeline/build-leaderboard.js');
   process.exit(1);
 }
+const SCAN = require('./scan.js');
 
 async function scan(handles, attempt = 1) {
-  const url = `${BASE}/api/scan?handles=${encodeURIComponent(handles.join(','))}&days=${DAYS}`;
-  try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const j = await r.json();
-    if (!Array.isArray(j.results)) throw new Error('bad payload');
-    return j.results;
-  } catch (e) {
-    if (attempt < 2) {
-      console.warn(`  chunk failed (${e.message}) — retrying once…`);
-      await new Promise(res => setTimeout(res, 5000));
+  try { return await SCAN.scanProfiles(handles, DAYS); }
+  catch (e) {
+    if (attempt < 3) {
+      console.warn(`  chunk failed (${e.message}), retrying (${attempt}/2)…`);
+      await new Promise(res => setTimeout(res, 8000 * attempt));
       return scan(handles, attempt + 1);
     }
-    console.warn(`  chunk failed twice (${e.message}) — marking ${handles.length} handles failed.`);
+    console.warn(`  chunk failed 3 times (${e.message}), marking ${handles.length} handles failed.`);
     return handles.map(h => ({ handle: h, ok: false, reason: 'scan request failed' }));
   }
 }
@@ -80,65 +68,60 @@ async function scan(handles, attempt = 1) {
     if (!handles.length) { console.log('Nothing to retry.'); process.exit(0); }
   }
 
-  console.log(`${RETRY ? 'Retrying' : 'Scanning'} ${handles.length} directory accounts (${DAYS}d window) via ${BASE}/api/scan …`);
+  console.log(`${RETRY ? 'Retrying' : 'Scanning'} ${handles.length} directory accounts (${DAYS}d window) via Apify…`);
   const results = [];
-  for (let i = 0; i < handles.length; i += CHUNK) {
-    const chunk = handles.slice(i, i + CHUNK);
-    console.log(`  chunk ${Math.floor(i / CHUNK) + 1}/${Math.ceil(handles.length / CHUNK)} (${chunk.length} handles)…`);
-    results.push(...await scan(chunk));
+  const pchunks = [];
+  for (let i = 0; i < handles.length; i += CHUNK) pchunks.push(handles.slice(i, i + CHUNK));
+  {
+    let next = 0;
+    await Promise.all(Array.from({ length: Math.min(3, pchunks.length) }, async () => {
+      while (next < pchunks.length) {
+        const n = next++;
+        console.log(`  profile chunk ${n + 1}/${pchunks.length} (${pchunks[n].length} handles)…`);
+        results.push(...await scan(pchunks[n]));
+      }
+    }));
   }
 
-  // Deep scan: the profile scraper only returns an account's latest ~12 posts. For anyone posting often
-  // that is just the last few weeks, so re-pull every post inside the window for those accounts.
-  // (Needs the deployed /api/scan to support mode=deepstart/deepget; if it does not, nothing is flagged.)
+  // Deep scan: the profile scraper only returns an account's latest ~12 posts. For anyone posting often that is
+  // just the last few weeks, so re-pull every post inside the window for those accounts.
   const trunc = results.filter(r => r.ok && r.truncated);
   if (trunc.length) {
     console.log(`  deep scan: ${trunc.length} accounts posted more than the profile scraper returns, pulling the full ${DAYS} days…`);
-    const DCH = 6, DPAR = 4, chunks = [];
+    const DCH = 8, DPAR = 3, chunks = [];
     for (let i = 0; i < trunc.length; i += DCH) chunks.push(trunc.slice(i, i + DCH));
-    const J = async u => { const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
-    const deepChunk = async ch => {
-      const hs = encodeURIComponent(ch.map(r => r.handle).join(','));
-      const st = await J(`${BASE}/api/scan?mode=deepstart&handles=${hs}&days=${DAYS}`);
-      if (!st.runId) throw new Error('no runId');
-      const fol = encodeURIComponent(ch.map(r => r.handle + ':' + r.followers).join(','));
-      for (let t = 0; t < 14; t++) {
-        const j = await J(`${BASE}/api/scan?mode=deepget&runId=${st.runId}&handles=${hs}&followers=${fol}&days=${DAYS}`);
-        if (!j.pending) return j.results || [];
-      }
-      throw new Error('timed out');
-    };
     let next = 0, swapped = 0;
     await Promise.all(Array.from({ length: Math.min(DPAR, chunks.length) }, async () => {
       while (next < chunks.length) {
         const ch = chunks[next++];
-        try {
-          const out = await deepChunk(ch);
-          out.forEach(x => {
-            const first = results.find(r => r.handle === x.handle);
-            if (!first || !x.ok) return;
-            console.log(`    ${x.handle}: ${first.own} -> ${x.own} own posts`);
-            Object.assign(first, x, { pic: first.pic });
-            swapped++;
-          });
-        } catch (e) { console.warn(`  deep scan failed for ${ch.map(r => r.handle).join(', ')} (${e.message}); keeping the shorter sample`); }
+        let out = null;
+        for (let t = 1; t <= 2 && !out; t++) {
+          try { out = await SCAN.deepScan(ch, DAYS); }
+          catch (e) { console.warn(`  deep scan attempt ${t} failed for ${ch.map(r => r.handle).join(', ')} (${e.message})`); }
+        }
+        if (!out) { console.warn(`  KEEPING the shorter sample for: ${ch.map(r => r.handle).join(', ')}`); continue; }
+        out.forEach(x => {
+          const first = results.find(r => r.handle === x.handle);
+          if (!first || !x.ok) return;
+          console.log(`    ${x.handle}: ${first.own} -> ${x.own} own posts`);
+          Object.assign(first, x, { pic: first.pic });
+          swapped++;
+        });
       }
     }));
     console.log(`  deep scan replaced ${swapped} of ${trunc.length}.`);
   }
 
   // Second chance: profile scraper gave followers but no posts. Ask the post scraper why
-  // (likes hidden / inactive) so these accounts show as "tracked, not ranked" instead of vanishing.
+  // (likes hidden / inactive / collabs) so these accounts show as "tracked, not ranked" instead of vanishing.
   const tracked = [];
   const PCH = 10;
   const noPosts = results.filter(r => !r.ok && r.reason === 'no recent own posts' && r.followers >= 50);
   if (noPosts.length) console.log(`  checking ${noPosts.length} accounts with no profile-scraper posts (post scraper)…`);
   for (let i = 0; i < noPosts.length; i += PCH) {
     const ch = noPosts.slice(i, i + PCH).map(r => r.handle);
-    const url = `${BASE}/api/scan?mode=posts&handles=${encodeURIComponent(ch.join(','))}&days=${DAYS}`;
     try {
-      const j = await (await fetch(url)).json();
-      (j.results || []).forEach(x => {
+      (await SCAN.postsCheck(ch, DAYS)).forEach(x => {
         const first = results.find(r => r.handle === x.handle);
         if (x.tracked) { tracked.push({ ...x, followers: first.followers, pic: first.pic }); first.handled = true; }
       });
@@ -200,5 +183,4 @@ async function scan(handles, attempt = 1) {
   const trk = out.buckets.flatMap(b => b.rows.filter(r => r.tracked));
   if (trk.length) console.log(`  tracked, not ranked: ${trk.map(r => `${r.handle} (${r.tracked})`).join('; ')}`);
   if (out.failed.length) console.log(`  failed: ${out.failed.map(f => `${f.handle} (${f.reason})`).join(', ')}`);
-  console.log('\nNow deploy: vercel --prod');
 })();

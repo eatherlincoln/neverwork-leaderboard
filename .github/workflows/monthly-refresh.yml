@@ -1,6 +1,7 @@
 name: Monthly leaderboard refresh
 
-# Rescans every account, caches report-card images, rebuilds the site and pushes it.
+# Scans every account straight from Apify (full 90 days of posts), caches report-card images,
+# rebuilds the site and pushes it.
 # The push redeploys leaderboard.thisisneverwork.com, so nothing needs running by hand.
 on:
   schedule:
@@ -11,6 +12,10 @@ on:
         description: 'Rescan Instagram incl. deep scan of every post in the 90 days (roughly $15-25 of Apify). Untick to only rebuild the site and refresh card images.'
         type: boolean
         default: true
+      only:
+        description: 'Test run: rescan ONLY these handles (comma-separated, e.g. berrics,salomon). Everyone else keeps last result. Leave empty for the full scan.'
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -24,7 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      LEADERBOARD_BASE_URL: ${{ vars.LEADERBOARD_BASE_URL || 'https://ig-analysis-lincoln-eathers-projects.vercel.app' }}
+      APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+      ONLY: ${{ inputs.only }}
       SHEET_CSV: https://docs.google.com/spreadsheets/d/1vKfq9-cKaHWmEO9gbqQT-SoaTlu4MFDxclSA24A1DaU/gviz/tq?tqx=out:csv&sheet=Master
       NW_DEPLOY: ${{ github.workspace }}
     steps:
@@ -50,9 +56,14 @@ jobs:
       - name: Scan Instagram
         if: github.event_name == 'schedule' || inputs.scan
         run: |
+          if [ -z "$APIFY_TOKEN" ]; then echo "::error::APIFY_TOKEN secret is missing. Add it under Settings > Secrets and variables > Actions."; exit 1; fi
           cp pipeline/leaderboard.json /tmp/leaderboard.prev.json
-          node pipeline/build-leaderboard.js --base "$LEADERBOARD_BASE_URL" --out pipeline/leaderboard.json
-          node pipeline/build-leaderboard.js --base "$LEADERBOARD_BASE_URL" --out pipeline/leaderboard.json --retry || true
+          if [ -n "$ONLY" ]; then
+            node pipeline/build-leaderboard.js --out pipeline/leaderboard.json --retry --only "$ONLY"
+          else
+            node pipeline/build-leaderboard.js --out pipeline/leaderboard.json
+            node pipeline/build-leaderboard.js --out pipeline/leaderboard.json --retry || true
+          fi
           # Never ship a collapsed scan: need at least 85% of last month's scored accounts.
           python3 - <<'EOF'
           import json, shutil, sys
