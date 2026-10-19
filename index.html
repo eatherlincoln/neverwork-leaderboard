@@ -170,6 +170,7 @@ a{color:inherit}
 .unr{opacity:.7}
 .more{display:block;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:14px;font-weight:700;font-size:13px;color:var(--text)}
 .more:hover{background:var(--raised)}
+.more[hidden]{display:none}
 .note{font-size:12px;color:var(--muted);margin:14px 2px 0}
 .empty{padding:28px;text-align:center;color:var(--muted)}
 
@@ -1030,6 +1031,13 @@ function renderList(k, sc, um, label) {
   const me = st.you && ALLBY[st.you];
   if (me && me.ladder === k && !me.isMicro && st.band === 'all' && !st.all && me.rank > LIM) html += rowHtml(me, me.rank, k, sc) + '<div style="border-top:1px dashed var(--line)"></div>';
   html += shown.map(([b, r]) => rowHtml(b, r, k, sc)).join('') || '<div class="empty">Nothing in this view.</div>';
+  // Always show 10 rows in the default view: fill short groups with tracked-but-not-ranked accounts, then open slots.
+  if (st.band === 'all' && !st.all && !(st.type === 'creator' && st.size !== 'any') && list.length < LIM) {
+    let fill = LIM - list.length;
+    um.slice(0, fill).forEach(b => { html += rowHtml(b, '–', k, sc); });
+    fill -= Math.min(fill, um.length);
+    for (let i = 0; i < fill; i++) html += `<div class="row unr ph"><div class="rk">–</div><div class="who"><div class="av"></div><div class="t"><div class="nm" style="color:var(--muted)">Not tracked yet</div><div class="hd">Open slot. Send the NeverWork team a handle to add.</div></div></div></div>`;
+  }
   $('#rows').innerHTML = html;
   const more = $('#more');
   if (list.length > LIM) { more.hidden = false; more.textContent = st.all ? 'Show top 10 only' : `Show all ${list.length}`; } else more.hidden = true;
