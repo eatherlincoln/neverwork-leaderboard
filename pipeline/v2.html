@@ -55,6 +55,9 @@ a{color:inherit}
 .seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
 .seg button{background:none;border:0;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--muted)}
 .seg button.on{background:var(--green);color:var(--on-green)}
+:root.light .seg button.on{background:#10110F;color:#F4F0E6}
+:root.light .btn:not(.o){background:#10110F;color:#F4F0E6;border-color:#10110F}
+:root.light .mini.sl.on{background:#10110F;color:#F4F0E6;border-color:#10110F}
 .disc{display:flex;gap:4px;flex-wrap:wrap}
 .disc button{background:none;border:0;border-bottom:2px solid transparent;padding:7px 10px;font-size:13px;font-weight:600;color:var(--muted)}
 .disc button:hover{color:var(--text)}
