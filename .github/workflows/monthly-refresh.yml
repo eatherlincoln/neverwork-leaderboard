@@ -69,6 +69,14 @@ jobs:
           import json, shutil, sys
           new = json.load(open('pipeline/leaderboard.json')); old = json.load(open('/tmp/leaderboard.prev.json'))
           print(f"scored {new['ok']} (last run {old['ok']})")
+          import re
+          wanted = set(re.findall(r'\[\s*"([^"]+)"\s*,\s*"', open('pipeline/directory.js').read()))
+          wanted = {w.lower() for w in wanted}
+          have = {r['handle'] for b in new['buckets'] for r in b['rows']} | {f['handle'] for f in new.get('failed', [])}
+          lost = sorted(r['handle'] for b in old['buckets'] for r in b['rows'] if r['handle'] in wanted and r['handle'] not in have)
+          if lost:
+              shutil.copy('/tmp/leaderboard.prev.json', 'pipeline/leaderboard.json')
+              print("::error::These accounts were in last run and have vanished: " + ', '.join(lost) + ". Kept last data and stopped."); sys.exit(1)
           if new['ok'] < 0.85 * old['ok']:
               shutil.copy('/tmp/leaderboard.prev.json', 'pipeline/leaderboard.json')
               print("::error::Scan came back short. Kept last month's data and stopped."); sys.exit(1)

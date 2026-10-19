@@ -36,6 +36,10 @@ const SCAN = require('./scan.js');
 async function scan(handles, attempt = 1) {
   try { return await SCAN.scanProfiles(handles, DAYS); }
   catch (e) {
+    if (/HTTP 40[13]/.test(e.message)) {   // bad / expired token: stop everything, never write a half-empty file
+      console.error(`\nApify refused the token (${e.message}). Fix the APIFY_TOKEN secret and run again. Nothing was written.`);
+      process.exit(1);
+    }
     if (attempt < 3) {
       console.warn(`  chunk failed (${e.message}), retrying (${attempt}/2)…`);
       await new Promise(res => setTimeout(res, 8000 * attempt));
@@ -55,6 +59,7 @@ async function scan(handles, attempt = 1) {
 
   // Retry mode: keep existing good rows, rescan only the failed (or --only) handles.
   let keptRows = [];            // [{key, row}]
+  const prevRetryRows = {};     // last result for each re-scanned account, restored if the new scan fails
   let prev = null;
   if (RETRY) {
     if (!fs.existsSync(OUT)) { console.error(`--retry needs an existing ${OUT}. Run a full scan first.`); process.exit(1); }
@@ -62,9 +67,10 @@ async function scan(handles, attempt = 1) {
     if (prev.days !== DAYS) { console.error(`Existing file used a ${prev.days}-day window, this run is ${DAYS}. Pass --days ${prev.days} or run a full scan.`); process.exit(1); }
     const failedPrev = (prev.failed || []).map(f => f.handle.toLowerCase());
     const target = ONLY.length ? ONLY : failedPrev;
-    handles = target.filter(h => byHandle[h]);
+    handles = [...new Set(target)].filter(h => byHandle[h]);
+    if (ONLY.length) { const bad = ONLY.filter(h => !byHandle[h]); if (bad.length) console.warn(`  not in the directory, ignored: ${bad.join(', ')}`); }
     const retrySet = new Set(handles);
-    prev.buckets.forEach(b => b.rows.forEach(r => { if (!retrySet.has(r.handle)) keptRows.push({ key: b.key, row: r }); }));
+    prev.buckets.forEach(b => b.rows.forEach(r => { if (!retrySet.has(r.handle)) keptRows.push({ key: b.key, row: r }); else prevRetryRows[r.handle] = { key: b.key, row: r }; }));
     if (!handles.length) { console.log('Nothing to retry.'); process.exit(0); }
   }
 
@@ -129,7 +135,17 @@ async function scan(handles, attempt = 1) {
   }
   const ok = results.filter(r => r.ok);
   const newlyOk = RETRY ? ok.length : 0;
-  const failed = results.filter(r => !r.ok && !r.handled).map(r => ({ handle: r.handle, reason: r.reason || '?' }));
+  if (!results.some(r => r.ok) && !tracked.length) { console.error('\nNo account scored at all. Not writing anything.'); process.exit(1); }
+  // A re-scan that fails must not wipe an account that scored last time: keep its previous row.
+  const trackedSet = new Set(tracked.map(t => t.handle));
+  const okSet = new Set(ok.map(r => r.handle));
+  const restored = [];
+  if (RETRY) results.forEach(r => {
+    if (okSet.has(r.handle) || trackedSet.has(r.handle) || !prevRetryRows[r.handle]) return;
+    keptRows.push(prevRetryRows[r.handle]); r.restored = true; restored.push(`${r.handle} (${r.reason || 'scan failed'})`);
+  });
+  if (restored.length) console.warn(`  scan failed, kept previous result for: ${restored.join(', ')}`);
+  const failed = results.filter(r => !r.ok && !r.handled && !r.restored).map(r => ({ handle: r.handle, reason: r.reason || '?' }));
 
   // Buckets keyed benchmarkType|discipline — same slicing as the baselines,
   // but discipline comes from the CURATED directory row, not the scan.
