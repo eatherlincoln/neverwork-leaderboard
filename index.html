@@ -226,6 +226,23 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
 .ct .bar2{height:4px;background:var(--line);border-radius:2px;margin:6px 0}.ct .bar2 i{display:block;height:100%;background:var(--green);border-radius:2px}
 .read{font-size:14px;color:var(--mid);margin-top:14px;max-width:70ch}.read b{color:var(--text)}
 
+
+.cfrow{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 10px;font-size:12px;color:var(--muted);font-weight:600}
+.cfrow select{margin-left:6px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600}
+.cfrow .cnt{margin-left:auto;font-weight:500}
+.rowbtns{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.rowbtns .mini{white-space:nowrap;padding:4px 7px}
+.mini.sl.on{background:var(--green);color:var(--on-green);border-color:var(--green)}
+.slt{overflow-x:auto;margin-top:14px}
+.slt table{border-collapse:collapse;width:100%;font-size:13px}
+.slt th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px}
+.slt td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:top}
+.slt .nm{font-weight:700}.slt .hd{font-size:12px;color:var(--muted)}
+.slt .tg{display:inline-block;font-size:11px;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:2px 8px;margin:0 4px 4px 0;color:var(--mid)}
+.slt .tg.up{border-color:var(--green);color:var(--green-ink)}
+.slt .tg.wn{border-color:var(--signal);color:var(--mid)}
+.slt a{color:var(--text)}
+.sact{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 #tray{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 20px;display:none;gap:10px;align-items:center;flex-wrap:wrap;z-index:80}
 #tray.on{display:flex}
 #chips2{display:flex;gap:6px;flex-wrap:wrap;flex:1}
@@ -251,6 +268,72 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
   .big{font-size:52px}
   .you .acts{margin-left:0}
 }
+
+/* how tab */
+.howtab{background:none;border:0;border-bottom:2px solid transparent;padding:7px 10px;font-size:13px;font-weight:700;color:var(--green-ink);margin-left:auto}
+.howtab.on{border-bottom-color:var(--green);color:var(--text)}
+:root:not(.light) .howtab{color:var(--green)}
+.linkbtn{background:none;border:0;color:var(--green-ink);font-weight:700;text-decoration:underline;font-size:inherit}
+:root:not(.light) .linkbtn{color:var(--green)}
+#how{display:none;padding:28px 0 8px}
+.howview #how{display:block}
+.howview #typeSeg,.howview #hero,.howview #youWrap,.howview #look,.howview .listhead,.howview #cfilters,.howview .table,.howview #note,.howview .method{display:none!important}
+.howview .filters{padding-top:12px}
+#how .hh{max-width:760px}
+#how h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin:6px 0 12px}
+#how h1 em{font-style:italic;color:var(--green-ink)}
+:root:not(.light) #how h1 em{color:var(--green)}
+#how h2{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.15;margin:44px 0 8px}
+#how .lead{font-size:16px;color:var(--mid);max-width:680px}
+#how p{font-size:14px;color:var(--mid);max-width:720px}
+#how .hp{margin-top:8px}
+.hbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:14px}
+.hbox b{color:var(--text)}
+.scale{display:grid;gap:8px;margin-top:14px}
+.srow{display:grid;grid-template-columns:78px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.srow .rg{font-weight:800;font-size:15px}
+.srow .tx b{display:block;font-size:13px}.srow .tx span{font-size:12px;color:var(--mid)}
+.srow .ct2{font-size:12px;color:var(--muted);white-space:nowrap}
+.srow.a{border-left:4px solid var(--green)}.srow.p{border-left:4px solid var(--muted)}.srow.b{border-left:4px solid var(--signal)}
+.wbar{display:flex;height:40px;border-radius:10px;overflow:hidden;margin-top:14px;border:1px solid var(--line)}
+.wbar i{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:800;color:var(--on-green)}
+.wbar i:nth-child(1){background:var(--green);flex:35}.wbar i:nth-child(2){background:#9BCB2E;flex:25}.wbar i:nth-child(3){background:#B9DB6A;flex:25}.wbar i:nth-child(4){background:#D5E8A4;flex:15}
+.wleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--mid);margin-top:8px}
+.fline{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.7;color:var(--text);background:var(--raised);border-radius:10px;padding:12px 14px;margin-top:14px;overflow-x:auto}
+.mcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.mcard .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mcard h3{font-size:15px}
+.mcard .wt{font-weight:800;color:var(--green-ink);font-size:20px}
+:root:not(.light) .mcard .wt{color:var(--green)}
+.mcard .q{font-size:12px;color:var(--muted);margin:2px 0 8px}
+.mcard p{font-size:13px;color:var(--mid);max-width:none;margin-top:6px}
+.mcard .ex{background:var(--raised);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12.5px;color:var(--mid)}
+.mcard .ex b{color:var(--text)}
+.mcard .ex .lb{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;font-weight:700}
+.wt2{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+.wt2 th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.wt2 td{padding:10px;border-bottom:1px solid var(--line);color:var(--mid)}
+.wt2 td b{color:var(--text)}
+.wt2 .n{text-align:right;font-variant-numeric:tabular-nums}
+.wt2 tfoot td{font-weight:800;color:var(--text);border-bottom:0}
+.gtab{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:12px}
+.gtab .wt2{margin-top:0}
+.guard{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.guard div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.guard b{display:block;font-size:13px;margin-bottom:4px}
+.guard p{font-size:12.5px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 16px;margin-top:8px}
+.faq summary{cursor:pointer;padding:14px 0;font-weight:700;font-size:14px}
+.faq details p{padding:0 0 14px;max-width:none}
+.hcta{margin-top:36px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--green-soft);border:1px solid var(--green);border-radius:14px;padding:18px}
+.hcta p{flex:1;min-width:220px;color:var(--text)}
+@media (max-width:820px){
+  .mcards,.guard{grid-template-columns:1fr}
+  #how h1{font-size:30px}
+  .srow{grid-template-columns:64px 1fr}.srow .ct2{grid-column:2}
+  .howtab{margin-left:0}
+}
 </style>
 </head>
 <body>
@@ -263,6 +346,7 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
     <input id="q" type="search" placeholder="Find your account…" autocomplete="off">
     <div class="results" id="results" hidden></div>
   </div>
+  <button class="ghost" id="shortBtn" hidden>Shortlist <span id="shortN">0</span></button>
   <button class="ghost" id="theme" aria-label="Switch between light and dark">Light</button>
 </div></header>
 
@@ -274,12 +358,14 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
 
   <section class="hero" id="hero"></section>
   <section id="youWrap"></section>
+  <section id="how" aria-label="How the score works"></section>
   <section class="look" id="look"></section>
 
   <div class="listhead">
     <div class="sect" style="margin:0"><h2 id="listTitle">Ranking</h2></div>
     <div class="chips" id="bandChips"></div>
   </div>
+  <div class="cfrow" id="cfilters" hidden></div>
   <div class="table">
     <div class="thead"><div>#</div><div>Account</div><div>Heat</div><div title="Likes plus comments per post as a share of followers, compared with what is typical at that follower count">Engagement</div><div title="Share of likes that turn into comments, compared with the group median">Conversation</div><div></div></div>
     <div id="rows"></div>
@@ -287,20 +373,7 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
   </div>
   <p class="note" id="note"></p>
 
-  <section class="method">
-    <details>
-      <summary>How the score works</summary>
-      <p class="mtxt">Heat compares each account with the others in its own group (same discipline, brands or athletes and creators), after adjusting for follower count. A small account is not expected to match a huge one's reach, but it is expected to engage better.</p>
-      <div class="mgrid">
-        <div class="mg"><b>Engagement for size <i>35%</i></b><p>Likes plus comments per post, as a share of followers, against what is typical for that size.</p></div>
-        <div class="mg"><b>Reach <i>25%</i></b><p>Reel views as a share of followers. Accounts with no Reels get a neutral score here.</p></div>
-        <div class="mg"><b>Community <i>25%</i></b><p>How often likes turn into comments, plus a small credit for posting regularly.</p></div>
-        <div class="mg"><b>Interaction quality <i>15%</i></b><p>Comment rate and engagement depth, plus view-to-like conversion where Reels exist.</p></div>
-      </div>
-      <p class="mtxt"><b>Reading it.</b> Ahead is Heat 60 or more. In the pack is 40 to 59. Behind is under 40. Every account is scored against its own group, so a 70 in Surf brands and a 70 in Snow athletes are not directly comparable.</p>
-      <p class="mtxt"><b>What it can't see.</b> Public posts only: likes, comments and Reel views. No saves, shares, Stories or paid reach. Likes are a typical-post average that ignores one-off viral outliers. Accounts under 5K followers, or with fewer than 5 posts in the window, are shown but not ranked. Posts a month is an estimate from the latest posts the scanner can see.</p>
-    </details>
-  </section>
+  <section class="method"><p class="mtxt">Want the full detail? <button class="linkbtn" data-act="how">Read how the score works</button></p></section>
   <footer id="foot"></footer>
 </main>
 
@@ -578,20 +651,149 @@ const tierShort = b => b.tierName.replace(/-tier$/, '');
 const st = { type: 'brand', disc: 'Surf', you: null, band: 'all', all: false };
 const key = () => st.disc + '|' + st.type;
 const cmp = [];
+st.size = 'any'; st.sort = 'heat';
+st.view = (typeof location !== 'undefined' && location.hash === '#how') ? 'how' : 'rank';
+let short = [];
+try { short = JSON.parse(localStorage.getItem('nw-short') || '[]').filter(h => ALLBY[h] && !ALLBY[h].isMicro); } catch (e) { short = []; }
+const saveShort = () => { try { localStorage.setItem('nw-short', JSON.stringify(short)); } catch (e) {} };
+let modalMode = '';
+const SIZES = [['any', 'Any size', 0, Infinity], ['s', 'Under 25K', 0, 25e3], ['m', '25K to 100K', 25e3, 1e5], ['l', '100K to 500K', 1e5, 5e5], ['xl', '500K and up', 5e5, Infinity]];
+const SORTS = [['heat', 'Heat'], ['eng', 'Engagement for its size'], ['fol', 'Followers'], ['act', 'Posts a month'], ['conv', 'Conversation']];
+const sortVal = { heat: b => b.heatScore, eng: b => vsSize(b), fol: b => b.followers, act: b => b.posts30d || 0, conv: b => b.commentDepthRatio > 0.15 ? 0 : b.commentDepthRatio };
 
 // ── rendering ─────────────────────────────────────────────────
 function render() {
   const k = key(), sc = scored(k), um = unranked(k), label = INDUSTRY_DATA[k].label;
   $('#typeSeg').innerHTML = ['brand','creator'].map(t => `<button class="${st.type===t?'on':''}" data-type="${t}">${t==='brand'?'Brands':'Athletes & creators'}</button>`).join('');
-  $('#disc').innerHTML = DISCS.map(d => `<button data-disc="${d}" class="${st.disc===d?'on':''}" ${hasLadder(d, st.type)?'':'disabled title="Nothing tracked here yet"'}>${esc(d)}</button>`).join('');
+  const onRank = st.view === 'rank';
+  $('#disc').innerHTML = DISCS.map(d => `<button data-disc="${d}" class="${onRank && st.disc===d?'on':''}" ${hasLadder(d, st.type)?'':'disabled title="Nothing tracked here yet"'}>${esc(d)}</button>`).join('') + `<button data-how class="howtab ${onRank?'':'on'}">How the score works</button>`;
+  document.body.classList.toggle('howview', !onRank);
   const from = new Date(GEN); from.setDate(from.getDate() - LB.days);
   const f = d => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
   window.WIN = `${f(from)} – ${f(GEN)} ${GEN.getFullYear()}`;
+  const sb = $('#shortBtn'); $('#shortN').textContent = short.length; sb.hidden = !(st.type === 'creator' || short.length);
+  if (!onRank) { renderHow(); $('#foot').textContent = `Source: public Instagram posts, ${LB.days} days to ${dateLabel}. ${LB.ok} of ${LB.scanned} tracked accounts scored.`; return; }
+  $('#how').innerHTML = '';
   renderHero(sc, um, label);
   renderYou(k, sc);
   renderLook(sc);
   renderList(k, sc, um, label);
   $('#foot').textContent = `Source: public Instagram posts, ${LB.days} days to ${dateLabel}. ${LB.ok} of ${LB.scanned} tracked accounts scored. Saves, shares, Stories and paid reach are not public, so they are not counted.`;
+}
+
+
+// ── How the score works ───────────────────────────────────────
+function setView(v) {
+  st.view = v;
+  try { if (v === 'how') history.replaceState(null, '', '#how'); else history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  render(); window.scrollTo(0, 0);
+}
+function renderHow() {
+  const all = Object.keys(INDUSTRY_DATA).flatMap(k => scored(k));
+  const N = all.length, nGroups = Object.keys(INDUSTRY_DATA).filter(k => scored(k).length).length;
+  const cnt = f => all.filter(b => f(b.heatScore)).length;
+  const c90 = cnt(h => h >= 90), c75 = cnt(h => h >= 75 && h < 90), c60 = cnt(h => h >= 60 && h < 75), c40 = cnt(h => h >= 40 && h < 60), c0 = cnt(h => h < 40);
+  const top = Math.max(...all.map(b => b.heatScore));
+  const unr = Object.keys(INDUSTRY_DATA).reduce((s, k) => s + unranked(k).length, 0);
+  const sizes = Object.keys(INDUSTRY_DATA).map(k => scored(k).length).filter(Boolean).sort((x, y) => x - y);
+  // worked example: leader of the biggest group
+  const bigK = Object.keys(INDUSTRY_DATA).sort((x, y) => scored(y).length - scored(x).length)[0];
+  const ex = scored(bigK).find(b => b.commentDepthRatio <= 0.15 && b.own >= 8) || scored(bigK)[0], exLabel = INDUSTRY_DATA[bigK].label;
+  const W = [['Engagement for size', 0.35, ex.engIdx], ['Reach', 0.25, ex.reachIdx], ['Community', 0.25, ex.activityIdx], ['Interaction quality', 0.15, ex.iqIdx]];
+  const pts = W.map(r => r[1] * r[2] * 50), sum = pts.reduce((s, v) => s + v, 0);
+  const idxTxt = v => v >= 1.995 ? '2.0× (capped)' : v.toFixed(2) + '×';
+  // does posting more line up with engagement? count groups with 10+ ranked
+  let big = 0, flat = 0;
+  Object.keys(INDUSTRY_DATA).forEach(k => {
+    const s = scored(k).filter(b => b.posts30d > 0);
+    if (s.length < 10) return; big++;
+    const r = spearman(s.map(b => b.posts30d), s.map(b => vsSize(b)));
+    if (r < 0.3) flat++;
+  });
+  const sRow = (cls, rg, t, d, n) => `<div class="srow ${cls}"><div class="rg">${rg}</div><div class="tx"><b>${t}</b><span>${d}</span></div><div class="ct2">${n} ${n === 1 ? 'account' : 'accounts'} now</div></div>`;
+  const grp = Object.keys(INDUSTRY_DATA).filter(k => scored(k).length).sort((x, y) => scored(y).length - scored(x).length)
+    .map(k => `<tr><td><b>${esc(INDUSTRY_DATA[k].label)}</b></td><td class="n">${scored(k).length}</td><td class="n">${unranked(k).length}</td><td class="n">${scored(k)[0].heatScore}</td></tr>`).join('');
+  $('#how').innerHTML = `
+  <div class="hh">
+    <div class="eyebrow">How the score works</div>
+    <h1>Who's <em>hot</em> and who's not. Here's exactly how we call it.</h1>
+    <p class="lead">Heat is a score from 0 to 100. It shows how an account's audience behaves compared with similar accounts, once you adjust for size. No opinion, no hand-picking. Same maths for every account, every refresh.</p>
+    <p class="hp">Right now it covers <b>${N} ranked accounts</b> across <b>${nGroups} groups</b>, built from public Instagram posts over the last ${LB.days} days.</p>
+  </div>
+
+  <h2>What a score means</h2>
+  <p>50 is the middle. It means an account performs like the median account in its group. Above 50 beats the middle. Below 50 trails it. Scores top out in the ${Math.floor(top / 10) * 10}s because beating the middle on every part, by a wide margin, is rare. The highest score today is ${top}.</p>
+  <div class="scale">
+    ${sRow('a', '90 to 100', 'Elite', 'Well ahead of the group on almost every part. Rare.', c90)}
+    ${sRow('a', '75 to 89', 'Strong', 'Clearly ahead of the group. Worth studying.', c75)}
+    ${sRow('a', '60 to 74', 'Ahead', 'Beats the middle. Healthy and growing audience behaviour.', c60)}
+    ${sRow('p', '40 to 59', 'In the pack', 'Close to the middle of the group. Most accounts sit here.', c40)}
+    ${sRow('b', 'Under 40', 'Behind', 'Trails the group. The audience is quieter than it should be for its size.', c0)}
+  </div>
+  <p class="hp">On the leaderboard, <b>Ahead</b> means Heat 60 or more, <b>In the pack</b> is 40 to 59, and <b>Behind</b> is under 40. "Hot" means Ahead. "Not" means Behind.</p>
+
+  <h2>The formula</h2>
+  <p>Four parts. Each one is the account's number divided by the group median. A 1.0 means "same as the middle". A 2.0 means "twice the middle". Then we weight them and scale so the middle lands on 50.</p>
+  <div class="wbar" role="img" aria-label="Engagement for size 35 percent, Reach 25 percent, Community 25 percent, Interaction quality 15 percent"><i>35%</i><i>25%</i><i>25%</i><i>15%</i></div>
+  <div class="wleg"><span><b>35%</b> Engagement for size</span><span><b>25%</b> Reach</span><span><b>25%</b> Community</span><span><b>15%</b> Interaction quality</span></div>
+  <div class="fline">Heat = ( Engagement × 0.35 + Reach × 0.25 + Community × 0.25 + Quality × 0.15 ) × 50<br>Each part = account ÷ group median, capped at 2.0. Heat is capped at 100.</div>
+
+  <h2>The four parts</h2>
+  <div class="mcards">
+    <div class="mcard"><div class="top"><h3>Engagement for size</h3><span class="wt">35%</span></div><div class="q">Does the audience react as much as it should at this size?</div>
+      <p>We take the typical post's likes plus comments and divide by followers. Then we compare it with what accounts of the same size normally get. Big accounts always get a lower rate, so a small account is held to a higher bar than a huge one.</p>
+      <div class="ex"><span class="lb">Example</span>An account with 20K followers gets 2.4% engagement. Accounts that size typically get 1.2%. That is <b>2.0× for its size</b>, so this part scores the maximum.</div></div>
+    <div class="mcard"><div class="top"><h3>Reach</h3><span class="wt">25%</span></div><div class="q">How many followers actually watch?</div>
+      <p>Average Reel views divided by followers. It shows if content travels past the people who already follow. Accounts with no Reels get a neutral 1.0 here, so they are not punished or rewarded.</p>
+      <div class="ex"><span class="lb">Example</span>10K followers, Reels average 15K views. Reach is <b>1.5× followers</b>. If the group median is 0.75×, this part scores <b>2.0×</b>.</div></div>
+    <div class="mcard"><div class="top"><h3>Community</h3><span class="wt">25%</span></div><div class="q">Do people talk, and does the account keep showing up?</div>
+      <p>Comments per like, adjusted for size, then lifted or trimmed by how often the account posts (up to about 12 posts a month). Comments take more effort than a like, so they say more about a real audience. A very high comment ratio is capped, because giveaways inflate it.</p>
+      <div class="ex"><span class="lb">Example</span>40 comments for every 1,000 likes is a 4% ratio. If the typical ratio at that size is 2.5%, that is <b>1.6×</b>. Posting 3 times a month instead of 12 trims it by about 20%.</div></div>
+    <div class="mcard"><div class="top"><h3>Interaction quality</h3><span class="wt">15%</span></div><div class="q">Is the attention deep or shallow?</div>
+      <p>A mix of comment rate, engagement depth, and how many Reel viewers go on to like. With Reels the mix is 40 / 30 / 20 / 10. Without Reels it is 50 / 35 / 15. The 10 or 15 is a neutral placeholder.</p>
+      <div class="ex"><span class="lb">Example</span>Comment rate 1.2× the median, depth 1.0×, view-to-like 0.8×. Quality works out near <b>1.0×</b>, which is a score of 50 on this part.</div></div>
+  </div>
+
+  <h2>A real account, step by step</h2>
+  <p>This is <b>${esc(ex.name)}</b>, the top-ranked account in ${esc(exLabel)} that isn't giveaway-driven. Every number below comes from the live data, so it will change when the data does.</p>
+  <table class="wt2"><thead><tr><th>Part</th><th class="n">vs group median</th><th class="n">Weight</th><th class="n">Points</th></tr></thead>
+  <tbody>${W.map((r, i) => `<tr><td><b>${r[0]}</b></td><td class="n">${idxTxt(r[2])}</td><td class="n">${Math.round(r[1] * 100)}%</td><td class="n">${pts[i].toFixed(1)}</td></tr>`).join('')}</tbody>
+  <tfoot><tr><td colspan="3">Heat</td><td class="n">${ex.heatScore}</td></tr></tfoot></table>
+  <p class="hp">Points = index × weight × 50. Add them up and round. ${esc(ex.name)} has ${fmtK(ex.followers)} followers and a typical engagement of ${pct(ex.engDepthRate, 2)}, against ${pct(expectedER(ex), 2)} typical at that size.</p>
+
+  <h2>Why the group median, and why a 2× cap</h2>
+  <p>Every account is compared with the others in its own group (for example Surf brands, or Snow athletes and creators). A skate shop and a surf label don't get judged against each other, and brands don't get judged against people.</p>
+  <div class="hbox"><b>Median, not average.</b> A few huge accounts can drag an average up and make everyone else look weak. The median is the middle account, so it can't be pulled around by one outlier.<br><br><b>2× cap.</b> No part counts for more than double the median. One freak number (a viral Reel, a giveaway) can't carry a whole score. It keeps the score honest and keeps the top end meaningful.<br><br><b>Why 50 in the middle.</b> A median account scores 1.0 on every part, which is 50 points. Double the median on every part is 100.</div>
+  <p class="hp"><b>Scores compare within a group, not across them.</b> A 70 in Surf brands and a 70 in Snow athletes both mean "well ahead of the middle of their own group". They don't mean the same audience size or reach.</p>
+  <div class="gtab"><table class="wt2"><thead><tr><th>Group</th><th class="n">Ranked</th><th class="n">Not ranked</th><th class="n">Top Heat</th></tr></thead><tbody>${grp}</tbody></table></div>
+  <p class="hp">${sizes.length ? `Groups range from ${sizes[0]} to ${sizes[sizes.length - 1]} ranked accounts. Small groups are directional only, since the median is less stable.` : ''}</p>
+
+  <h2>Built to be fair</h2>
+  <div class="guard">
+    <div><b>Typical post, not the average</b><p>The top and bottom of each account's recent posts are trimmed, so one viral post or a flop can't bend the numbers.</p></div>
+    <div><b>Own posts only</b><p>Collab posts owned by another account don't count towards the account you're looking at.</p></div>
+    <div><b>Giveaways are capped</b><p>Comment ratios above 15% are treated as giveaway-level and don't earn extra credit.</p></div>
+    <div><b>Size-adjusted</b><p>Engagement is judged against what is normal for that follower count. Small accounts aren't handed an easy win, and big ones aren't penalised for scale.</p></div>
+    <div><b>Public data only</b><p>Everything comes from public posts. No private analytics, no panels, no guesses about saves or shares.</p></div>
+    <div><b>Last ${LB.days} days</b><p>A rolling window. Old wins don't prop an account up, and a quiet month shows up.</p></div>
+  </div>
+
+  <h2>What it can't see</h2>
+  <p>Public likes, comments and Reel views only. No saves, shares, Stories, paid reach or sales. An account can have a strong brand and a low Heat if its audience is quiet on the feed. Heat shows audience response, not business results.</p>
+  <p class="hp">${unr} accounts are tracked but not scored. That happens when an account has under 5K followers, fewer than 5 own posts in the window, hides its likes, has gone quiet, or posts mostly collabs. They show on the leaderboard as "Not ranked", with the reason.</p>
+
+  <h2>Common questions</h2>
+  <div class="faq">
+    <details><summary>Does posting more make the score higher?</summary><p>Only a little. Posting frequency adjusts the Community part, and only up to about 12 posts a month. ${big ? `In ${flat} of the ${big} groups with 10 or more ranked accounts, posting more often did not line up with higher engagement for size.` : ''} More posts doesn't beat better posts.</p></details>
+    <details><summary>Why is a small account ahead of a huge one?</summary><p>Because we judge engagement against size. A 20K account with a very active audience can beat a 2M account whose audience barely reacts. That's the point of the score.</p></details>
+    <details><summary>Why does my account say "Not ranked"?</summary><p>One of these: under 5K followers, fewer than 5 own posts in ${LB.days} days, likes hidden, no recent posts, or recent posts that are collabs owned by someone else. The reason is shown on the row.</p></details>
+    <details><summary>Does a high score mean good for sales?</summary><p>No. It shows how the audience responds to content. It's a strong signal for creator and competitor research, but it doesn't see clicks, revenue or paid reach.</p></details>
+    <details><summary>Can I compare a brand with a creator?</summary><p>Not directly. Brands and creators behave differently, so each has its own size curve and its own groups. Compare brand with brand, creator with creator.</p></details>
+    <details><summary>How often does it update?</summary><p>Each refresh scans the accounts again. The data on this page runs to ${dateLabel}.</p></details>
+    <details><summary>Can the score be gamed?</summary><p>Buying likes or running giveaways can nudge some parts, so we trim outliers, cap comment ratios and cap every part at 2×. It can't be ruled out entirely, which is why we show the parts behind each score, not just the number.</p></details>
+  </div>
+
+  <div class="hcta"><p><b>See it on real accounts.</b> Open any group and click an account to see its four parts.</p><button class="btn" data-act="rankview">Back to the rankings</button></div>`;
 }
 
 function renderHero(sc, um, label) {
@@ -727,7 +929,7 @@ function rowHtml(b, rank, k, sc) {
     <div class="heat"><span class="pill ${bd}">${b.heatScore}</span></div>
     <div class="cell"><div class="v">${pct(b.engDepthRate, 2)}</div><div class="d ${em.c}">${em.t}</div></div>
     <div class="cell"><div class="v">${pct(b.commentDepthRatio * 100)}</div><div class="d ${cm.c}">${cm.t}</div></div>
-    <div><button class="mini${chk ? ' on' : ''}" data-cmp="${b.hd}">${chk ? '✓ Added' : '+ Compare'}</button></div>
+    <div class="rowbtns">${b.btype === 'creator' ? `<button class="mini sl${short.indexOf(b.hd) >= 0 ? ' on' : ''}" data-short="${b.hd}">${short.indexOf(b.hd) >= 0 ? '★ Shortlisted' : '☆ Shortlist'}</button>` : ''}<button class="mini${chk ? ' on' : ''}" data-cmp="${b.hd}">${chk ? '✓ Added' : '+ Compare'}</button></div>
   </div>`;
 }
 const avFile = hd => /^quiksilver/i.test(hd) ? 'quiksilver' : hd;   // any Quiksilver region uses the one logo
@@ -740,7 +942,17 @@ function renderList(k, sc, um, label) {
   $('#listTitle').textContent = 'Ranking · ' + label;
   let list;
   if (st.band === 'u') list = um.map(b => [b, '–']);
-  else list = sc.map((b, i) => [b, i + 1]).filter(([b]) => st.band === 'all' || band(b.heatScore) === st.band);
+  else list = sc.map((b, i) => [b, b.rank]).filter(([b]) => st.band === 'all' || band(b.heatScore) === st.band);
+  const cf = $('#cfilters');
+  if (st.type === 'creator' && st.band !== 'u') {
+    const sz = SIZES.find(s => s[0] === st.size) || SIZES[0], before = list.length;
+    list = list.filter(([b]) => b.followers >= sz[2] && b.followers < sz[3]);
+    if (st.sort !== 'heat') list.sort((p, q) => sortVal[st.sort](q[0]) - sortVal[st.sort](p[0]));
+    cf.hidden = false;
+    cf.innerHTML = `<label>Size <select data-f="size">${SIZES.map(s => `<option value="${s[0]}"${st.size === s[0] ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></label>
+      <label>Sort by <select data-f="sort">${SORTS.map(s => `<option value="${s[0]}"${st.sort === s[0] ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></label>
+      <span class="cnt">${list.length === before ? before + ' creators' : list.length + ' of ' + before + ' match'}. Pick the ones you like with Shortlist.</span>`;
+  } else cf.hidden = true;
   const LIM = 10, shown = st.all ? list : list.slice(0, LIM);
   let html = '';
   const me = st.you && ALLBY[st.you];
@@ -780,6 +992,7 @@ function openDrawer(hd) {
       <div class="dact">
         <button class="btn" data-setyou="${b.hd}">${st.you === b.hd ? 'This is your account' : 'Set as my account'}</button>
         <button class="btn o" data-card="${b.hd}">Download report card</button>
+        ${b.btype === 'creator' ? `<button class="btn o" data-short="${b.hd}">${short.indexOf(b.hd) >= 0 ? '★ On your shortlist' : '☆ Add to shortlist'}</button>` : ''}
         <button class="btn o" data-cmp="${b.hd}">${cmp.indexOf(b.hd) >= 0 ? '✓ In comparison' : '+ Compare'}</button>
       </div>`;
   }
@@ -791,7 +1004,7 @@ function closeDrawer() { $('#ov').classList.remove('on'); $('#drawer').classList
 // ── set / clear account, search ───────────────────────────────
 function setYou(hd) {
   const b = ALLBY[hd]; if (!b) return;
-  st.you = hd; st.type = b.btype; st.disc = b.discipline; st.band = 'all'; st.all = false;
+  st.view = 'rank'; st.you = hd; st.type = b.btype; st.disc = b.discipline; st.band = 'all'; st.all = false;
   closeDrawer(); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function search(q) {
@@ -831,6 +1044,7 @@ function cmpVerdict(L) {
   return s;
 }
 function openCmp() {
+  modalMode = 'cmp';
   const L = cmp.map(h => ALLBY[h]), me = L[0];
   const bH = best(L, a => a.heatScore), bE = best(L, a => a.engDepthRate), bC = best(L, a => a.commentDepthRatio <= 0.15 ? a.commentDepthRatio : 0), bF = best(L, a => a.followers);
   const maxE = Math.max(...L.map(a => a.engDepthRate));
@@ -854,7 +1068,7 @@ function openCmp() {
     <div class="dact"><button class="btn" data-act="dlcmp">Download comparison</button><button class="btn o" data-act="closem">Close</button></div>`;
   $('#modal').classList.add('on');
 }
-const closeCmp = () => $('#modal').classList.remove('on');
+const closeCmp = () => { $('#modal').classList.remove('on'); modalMode = ''; };
 
 // ── PNG: report card + comparison ─────────────────────────────
 function logoImage(cb) { const img = new Image(); img.onload = () => cb(img); img.src = URL.createObjectURL(new Blob([LOGO.replace(/currentColor/g, '#F4F0E6').replace('<svg ', '<svg width="800" height="125" ')], { type: 'image/svg+xml' })); }
@@ -920,20 +1134,106 @@ function drawCmp(L, logoImg) {
   savePng(c, 'neverwork-comparison-' + me.hd.replace(/[^a-z0-9_.-]/gi, '') + '.png');
 }
 
+
+// ── creator shortlist ─────────────────────────────────────────
+function fitTags(b) {
+  const t = [], x = vsSize(b);
+  if (x >= 1.5) t.push(['up', 'Punches above its size']);
+  if (b.hasReels && b.med.reachRate && b.reachRate >= b.med.reachRate * 1.5) t.push(['up', 'Strong Reel reach']);
+  if (b.commentDepthRatio > 0.15) t.push(['wn', 'Check: giveaway-style comments']);
+  else if (b.commentDepthRatio >= (medCtl(scored(b.ladder)) || 1) * 1.3) t.push(['up', 'Strong conversation']);
+  if ((b.posts30d || 0) >= 8) t.push(['up', 'Posts often']);
+  if (x <= 0.7) t.push(['wn', 'Engagement low for its size']);
+  if (b.heatScore < 40 && !t.some(a => a[0] === 'up')) t.push(['wn', 'Behind its group']);
+  return t;
+}
+function toggleShort(hd) {
+  const b = ALLBY[hd]; if (!b || b.isMicro) return;
+  const i = short.indexOf(hd);
+  if (i >= 0) short.splice(i, 1); else short.push(hd);
+  saveShort(); render();
+  if ($('#drawer').classList.contains('on')) openDrawer(hd);
+  if (modalMode === 'short' && $('#modal').classList.contains('on')) openShort();
+}
+function openShort() {
+  const L = short.map(h => ALLBY[h]).filter(Boolean);
+  const mixed = new Set(L.map(a => a.ladder)).size > 1;
+  const post = a => a.top && a.top[0] ? `<a href="${esc(a.top[0].url)}" target="_blank" rel="noopener"><b>${fmtK(a.top[0].l)}</b> likes · ${esc(FMT_NAME[a.top[0].f] || '')}</a>` : '<span class="hd">n/a</span>';
+  const rows = L.map(a => { const em = engMul(a); return `<tr>
+      <td><div class="nm">${esc(a.name)}</div><div class="hd"><a href="https://www.instagram.com/${esc(a.hd)}/" target="_blank" rel="noopener">${esc(a.handle)}</a> · ${esc(a.discipline)}</div></td>
+      <td>${fmtK(a.followers)}</td>
+      <td><span class="pill ${band(a.heatScore)}">${a.heatScore}</span></td>
+      <td>${pct(a.engDepthRate, 2)}<div class="hd">${esc(em.t)}</div></td>
+      <td>${P(a.posts30d)}</td>
+      <td>${post(a)}</td>
+      <td>${fitTags(a).map(t => `<span class="tg ${t[0]}">${esc(t[1])}</span>`).join('') || '<span class="hd">Nothing stands out</span>'}</td>
+      <td><button class="mini" data-short="${a.hd}" aria-label="Remove ${esc(a.name)}">Remove</button></td></tr>`; }).join('');
+  modalMode = 'short';
+  $('#mbody').innerHTML = `<div class="mtop"><div><div class="hd">${esc(monthLabel)} · saved on this device</div><h2>Creator shortlist${L.length ? ' · ' + L.length : ''}</h2></div><button class="dx" data-act="closem" aria-label="Close">×</button></div>
+    ${L.length ? `${mixed ? '<div class="warn"><b>Different groups.</b> Heat shows standing inside each creator’s own discipline. Engagement for size is the fairer comparison across them.</div>' : ''}
+    <div class="slt"><table><thead><tr><th>Creator</th><th>Followers</th><th>Heat</th><th>Engagement</th><th>Posts a month</th><th>Best recent post</th><th>Signals</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="note">Signals come from public numbers only. They say how a creator’s posts perform, not whether their audience fits your brand, so check the audience before you reach out.</p>
+    <div class="sact"><button class="btn" data-act="dlcsv">Download CSV</button><button class="btn o" data-act="dlshort">Download shortlist image</button><button class="btn o" data-act="copyshort">Copy handles</button><button class="btn o" data-act="clrshort">Clear list</button></div>`
+    : '<p class="read">Nothing here yet. Open the Athletes &amp; creators view and press <b>Shortlist</b> on the ones you like. They stay on this device.</p>'}`;
+  $('#modal').classList.add('on');
+}
+function csvShort() {
+  const L = short.map(h => ALLBY[h]).filter(Boolean), q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const head = ['Name', 'Handle', 'Instagram link', 'Discipline', 'Followers', 'Rank in group', 'Heat', 'Engagement % per post', 'Engagement vs typical for size (x)', 'Conversation % (likes that become comments)', 'Typical likes', 'Typical comments', 'Avg Reel views', 'Posts a month (estimate)', 'Best recent post link', 'Signals'];
+  const lines = [head.map(q).join(',')].concat(L.map(a => [a.name, a.handle, 'https://www.instagram.com/' + a.hd + '/', a.discipline, a.followers, a.rank + ' of ' + a.pn, a.heatScore, a.engDepthRate.toFixed(2), vsSize(a).toFixed(2), (a.commentDepthRatio * 100).toFixed(1), Math.round(a.avgLikes), Math.round(a.avgComments), Math.round(a.avgReelViews || 0), (a.posts30d || 0).toFixed(1), a.top && a.top[0] ? a.top[0].url : '', fitTags(a).map(t => t[1]).join('; ')].map(q).join(',')));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), u = URL.createObjectURL(blob), l = document.createElement('a');
+  l.href = u; l.download = 'neverwork-creator-shortlist-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000);
+}
+function drawShort(L, logoImg) {
+  L = L.slice(0, 8);
+  const W = 1080, H = 1350, M = 80, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = INK; x.fillRect(0, 0, W, H); x.textBaseline = 'alphabetic';
+  x.drawImage(logoImg, M, 84, 360, 360 * 125 / 800);
+  x.font = '600 22px ' + SANS; x.fillStyle = DIM; x.textAlign = 'right'; x.fillText((monthLabel + ' shortlist').toUpperCase(), W - M, 128); x.textAlign = 'left';
+  x.fillStyle = CREAM; x.font = '600 64px ' + SERIF; x.fillText('Creator shortlist', M, 280);
+  x.font = '400 24px ' + SANS; x.fillStyle = DIM; x.fillText(L.length + ' creator' + (L.length === 1 ? '' : 's') + ' picked from the leaderboard', M, 322);
+  const top = 380, rh = Math.min(120, (H - top - 190) / Math.max(L.length, 1));
+  x.font = '600 20px ' + SANS; x.fillStyle = DIM; x.fillText('FOLLOWERS', M + 430, top); x.fillText('HEAT', M + 640, top); x.fillText('ENGAGEMENT', M + 780, top);
+  L.forEach((a, i) => {
+    const y = top + 24 + i * rh, bd = band(a.heatScore);
+    x.strokeStyle = LINE; x.lineWidth = 2; x.beginPath(); x.moveTo(M, y); x.lineTo(W - M, y); x.stroke();
+    x.fillStyle = CREAM; x.font = '600 32px ' + SERIF;
+    let nm = a.name; while (x.measureText(nm).width > 380 && nm.length > 3) nm = nm.slice(0, -2); if (nm !== a.name) nm += '…';
+    x.fillText(nm, M, y + 50);
+    x.fillStyle = DIM; x.font = '400 22px ' + SANS; x.fillText(a.handle + ' · ' + a.discipline, M, y + 84);
+    x.fillStyle = CREAM; x.font = '600 34px ' + SERIF; x.fillText(fmtK(a.followers), M + 430, y + 56);
+    x.fillStyle = bd === 'a' ? GREEN : bd === 'b' ? SIGNAL : CREAM; x.fillText(String(a.heatScore), M + 640, y + 56);
+    x.fillStyle = CREAM; x.fillText(pct(a.engDepthRate, 2), M + 780, y + 56);
+  });
+  x.fillStyle = DIM; x.font = '400 22px ' + SANS;
+  x.fillText('Heat is relative to each creator’s own group. Source: public posts, ' + LB.days + ' days to ' + dateLabel + '.', M, H - 90);
+  x.fillStyle = CREAM; x.font = '600 22px ' + SANS; x.fillText('leaderboard.thisisneverwork.com', M, H - 52);
+  savePng(c, 'neverwork-creator-shortlist.png');
+}
+
 // ── events ────────────────────────────────────────────────────
 document.addEventListener('click', e => {
   const t = e.target;
   const c = s => t.closest(s);
   let el;
+  if (c('[data-how]')) return setView('how');
   if ((el = c('[data-cmp]'))) { e.stopPropagation(); return toggleCmp(el.dataset.cmp); }
+  if ((el = c('[data-short]'))) { e.stopPropagation(); return toggleShort(el.dataset.short); }
   if ((el = c('[data-card]'))) return downloadCard(el.dataset.card);
   if ((el = c('[data-setyou]'))) return setYou(el.dataset.setyou);
   if ((el = c('[data-pick]'))) { $('#results').hidden = true; $('#q').value = ''; return setYou(el.dataset.pick); }
   if ((el = c('[data-rm]'))) return toggleCmp(el.dataset.rm);
   if ((el = c('[data-act]'))) {
     const a = el.dataset.act;
+    if (a === 'how') return setView('how');
+    if (a === 'rankview') return setView('rank');
     if (a === 'close') return closeDrawer();
     if (a === 'closem') return closeCmp();
+    if (a === 'dlcsv') return csvShort();
+    if (a === 'dlshort') return logoImage(img => drawShort(short.map(h => ALLBY[h]).filter(Boolean), img));
+    if (a === 'copyshort') { try { navigator.clipboard.writeText(short.map(h => ALLBY[h].handle).join(' ')); el.textContent = 'Copied'; } catch (x) {} return; }
+    if (a === 'clrshort') { short.length = 0; saveShort(); render(); return openShort(); }
     if (a === 'dlcmp') return logoImage(img => drawCmp(cmp.map(h => ALLBY[h]), img));
     if (a === 'noyou') { st.you = null; return render(); }
     if (a === 'goyou') { const b = ALLBY[st.you]; st.type = b.btype; st.disc = b.discipline; return render(); }
@@ -941,10 +1241,11 @@ document.addEventListener('click', e => {
     if (a === 'top3') { const sc = scored(ALLBY[st.you].ladder), me = ALLBY[st.you]; cmp.length = 0; cmp.push(me.hd); sc.filter(b => b.hd !== me.hd).slice(0, 3).forEach(b => cmp.push(b.hd)); drawTray(); render(); return openCmp(); }
   }
   if ((el = c('[data-open]'))) return openDrawer(el.dataset.open);
-  if ((el = c('#typeSeg [data-type]'))) { st.type = el.dataset.type; if (!hasLadder(st.disc, st.type)) st.disc = DISCS.find(d => hasLadder(d, st.type)); st.band = 'all'; st.all = false; return render(); }
-  if ((el = c('#disc [data-disc]'))) { if (el.disabled) return; st.disc = el.dataset.disc; st.band = 'all'; st.all = false; return render(); }
+  if ((el = c('#typeSeg [data-type]'))) { st.view = 'rank'; st.type = el.dataset.type; if (!hasLadder(st.disc, st.type)) st.disc = DISCS.find(d => hasLadder(d, st.type)); st.band = 'all'; st.all = false; return render(); }
+  if ((el = c('#disc [data-disc]'))) { if (el.disabled) return; st.view = 'rank'; st.disc = el.dataset.disc; st.band = 'all'; st.all = false; return render(); }
   if ((el = c('[data-band]'))) { st.band = el.dataset.band; st.all = false; return render(); }
   if (c('#more')) { st.all = !st.all; return render(); }
+  if (c('#shortBtn')) return openShort();
   if (c('#ov')) return closeDrawer();
   if (t.id === 'modal') return closeCmp();
   if (c('#tclr')) { cmp.length = 0; drawTray(); return render(); }
@@ -952,6 +1253,7 @@ document.addEventListener('click', e => {
   if (c('#theme')) { const l = document.documentElement.classList.toggle('light'); $('#theme').textContent = l ? 'Dark' : 'Light'; try { localStorage.setItem('nw-theme', l ? 'light' : 'dark'); } catch (x) {} return; }
   if (!c('.find')) $('#results').hidden = true;
 });
+document.addEventListener('change', e => { const s = e.target.closest('[data-f]'); if (s) { st[s.dataset.f] = s.value; st.all = false; render(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeCmp(); $('#results').hidden = true; } });
 $('#q').addEventListener('input', e => search(e.target.value));
 $('#logo').innerHTML = LOGO;
