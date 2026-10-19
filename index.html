@@ -148,8 +148,8 @@ a{color:inherit}
 .row.me{background:var(--green-soft);box-shadow:inset 3px 0 0 var(--green)}
 .rk{font-size:13px;font-weight:700;color:var(--muted)}
 .who{display:flex;gap:10px;align-items:center;min-width:0}
-.av{width:36px;height:36px;border-radius:50%;background:var(--raised);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mid);overflow:hidden;flex:0 0 auto}
-.av img{width:100%;height:100%;object-fit:cover}
+.av{position:relative;width:36px;height:36px;border-radius:50%;background:var(--raised);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mid);overflow:hidden;flex:0 0 auto}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--raised)}
 .who .t{min-width:0}
 .who .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who .hd{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -277,7 +277,7 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
 :root:not(.light) .linkbtn{color:var(--green)}
 #how{display:none;padding:28px 0 8px}
 .howview #how{display:block}
-.howview #typeSeg,.howview #hero,.howview #youWrap,.howview #look,.howview .listhead,.howview #cfilters,.howview .table,.howview #note,.howview .method{display:none!important}
+.howview #typeSeg,.howview #hero,.howview #meds,.howview #youWrap,.howview #look,.howview .listhead,.howview #cfilters,.howview .table,.howview #note,.howview .method{display:none!important}
 .howview .filters{padding-top:12px}
 #how .hh{max-width:760px}
 #how h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin:6px 0 12px}
@@ -334,21 +334,65 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
   .srow{grid-template-columns:64px 1fr}.srow .ct2{grid-column:2}
   .howtab{margin-left:0}
 }
+
+.bar .logo{display:block;text-decoration:none}
+.nav{display:flex;gap:4px;margin-left:8px}
+.nav a{font-size:13px;font-weight:600;color:var(--mid);text-decoration:none;padding:6px 10px;border-radius:8px}
+.nav a:hover{color:var(--text);background:var(--raised)}
+.jobs{display:flex;gap:6px;align-items:center}
+.jobs input{width:170px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--text);font-size:13px}
+.jobs .btn{padding:8px 14px}
+.titleband{background:var(--surface);border-bottom:1px solid var(--line)}
+.titleband .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:18px;padding-bottom:18px;flex-wrap:wrap}
+.tb-h{font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.1;letter-spacing:-.01em}
+.tb-s{font-size:13px;color:var(--muted);margin-top:4px}
+.tb-r{display:flex;gap:10px;align-items:center}
+.tb-r .find{flex:0 1 260px;min-width:160px}
+.pillw{font-size:12px;font-weight:700;color:var(--on-green);background:var(--green);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.meds{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 4px}
+.med{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.med .ml{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.med .mv{font-size:30px;font-weight:800;line-height:1.15;margin-top:6px}
+.med .mv small{font-size:16px;color:var(--muted);font-weight:700}
+.med .ms{font-size:12px;color:var(--mid);margin-top:2px}
+@media (max-width:820px){
+  .tb-r{flex-wrap:wrap}
+  .meds{grid-template-columns:1fr 1fr}
+  .nav{display:none}
+  .jobs input{width:110px}
+  .tb-h{font-size:22px}
+}
+@media (max-width:480px){.jobs input{display:none}}
 </style>
 </head>
 <body>
 <header class="bar"><div class="wrap">
-  <div class="logo" id="logo" aria-label="NeverWork"></div>
-  <div class="name">Brand Heat</div>
+  <a class="logo" id="logo" href="https://thisisneverwork.com" aria-label="NeverWork home"></a>
+  <nav class="nav" aria-label="NeverWork">
+    <a href="https://thisisneverwork.com/browse-jobs-without-map/">Browse jobs</a>
+    <a href="https://thisisneverwork.com/companies/">Brands</a>
+    <a href="https://thisisneverwork.com/salary-survey/">Salary survey</a>
+  </nav>
   <div class="sp"></div>
-  <div class="find">
-    <label class="sr" for="q">Find your account</label>
-    <input id="q" type="search" placeholder="Find your account…" autocomplete="off">
-    <div class="results" id="results" hidden></div>
-  </div>
-  <button class="ghost" id="shortBtn" hidden>Shortlist <span id="shortN">0</span></button>
+  <form class="jobs" id="jobsForm" action="https://thisisneverwork.com/browse-jobs-without-map/" method="get" target="_blank" rel="noopener">
+    <label class="sr" for="jq">Search jobs on NeverWork</label>
+    <input id="jq" name="search_keywords" type="search" placeholder="Search jobs…" autocomplete="off">
+    <button class="btn" type="submit">Jobs</button>
+  </form>
   <button class="ghost" id="theme" aria-label="Switch between light and dark">Light</button>
 </div></header>
+<div class="titleband"><div class="wrap">
+  <div class="tb-l"><h1 class="tb-h">Brand Heat Leaderboard</h1><p class="tb-s">Category-relative performance scores · Rolling window</p></div>
+  <div class="tb-r">
+    <div class="find">
+      <label class="sr" for="q">Find an account</label>
+      <input id="q" type="search" placeholder="Find an account…" autocomplete="off">
+      <div class="results" id="results" hidden></div>
+    </div>
+    <button class="ghost" id="shortBtn" hidden>Shortlist <span id="shortN">0</span></button>
+    <span class="pillw" id="pillWin"></span>
+  </div>
+</div></div>
 
 <main class="wrap">
   <div class="filters">
@@ -357,6 +401,7 @@ footer{padding:28px 0 60px;font-size:12px;color:var(--muted)}
   </div>
 
   <section class="hero" id="hero"></section>
+  <section class="meds" id="meds" aria-label="Group medians"></section>
   <section id="youWrap"></section>
   <section id="how" aria-label="How the score works"></section>
   <section class="look" id="look"></section>
@@ -672,6 +717,7 @@ function render() {
   const k = key(), sc = scored(k), um = unranked(k), label = INDUSTRY_DATA[k].label;
   $('#typeSeg').innerHTML = ['brand','creator'].map(t => `<button class="${st.type===t?'on':''}" data-type="${t}">${t==='brand'?'Brands':'Athletes & creators'}</button>`).join('');
   const onRank = st.view === 'rank';
+  $('#pillWin').textContent = `Rolling ${LB.days} days · ${(() => { const f2 = new Date(GEN); f2.setDate(f2.getDate() - LB.days); const q = d => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }); return q(f2) + ' – ' + q(GEN) + ' ' + GEN.getFullYear(); })()}`;
   $('#disc').innerHTML = DISCS.map(d => `<button data-disc="${d}" class="${onRank && st.disc===d?'on':''}" ${hasLadder(d, st.type)?'':'disabled title="Nothing tracked here yet"'}>${esc(d)}</button>`).join('') + `<button data-how class="howtab ${onRank?'':'on'}">How the score works</button>`;
   document.body.classList.toggle('howview', !onRank);
   const from = new Date(GEN); from.setDate(from.getDate() - LB.days);
@@ -680,6 +726,7 @@ function render() {
   const sb = $('#shortBtn'); $('#shortN').textContent = short.length; sb.hidden = !(st.type === 'creator' || short.length);
   if (!onRank) { renderHow(); $('#foot').textContent = `Source: public Instagram posts, ${LB.days} days to ${dateLabel}. ${LB.ok} of ${LB.scanned} tracked accounts scored.`; return; }
   $('#how').innerHTML = '';
+  renderMeds(sc, um);
   renderHero(sc, um, label);
   renderYou(k, sc);
   renderLook(sc);
@@ -800,6 +847,25 @@ function renderHow() {
   </div>
 
   <div class="hcta"><p><b>See it on real accounts.</b> Open any group and click an account to see its four parts.</p><button class="btn" data-act="rankview">Back to the rankings</button></div>`;
+}
+
+
+function renderMeds(sc, um) {
+  const el = $('#meds');
+  if (!sc.length) { el.innerHTML = ''; return; }
+  const med = a => a.length ? median(a) : null;
+  const eng = med(sc.map(b => b.engDepthRate));
+  const rl = sc.filter(b => b.avgReelViews > 0 && b.followers > 0);
+  const reach = rl.length >= 3 ? median(rl.map(b => b.avgReelViews / b.followers * 100)) : null;
+  const pm = sc.reduce((s, b) => s + (b.posts30d || 0), 0);
+  const ahead = sc.filter(b => b.heatScore >= 60).length;
+  const typeWord = st.type === 'brand' ? 'brands' : 'accounts';
+  const card = (l, v, s) => `<div class="med"><div class="ml">${l}</div><div class="mv">${v}</div><div class="ms">${s}</div></div>`;
+  el.innerHTML =
+    card(`${esc(INDUSTRY_DATA[key()].label)} median engagement`, pct(eng, 2), `Likes + comments per post, as a share of followers · ${sc.length} ${typeWord}`) +
+    card('Median Reel reach', reach == null ? 'n/a' : pct(reach, 0), reach == null ? 'Too few accounts post Reels here' : `Average Reel views as a share of followers · ${rl.length} with Reels`) +
+    card('Posts a month', `~${Math.round(pm / sc.length)}<small> each</small>`, `${Math.round(pm)} in total across the group`) +
+    card('Ahead of the group', `${ahead}<small>/${sc.length}</small>`, 'Heat 60 or more');
 }
 
 function renderHero(sc, um, label) {
@@ -939,7 +1005,7 @@ function rowHtml(b, rank, k, sc) {
   </div>`;
 }
 const avFile = hd => /^quiksilver/i.test(hd) ? 'quiksilver' : hd;   // any Quiksilver region uses the one logo
-const avHtml = b => `<div class="av"><img src="instagram_avatars/images/${avFile(b.hd)}.jpg" alt="" onerror="this.remove()">${esc(initialsOf(b.name))}</div>`;
+const avHtml = b => `<div class="av"><img src="instagram_avatars/images/${avFile(b.hd)}.jpg" alt="" onerror="this.remove()"><span>${esc(initialsOf(b.name))}</span></div>`;
 
 function renderList(k, sc, um, label) {
   const n = { a: 0, p: 0, b: 0 }; sc.forEach(b => n[band(b.heatScore)]++);
