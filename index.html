@@ -637,7 +637,8 @@ const P = n => { const v = Number(n || 0); return v >= 10 ? String(Math.round(v)
 const pct = (v, d) => (v * 1).toFixed(d == null ? 1 : d) + '%';
 const initialsOf = n => n.replace(/[^A-Za-z0-9 ]/g,' ').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
 const TYPE_NOUN = { brand: 'brands', creator: 'athletes & creators' };
-const DISC_ORDER = ['Surf','Surfboards','Skate','Snow','Outdoor','Multi-Sport','Adventure','Lifestyle','Streetwear'];
+const MERGED = 'Lifestyle & Streetwear';
+const DISC_ORDER = ['Surf','Surfboards','Skate','Snow','Outdoor','Multi-Sport','Adventure',MERGED];
 const BAND = { a: 'Ahead', p: 'In the pack', b: 'Behind' };
 const band = h => h >= 60 ? 'a' : h < 40 ? 'b' : 'p';
 const FMT_NAME = { reel: 'Reel', carousel: 'Carousel', image: 'Photo' };
@@ -658,7 +659,7 @@ const INDUSTRY_DATA = {}, ALLRANKED = {}, ALLBY = {};
   const split = [];
   LB.buckets.forEach(bk => {
     const m = {};
-    bk.rows.forEach(r => { const dsc = (bk.type === 'brand' && r.category === 'Surfboards') ? 'Surfboards' : bk.discipline; (m[dsc] = m[dsc] || []).push(r); });
+    bk.rows.forEach(r => { const dsc = (bk.type === 'brand' && r.category === 'Surfboards') ? 'Surfboards' : (bk.discipline === 'Lifestyle' || bk.discipline === 'Streetwear') ? MERGED : bk.discipline; (m[dsc] = m[dsc] || []).push(r); });
     Object.keys(m).forEach(dsc => split.push({ discipline: dsc, type: bk.type, rows: m[dsc] }));
   });
   LB.buckets = split;

@@ -88,6 +88,45 @@ async function scan(handles, attempt = 1) {
     results.push(...await scan(chunk));
   }
 
+  // Deep scan: the profile scraper only returns an account's latest ~12 posts. For anyone posting often
+  // that is just the last few weeks, so re-pull every post inside the window for those accounts.
+  // (Needs the deployed /api/scan to support mode=deepstart/deepget; if it does not, nothing is flagged.)
+  const trunc = results.filter(r => r.ok && r.truncated);
+  if (trunc.length) {
+    console.log(`  deep scan: ${trunc.length} accounts posted more than the profile scraper returns, pulling the full ${DAYS} days…`);
+    const DCH = 6, DPAR = 4, chunks = [];
+    for (let i = 0; i < trunc.length; i += DCH) chunks.push(trunc.slice(i, i + DCH));
+    const J = async u => { const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
+    const deepChunk = async ch => {
+      const hs = encodeURIComponent(ch.map(r => r.handle).join(','));
+      const st = await J(`${BASE}/api/scan?mode=deepstart&handles=${hs}&days=${DAYS}`);
+      if (!st.runId) throw new Error('no runId');
+      const fol = encodeURIComponent(ch.map(r => r.handle + ':' + r.followers).join(','));
+      for (let t = 0; t < 14; t++) {
+        const j = await J(`${BASE}/api/scan?mode=deepget&runId=${st.runId}&handles=${hs}&followers=${fol}&days=${DAYS}`);
+        if (!j.pending) return j.results || [];
+      }
+      throw new Error('timed out');
+    };
+    let next = 0, swapped = 0;
+    await Promise.all(Array.from({ length: Math.min(DPAR, chunks.length) }, async () => {
+      while (next < chunks.length) {
+        const ch = chunks[next++];
+        try {
+          const out = await deepChunk(ch);
+          out.forEach(x => {
+            const first = results.find(r => r.handle === x.handle);
+            if (!first || !x.ok) return;
+            console.log(`    ${x.handle}: ${first.own} -> ${x.own} own posts`);
+            Object.assign(first, x, { pic: first.pic });
+            swapped++;
+          });
+        } catch (e) { console.warn(`  deep scan failed for ${ch.map(r => r.handle).join(', ')} (${e.message}); keeping the shorter sample`); }
+      }
+    }));
+    console.log(`  deep scan replaced ${swapped} of ${trunc.length}.`);
+  }
+
   // Second chance: profile scraper gave followers but no posts. Ask the post scraper why
   // (likes hidden / inactive) so these accounts show as "tracked, not ranked" instead of vanishing.
   const tracked = [];

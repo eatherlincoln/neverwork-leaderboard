@@ -4,11 +4,11 @@ name: Monthly leaderboard refresh
 # The push redeploys leaderboard.thisisneverwork.com, so nothing needs running by hand.
 on:
   schedule:
-    - cron: '0 20 1 * *'   # 1st of each month 20:00 UTC = 2nd, 6am Brisbane
+    - cron: '0 0 1 * *'   # 1st of each month 00:00 UTC = 10am Brisbane on the 1st
   workflow_dispatch:
     inputs:
       scan:
-        description: 'Rescan Instagram (about $0.70 of Apify). Untick to only rebuild the site and refresh card images.'
+        description: 'Rescan Instagram incl. deep scan of every post in the 90 days (roughly $15-25 of Apify). Untick to only rebuild the site and refresh card images.'
         type: boolean
         default: true
 
@@ -76,4 +76,5 @@ jobs:
           git add -A index.html pipeline card-thumbs brand-logos
           if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
           git commit -m "Monthly refresh $(date -u +%Y-%m-%d)"
+          git pull --rebase -X theirs origin main || { git rebase --abort; echo '::error::Could not rebase onto main'; exit 1; }
           git push
