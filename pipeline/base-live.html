@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Heat Leaderboard</title>
+
+<!-- Open Graph / Social sharing -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://leaderboard.thisisneverwork.com">
+<meta property="og:title" content="Brand Heat Leaderboard — Who's winning on Instagram?">
+<meta property="og:description" content="Category-relative Instagram performance scores for surfboard, surf, skate, snow, outdoor and lifestyle brands. Updated monthly.">
+<meta property="og:image" content="https://leaderboard.thisisneverwork.com/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://leaderboard.thisisneverwork.com">
+<meta name="twitter:title" content="Brand Heat Leaderboard — Who's winning on Instagram?">
+<meta name="twitter:description" content="Category-relative Instagram performance scores for surfboard, surf, skate, snow, outdoor and lifestyle brands. Updated monthly.">
+<meta name="twitter:image" content="https://leaderboard.thisisneverwork.com/og-image.jpg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    /* Editorial dark palette (default) */
+    --bg:         #10110F;
+    --white:      #181A17;
+    --raised:     #20231F;
+    --dark:       #10110F;
+    --mid:        #AAA79D;
+    --muted:      #6B6B62;
+    --border:     #33362F;
+    --dark-text:  #F4F0E6;
+    --header-bg:  #10110F;  /* Always dark — never overridden by light mode */
+
+    /* Accents */
+    --accent:    #B7E34A;
+    --info:      #7FA9A8;
+    --heat:      #E87D3E;
+    --negative:  #C65A4A;
+    --positive:  #7FB069;
+    --neutral:   #D6C7A1;
+    --warning:   #D99A3D;
+  }
+
+  /* ── Light mode overrides ── */
+  .light .rank-1     { background: #FFF3CD; color: #9A6F00; }
+  .light .rank-2     { background: #E8E8E8; color: #555; }
+  .light .rank-3     { background: #FFE8D6; color: #9A4400; }
+  .light .rank-other { background: #F0EFE9; color: #9A9890; }
+  .light .theme-toggle { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.12); color: #5A5850; }
+
+  .light {
+    --bg:        #F5F4EF;
+    --white:     #FFFFFF;
+    --raised:    #ECEAE3;
+    --dark:      #F5F4EF;
+    --mid:       #3A3830;  /* Darker for better contrast on light */
+    --muted:     #7A7870;
+    --border:    #D8D5CB;
+    --dark-text: #1C1C1A;
+    /* header-bg intentionally NOT overridden — stays dark */
+
+    --accent:    #3D6010;  /* Deep lime — contrast ratio 7:1 on light bg */
+    --info:      #336666;
+    --heat:      #A04010;
+    --negative:  #8A2A1A;
+    --positive:  #2A5A1A;
+    --neutral:   #6A5A3A;
+    --warning:   #8A5A10;
+  }
+
+  :root {
+
+    /* Legacy aliases — map old names to new palette */
+    --purple:       #B7E34A;
+    --purple-light: #C8F56E;
+    --purple-pale:  #20231F;
+    --red:          #C65A4A;
+    --green:        #7FB069;
+    --amber:        #D99A3D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--dark-text); min-height: 100vh; }
+
+  /* Header */
+  .header { background: var(--header-bg); color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-left p { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+  .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 8px; padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .pill select { background: transparent; border: none; color: white; font-size: 12px; cursor: pointer; outline: none; appearance: none; }
+  .pill select option { background: #2D2D2A; color: var(--dark-text); }
+  .window-badge { background: var(--accent); color: #10110F; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; }
+  .theme-toggle { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); border-radius: 8px; padding: 5px 10px; font-size: 15px; cursor: pointer; line-height: 1; transition: all 0.15s; }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Layout */
+  .container { max-width: 1360px; margin: 0 auto; padding: 22px 20px; }
+
+  /* Methodology banner */
+  .methodology-banner { background: var(--raised); border: 1px solid var(--border); border-radius: 10px; padding: 11px 16px; font-size: 12px; color: var(--mid); margin-bottom: 16px; line-height: 1.6; display: flex; align-items: center; gap: 10px; }
+  .methodology-banner strong { color: var(--neutral); }
+
+  /* Category tabs */
+  .cat-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+  .cat-tab { padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); color: var(--mid); background: var(--raised); transition: all 0.15s; }
+  .cat-tab.active { background: #7eb801; color: #141413; border-color: #7eb801; }
+  .cat-tab:hover:not(.active) { border-color: #7eb801; color: #527A1A; }
+
+  /* Search */
+  /* Hero brand search */
+  .brand-finder { background: var(--raised); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .brand-finder-label { flex-shrink: 0; }
+  .brand-finder-label h3 { font-size: 15px; font-weight: 700; }
+  .brand-finder-label p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .brand-finder-input-wrap { flex: 1; position: relative; min-width: 240px; }
+  .brand-finder-input-wrap input { width: 100%; padding: 11px 16px 11px 42px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; background: var(--bg); color: var(--dark-text); outline: none; transition: border 0.15s; }
+  .brand-finder-input-wrap input:focus { border-color: var(--accent); background: var(--raised); }
+  .brand-finder-input-wrap .fi-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; pointer-events: none; }
+  .brand-finder-input-wrap .fi-clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; cursor: pointer; color: var(--muted); display: none; }
+  .brand-finder-input-wrap input:not(:placeholder-shown) ~ .fi-clear { display: block; }
+  /* Hide the old inline search */
+  .search-wrap { display: none; }
+  .brand-count { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  /* Summary strip */
+  .summary-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .summary-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .summary-card .label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; }
+  .summary-card .value { font-size: 24px; font-weight: 800; color: var(--dark-text); line-height: 1; }
+  .summary-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Main grid */
+  .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+
+  /* Leaderboard card */
+  .leaderboard-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; color: var(--dark-text); }
+  .leaderboard-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .leaderboard-header h2 { font-size: 15px; font-weight: 700; color: var(--dark-text); }
+  .lh-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+  .date-range { font-size: 11px; color: var(--muted); background: var(--bg); border-radius: 5px; padding: 3px 8px; }
+  .confidence-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .conf-high   { background: transparent; color: var(--accent);   border: 1px solid var(--border); }
+  .conf-medium { background: transparent; color: var(--warning);  border: 1px solid var(--border); }
+  .conf-low    { background: transparent; color: var(--negative); border: 1px solid var(--border); }
+
+  /* Chart */
+  .chart-wrap { padding: 14px 18px 18px; height: 200px; position: relative; }
+
+  /* Column headers */
+  .table-cols { display: grid; grid-template-columns: 38px 210px 70px 1fr 1fr 105px; gap: 8px; padding: 9px 18px; background: var(--raised); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+  .col-head { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; display: flex; align-items: center; gap: 3px; }
+  .info-icon { width: 12px; height: 12px; border-radius: 50%; background: var(--border); font-size: 8px; display: flex; align-items: center; justify-content: center; cursor: help; flex-shrink: 0; }
+
+  /* Brand rows */
+  .brand-rows-wrap { overflow: visible; }
+  .brand-row { display: grid; grid-template-columns: 38px 210px 70px 1fr 1fr 105px; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.12s; cursor: pointer; }
+
+  /* Size benchmark badges */
+  .size-badge { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-align: center; white-space: nowrap; }
+  .size-above  { background: transparent; color: var(--accent);   border: 1px solid var(--accent); }
+  .size-within { background: transparent; color: var(--mid);      border: 1px solid var(--border); }
+  .size-below  { background: transparent; color: var(--negative); border: 1px solid var(--negative); }
+
+  /* Main gap badge */
+  .gap-badge { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 4px; white-space: nowrap; }
+  .gap-good { color: var(--accent);   background: transparent; border: 1px solid var(--border); }
+  .gap-warn { color: var(--warning);  background: transparent; border: 1px solid var(--border); }
+
+  /* Brand detail drawer */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 199; display: none; }
+  .drawer-overlay.show { display: block; }
+  .brand-drawer { position: fixed; right: -440px; top: 0; width: 420px; height: 100vh; background: var(--raised); border-left: 1px solid var(--border); transition: right 0.25s ease; z-index: 200; overflow-y: auto; box-shadow: -4px 0 40px rgba(0,0,0,0.5); color: var(--dark-text); }
+  .brand-drawer.open { right: 0; }
+  .drawer-inner { padding: 24px; }
+  .drawer-close { position: sticky; top: 0; background: var(--raised); display: flex; justify-content: flex-end; padding: 12px 24px 0; border-bottom: 1px solid var(--border); margin: -24px -24px 20px; }
+  .drawer-close button { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--muted); padding: 4px 8px; }
+  .drawer-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .drawer-score-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .drawer-title { font-size: 17px; font-weight: 800; color: var(--dark-text); }
+  .drawer-handle { font-size: 12px; color: var(--muted); }
+  .drawer-why { font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .drawer-section { margin-bottom: 18px; }
+  .drawer-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; }
+  .drawer-item { font-size: 12px; color: var(--mid); padding: 7px 0; border-bottom: 1px solid var(--border); line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+  .drawer-item:last-child { border-bottom: none; }
+  .drawer-item-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .drawer-meta { margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); }
+  .brand-row:last-child { border-bottom: none; }
+  .brand-row:hover { background: var(--raised); }
+  .brand-row.active { background: var(--raised); border-left: 3px solid var(--accent); }
+
+  /* Report card styles */
+  .rc-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .rc-grade { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; flex-shrink: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .rc-brand-name { font-size: 16px; font-weight: 800; color: var(--dark-text); }
+  .rc-brand-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rc-heat { margin-left: auto; text-align: center; flex-shrink: 0; }
+  .rc-heat-num { font-size: 28px; font-weight: 900; line-height: 1; }
+  .rc-heat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
+
+  .rc-scores { margin-bottom: 18px; }
+  .rc-score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .rc-score-label { font-size: 11px; color: var(--mid); flex: 0 0 120px; }
+  .rc-score-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .rc-score-fill { height: 6px; border-radius: 3px; transition: width 0.4s ease; }
+  .rc-score-val { font-size: 11px; font-weight: 700; color: var(--dark-text); flex: 0 0 36px; text-align: right; }
+
+  .rc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .rc-tag { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .rc-tag-friction { background: rgba(198,90,74,0.1); color: #8A2A1A; border: 1px solid rgba(198,90,74,0.3); }
+  .rc-tag-strength { background: rgba(126,184,1,0.1); color: #3D6010; border: 1px solid rgba(126,184,1,0.3); }
+
+  .rc-rec { background: #141413; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .rc-rec-label { font-size: 9px; font-weight: 700; color: #7eb801; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .rc-rec-title { font-size: 13px; font-weight: 700; color: #faf9f5; margin-bottom: 6px; line-height: 1.3; }
+  .rc-rec-body { font-size: 11px; color: rgba(250,249,245,0.7); line-height: 1.6; }
+  .brand-row.hidden { display: none; }
+  .brand-row.pinned-sticky { position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  .rank-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .rank-1     { background: #3A2E00; color: #E8C44A; }
+  .rank-2     { background: #2A2A2A; color: #AAA79D; }
+  .rank-3     { background: #3A1800; color: #E87D3E; }
+  .rank-other { background: var(--raised); color: var(--muted); font-size: 10px; }
+
+  .brand-info { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+  .brand-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; color: white; flex-shrink: 0; overflow: hidden; }
+  .brand-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .brand-name { font-size: 12px; font-weight: 700; color: var(--dark-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-handle { font-size: 10px; color: var(--mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-tag { font-size: 8px; font-weight: 700; text-transform: uppercase; background: var(--raised); color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; margin-top: 1px; display: inline-block; letter-spacing: 0.5px; }
+  .your-brand-chip { font-size: 8px; font-weight: 700; text-transform: uppercase; background: #FEF3C7; color: #92400E; border-radius: 3px; padding: 1px 5px; margin-left: 4px; display: inline-block; }
+
+  .metric-cell { text-align: center; }
+  .metric-value { font-size: 12px; font-weight: 700; }
+  .metric-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; margin: 4px 0; }
+  .metric-bar { height: 3px; border-radius: 2px; background: var(--accent); }
+  .vs-median { font-size: 9px; font-weight: 700; white-space: nowrap; }
+  .vs-median.above { color: var(--accent); }
+  .vs-median.below { color: var(--negative); }
+  .vs-median.flat  { color: var(--neutral); }
+
+  .heat-score { border-radius: 7px; padding: 5px 10px; font-size: 13px; font-weight: 800; text-align: center; color: #10110F; }
+  .heat-score.score-elite  { background: #FFB35C; }
+  .heat-score.score-strong { background: #E87D3E; }
+  .heat-score.score-above  { background: #B7E34A; }
+  .heat-score.score-bench  { background: #D6C7A1; }
+  .heat-score.score-below  { background: #C65A4A; color: #F4F0E6; }
+  /* legacy aliases */
+  .heat-score.hot  { background: #FFB35C; }
+  .heat-score.warm { background: #B7E34A; }
+  .heat-score.cool { background: #C65A4A; color: #F4F0E6; }
+  .mom-change { font-size: 9px; font-weight: 600; text-align: center; margin-top: 2px; }
+  .mom-up { color: var(--green); } .mom-down { color: var(--red); } .mom-flat { color: var(--muted); }
+
+  /* Right panel */
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+  .metric-detail-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .metric-detail-header { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .metric-detail-header h3 { font-size: 13px; font-weight: 700; }
+  .metric-definition { background: var(--bg); border-radius: 7px; padding: 9px 12px; font-size: 11px; color: var(--mid); margin: 12px 14px 0; font-style: italic; }
+  .metric-rows { padding: 10px 14px 14px; }
+  .metric-row-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+  .metric-row-item:last-child { border-bottom: none; }
+  .metric-row-item.col { flex-direction: column; align-items: stretch; gap: 5px; }
+  .metric-row-brand { font-size: 11px; font-weight: 600; flex: 0 0 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .metric-row-bar-wrap { flex: 1; height: 5px; background: var(--border); border-radius: 3px; }
+  .metric-row-bar { height: 5px; border-radius: 3px; }
+  .metric-row-val { font-size: 11px; font-weight: 700; flex: 0 0 44px; text-align: right; }
+
+  /* High-intent breakdown */
+  .hi-breakdown { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+  .hi-sub { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--muted); }
+  .hi-sub-bar-wrap { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+  .hi-sub-bar { height: 3px; border-radius: 2px; }
+  .hi-sub-val { font-size: 9px; font-weight: 600; color: var(--mid); min-width: 26px; text-align: right; }
+
+  /* Insights */
+  .insights-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 16px; color: var(--dark-text); }
+  .insights-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--dark-text); }
+  .insight-item { display: flex; gap: 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .insight-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .insight-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .insight-text { font-size: 11px; line-height: 1.55; color: var(--mid); }
+  .insight-text strong { color: var(--dark-text); }
+
+  /* Formula panel */
+  .formula-row { background: var(--bg); border-radius: 10px; padding: 12px 14px; }
+  .formula-row h4 { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
+  .formula-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .formula-chip { background: var(--white); border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; font-size: 10px; color: var(--mid); }
+  .formula-chip span { color: var(--purple); font-weight: 700; }
+
+  /* Tooltip */
+  [data-tooltip] { position: relative; }
+  [data-tooltip]:hover::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: #141413; color: #faf9f5; font-size: 10px; padding: 6px 10px; border-radius: 5px; white-space: normal; pointer-events: none; z-index: 100; max-width: 240px; text-align: center; line-height: 1.5; }
+
+  /* No results */
+  .no-results { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+
+
+  /* Formula tab distinct style */
+  .formula-tab { border-color: var(--info) !important; color: var(--info) !important; }
+  .formula-tab.active { background: var(--info) !important; color: #10110F !important; border-color: var(--info) !important; }
+
+  /* Formula panel */
+  .formula-panel { display: none; }
+  .formula-panel.visible { display: block; }
+  .fp-hero { background: #141413; border-radius: 14px; padding: 36px 40px; margin-bottom: 24px; }
+  .fp-hero h2 { font-size: 26px; font-weight: 800; margin-bottom: 10px; color: #faf9f5; }
+  .fp-hero p { font-size: 14px; line-height: 1.75; max-width: 680px; color: rgba(250,249,245,0.8); }
+  .fp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 24px; }
+  .fp-card { background: var(--raised); border: 1px solid var(--border); border-radius: 14px; padding: 24px; color: var(--dark-text); }
+  .fp-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .fp-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .fp-card h3 { font-size: 15px; font-weight: 700; color: var(--dark-text); }
+  .fp-card .fp-def { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 8px; }
+  .fp-card p { font-size: 13px; line-height: 1.7; color: var(--mid); }
+  .fp-card .fp-formula { background: var(--bg); border-radius: 7px; padding: 10px 13px; font-size: 11px; font-family: monospace; color: var(--info); margin-top: 12px; font-weight: 600; border: 1px solid var(--border); }
+  .fp-example { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-top: 4px; font-size: 12px; color: var(--mid); line-height: 1.7; }
+  .fp-example strong { color: var(--neutral); }
+  .fp-score-guide { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 24px; }
+  .fp-score-guide h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--dark-text); }
+  .score-bar-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .score-label { font-size: 12px; font-weight: 700; width: 80px; flex-shrink: 0; }
+  .score-track { flex: 1; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+  .score-fill { height: 10px; border-radius: 5px; }
+  .score-note { font-size: 12px; color: var(--mid); width: 200px; flex-shrink: 0; }
+  .fp-faq { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  .fp-faq h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q { font-size: 13px; font-weight: 700; color: var(--dark-text); margin-bottom: 7px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .faq-a { font-size: 13px; color: var(--mid); line-height: 1.7; }
+
+  /* Search not-found / add-brand UI */
+  .search-not-found { padding: 24px 18px; text-align: center; }
+  .search-not-found h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .search-not-found p { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .add-brand-form { display: flex; gap: 8px; max-width: 400px; margin: 0 auto; }
+  .add-brand-form input { flex: 1; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+  .add-brand-form input:focus { border-color: var(--purple); }
+  .btn-add { background: var(--purple); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-add:hover { background: var(--purple-light); }
+  .add-success { background: var(--purple-pale); border: 1px solid #C4B5F4; border-radius: 10px; padding: 16px; margin-top: 14px; font-size: 12px; color: var(--mid); line-height: 1.6; display: none; }
+  .add-success.show { display: block; }
+  .search-result-banner { background: #FEFCBF; border: 1px solid #D69E2E; border-radius: 8px; padding: 9px 14px; font-size: 12px; color: #744210; margin: 8px 18px 0; display: none; }
+  .search-result-banner.show { display: block; }
+
+  @media (max-width: 960px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .table-cols, .brand-row { grid-template-columns: 28px 1fr 54px 120px; }
+    /* On mobile: show Rank, Brand, Heat, Engagement only */
+    .brand-row > :nth-child(5), .brand-row > :nth-child(6) { display: none; }
+    .table-cols > :nth-child(5), .table-cols > :nth-child(6) { display: none; }
+    .brand-drawer { width: 100vw; right: -100vw; }
+    .header { padding: 14px 16px; }
+    .container { padding: 14px 12px; }
+    .summary-strip { grid-template-columns: 1fr 1fr; }
+    .brand-finder { padding: 14px 16px; flex-direction: column; align-items: stretch; gap: 10px; }
+    .brand-finder-label { display: none; }
+    .heat-score { font-size: 13px; padding: 4px 6px; }
+    .size-badge, .gap-badge { font-size: 9px; padding: 3px 6px; }
+    .chart-wrap { height: 160px; }
+  }
+
+  @media (max-width: 480px) {
+    .summary-strip { grid-template-columns: 1fr; }
+    .table-cols, .brand-row { grid-template-columns: 24px 1fr 48px 100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>🏄 Brand Heat Leaderboard</h1>
+    <p>Category-relative performance scores · Rolling window</p>
+  </div>
+  <div class="header-right">
+    <div class="pill">
+      📅 <select id="windowSelect" onchange="switchWindow(this.value)">
+        <option value="30">Rolling 30 days</option>
+        <option value="60">Rolling 60 days</option>
+        <option value="90">Rolling 90 days</option>
+      </select>
+    </div>
+    <div class="window-badge" id="windowBadge">Apr 30 – May 30, 2026</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="methodology-banner">
+    <span style="font-size:18px;">📐</span>
+    <span>We compare each brand against <strong>similar brands in its category</strong>, then adjust for account size. <strong>50</strong> = benchmark. <strong>75</strong> = strong. <strong>100</strong> = category-leading. Click any brand for a plain-English breakdown.</span>
+  </div>
+
+  <div class="cat-tabs" id="catTabs">
+    <div class="cat-tab active" onclick="setCat(this,'surfboards')">🏄 Surfboards</div>
+    <div class="cat-tab" onclick="setCat(this,'surf')">🌊 Surf</div>
+    <div class="cat-tab" onclick="setCat(this,'skate')">🛹 Skate</div>
+    <div class="cat-tab" onclick="setCat(this,'snow')">🏔️ Snow</div>
+    <div class="cat-tab" onclick="setCat(this,'outdoor')">🌿 Outdoor</div>
+    <div class="cat-tab" onclick="setCat(this,'lifestyle')">✨ Lifestyle</div>
+    <div class="cat-tab" onclick="setCat(this,'athletes')">🏆 Athletes</div>
+    <div class="cat-tab formula-tab" onclick="showFormulas(this)">📖 Understanding Our Formulas</div>
+    <span class="brand-count" id="brandCount"></span>
+  </div>
+
+
+  <!-- Formula Panel (hidden until tab clicked) -->
+  <div class="formula-panel" id="formulaPanel">
+    <div class="fp-hero">
+      <h2>What is Brand Heat?</h2>
+      <p>Think of it like this. You own a surf shop. There are 30 other surf shops in town. Some are big chains. Some are small boutiques with a loyal crew. Brand Heat is your reputation score — but only compared to the other surf shops, not Woolworths.</p>
+      <p style="margin-top:14px">Every month we look at three things: are people actually reacting when you post? Are they talking back, or just scrolling past? Are you showing up consistently? We score you against the other brands in your category. Not against Nike. Not against your mate's café. Just your competitors.</p>
+      <p style="margin-top:14px"><strong style="color:#7eb801">50</strong> = you're average for your category. <strong style="color:#7eb801">75</strong> = you're clearly outperforming most competitors. <strong style="color:#7eb801">100</strong> = you're leading the category.</p>
+      <p style="margin-top:14px;opacity:0.7">The bit that surprises people: follower count doesn't win this. A brand with 5,000 loyal followers who all talk back scores higher than a brand with 50,000 followers who scroll straight past. Passive audiences don't count. Active ones do.</p>
+    </div>
+
+    <div class="fp-score-guide">
+      <h3>What does the Brand Heat Score actually mean?</h3>
+      <div class="score-bar-row">
+        <div class="score-label" style="color:#E53E3E">🔴 0–49</div>
+        <div class="score-track"><div class="score-fill" style="width:49%;background:#FC8181"></div></div>
+        <div class="score-note">Below the category median. The audience is there, but engagement or reach is underperforming peers.</div>
+      </div>
+      <div class="score-bar-row">
+        <div class="score-label" style="color:#D69E2E">🟡 50</div>
+        <div class="score-track"><div class="score-fill" style="width:50%;background:#F6E05E"></div></div>
+        <div class="score-note">Right at the median. Exactly average for the category — nothing wrong, nothing exciting.</div>
+      </div>
+      <div class="score-bar-row">
+        <div class="score-label" style="color:#6B4FBB">🟣 51–74</div>
+        <div class="score-track"><div class="score-fill" style="width:74%;background:#9F7AEA"></div></div>
+        <div class="score-note">Above the median. Content is landing well and the algorithm is noticing.</div>
+      </div>
+      <div class="score-bar-row">
+        <div class="score-label" style="color:#38A169">🟢 75–89</div>
+        <div class="score-track"><div class="score-fill" style="width:89%;background:#68D391"></div></div>
+        <div class="score-note">Strong performer. Clearly outpacing most peers in the category.</div>
+      </div>
+      <div class="score-bar-row">
+        <div class="score-label" style="color:#C05621">🔥 90–100</div>
+        <div class="score-track"><div class="score-fill" style="width:100%;background:#C05621"></div></div>
+        <div class="score-note">Category-leading. Firing on all cylinders — reach, tier-adjusted engagement, community activity, and interaction quality all above median.</div>
+      </div>
+    </div>
+
+    <div class="fp-grid">
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#FFF0F0">🔥</div>
+          <div><div class="fp-def">Overall Score</div><h3>Brand Heat Score</h3></div>
+        </div>
+        <p>Your Brand Heat Score rolls four things into one number: how many people you're reaching, whether your engagement is strong <em>for your size</em>, how active and conversational your community is, and the overall quality of interactions.</p>
+        <p style="margin-top:10px">The score is built so that <strong>50 always means average for your category</strong>. If you scored 64, you're beating more than half the category. If you scored 38, your peers are outperforming you — and this tool will show you exactly where the gap is.</p>
+        <div class="fp-formula">Heat = Reach(25%) + Tier-Adj Engagement(35%) + Activity/Community(25%) + IQ Score(15%)</div>
+        <div class="fp-example"><strong>Why does it matter?</strong> A brand with 500k followers and below-tier engagement can score lower than a brand with 30k followers that punches above its weight and has an audience that actually talks back. Size alone doesn't win.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#F0F7FF">📊</div>
+          <div><div class="fp-def">Metric 1</div><h3>Tier-Adjusted Engagement</h3></div>
+        </div>
+        <p>Raw engagement rate is biased — a brand with 5,000 followers will almost always have a higher ER than one with 500,000. That's just how Instagram works. So we don't compare raw ER directly.</p>
+        <p style="margin-top:10px">Instead, we divide each brand's ER by the <strong>expected ER for their follower tier</strong>. A score of 1.0× means meeting tier expectation. 2.0× means double. This lets a large brand with great engagement compete fairly against a small brand with great engagement.</p>
+        <div class="fp-formula">Tier-Adj ER = Raw ER ÷ Expected ER for follower tier<br><br>&lt;5K: 6% · 5–20K: 4% · 20–100K: 2.5% · 100–250K: 1.75% · 250–500K: 1.25% · 500K+: 0.8%</div>
+        <div class="fp-example"><strong>Example:</strong> Brand A has 300K followers and 1.4% ER. Their tier expects 1.25%, so their tier-adjusted score is 1.12× — above expectation. Brand B has 15K followers and 3.5% ER. Their tier expects 4%, so they're only at 0.88× — actually underperforming for their size despite the higher raw number.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#F0FFF8">💬</div>
+          <div><div class="fp-def">Metric 2</div><h3>Activity / Community Score</h3></div>
+        </div>
+        <p>This metric rewards brands whose audiences genuinely talk back — not just scroll and like. It uses the <strong>comment-to-like ratio</strong> as a proxy for two-way community engagement, since saves and shares aren't publicly available.</p>
+        <p style="margin-top:10px">Like engagement rate, comment-to-like ratios are naturally higher for smaller accounts. So we tier-adjust this too — comparing each brand's ratio against what's expected for their size. Consistent posting amplifies the score, but volume is capped so you can't game it by posting 30 times a month.</p>
+        <div class="fp-formula">Activity = Tier-Adj Comment Depth (60%) × Frequency Boost (40%)<br><br>Frequency Boost = smooth reward curve, capped at 12 posts/month</div>
+        <div class="fp-example"><strong>Why comments?</strong> A brand that responds to comments, sparks conversation, and builds a real community will naturally attract more comments relative to likes — regardless of size. It's the best public signal we have for genuine community health.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#FFFBEB">🎯</div>
+          <div><div class="fp-def">Metric 3</div><h3>Interaction Quality Score</h3></div>
+        </div>
+        <p>Interaction Quality measures how meaningfully an audience responds using only <strong>public, scrapeable signals</strong>. Saves and shares are excluded — Instagram doesn't make them publicly available.</p>
+        <p style="margin-top:10px">The score weights comment rate most heavily (it takes the most effort), then engagement depth (likes + comments together), then view conversion on Reels where available.</p>
+        <div class="fp-formula">Comment Rate×50% + Eng Depth×35% + Consistency×15%<br>(or with Reels: Comment×40% + Depth×30% + View Conv×20% + Consistency×10%)</div>
+        <div class="fp-example"><strong>Why comments matter most:</strong> Writing a comment takes real effort. A brand with a high comment rate has an audience that is genuinely invested — not just scrolling past.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#F0FFF4">📡</div>
+          <div><div class="fp-def">Metric 4</div><h3>Reach Rate</h3></div>
+        </div>
+        <p>Reach rate estimates what percentage of your followers actually see each post. Instagram doesn't show every post to every follower — the algorithm decides based on how engaging your recent content has been.</p>
+        <p style="margin-top:10px"><strong>Bigger accounts typically have lower reach rates.</strong> A brand with 500k followers might only reach 12% of them per post, while a 25k-follower brand might reach 28%. This is normal — and it's why smaller brands can outperform on this metric.</p>
+        <div class="fp-formula">Estimated Reach ÷ Followers × 100</div>
+        <div class="fp-example"><strong>What lifts reach rate:</strong> Posting consistently, getting saves early after publishing, using Reels over static images, and posting when your audience is most active all signal to Instagram that your content deserves wider distribution.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#FAF0FF">📐</div>
+          <div><div class="fp-def">Core Concept</div><h3>Category Median</h3></div>
+        </div>
+        <p>We don't compare a boutique surfboard shaper to Billabong's 1.8 million followers. That's not useful. Instead, every brand is compared to <strong>the middle performer in its own category</strong>.</p>
+        <p style="margin-top:10px">We use the median (not the average) because one outlier — say, a brand that went viral once — can skew an average dramatically. The median is more honest: it's literally the brand sitting in the middle of the pack.</p>
+        <div class="fp-formula">% vs Category = (Your Score ÷ Category Median − 1) × 100</div>
+        <div class="fp-example"><strong>Example:</strong> Surf category median engagement = 1.28%. Your brand = 1.82%. Category Index = 1.82 ÷ 1.28 = 1.42. You're <strong>+42% above the category median</strong>.</div>
+      </div>
+
+      <div class="fp-card">
+        <div class="fp-card-head">
+          <div class="fp-icon" style="background:#FFF5F5">🧢</div>
+          <div><div class="fp-def">Why we cap scores</div><h3>The 2× Cap</h3></div>
+        </div>
+        <p>We cap every individual index at 2.0× the category median before calculating the final Heat Score. This stops one exceptional metric from hiding weaknesses elsewhere.</p>
+        <p style="margin-top:10px">Without the cap, a brand with insane reach but terrible engagement could still score 90+. <strong>The cap forces the score to reflect overall health, not a single spike.</strong></p>
+        <div class="fp-formula">Capped Index = min(Brand ÷ Median, 2.0)</div>
+        <div class="fp-example"><strong>In practice:</strong> If your save rate is 4× the category median, it still only counts as 2× in the calculation. The remaining "surplus" doesn't carry over. This makes scores comparable and fair across very different brand sizes.</div>
+      </div>
+
+    </div>
+
+    <div class="fp-faq">
+      <h3>Common questions</h3>
+      <div class="faq-item">
+        <div class="faq-q">Why does my brand have a low score if it has lots of followers?</div>
+        <div class="faq-a">Follower count alone doesn't move the needle here. We care about what percentage of your followers are engaging, not the raw number. A large audience that scrolls past your posts will score worse than a small audience that saves and shares them. Growth without engagement is a liability — it dilutes your rate.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What's the difference between Engagement Depth and Interaction Quality Score?</div>
+        <div class="faq-a">Engagement Depth is simple: (likes + comments) / followers. It tells you the raw interaction rate. Interaction Quality digs deeper — it weights comment rate more heavily than likes, adds view conversion from Reels where available, and compares everything against the category median. IQ Score is the better measure of content quality because comments require real effort from the audience.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Why is reach rate important if I can just buy ads?</div>
+        <div class="faq-a">Organic reach rate tells you how well the algorithm thinks your content deserves to be seen. A high organic reach rate means Instagram is actively distributing your posts to new people for free. Low organic reach means you're increasingly dependent on paid spend to get the same eyeballs — which gets expensive fast.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">My brand posts a lot but the score is still low. Why?</div>
+        <div class="faq-a">Posting frequency contributes to the Activity/Community Score, but it's a multiplier on your comment depth — not a score in itself. Volume only helps if your audience is actually talking. Posting 30 times a month with low comment-to-like ratios won't outperform a brand posting 8 times with a highly conversational community. Also, the frequency reward caps at around 12 posts/month, so there's no benefit to posting more than that.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How often is this data updated?</div>
+        <div class="faq-a">The dashboard runs on a rolling 30-day window (adjustable to 60 or 90 days). Data is refreshed monthly. The Brand Heat Score you see reflects the last full rolling period — it won't change mid-month. Month-over-month rank changes show whether a brand is trending up or down.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What does "Benchmark Confidence" mean?</div>
+        <div class="faq-a">Confidence is based on sample size. With only 5 brands in a category and 30–50 posts analysed, there's less statistical reliability than a category with 20+ brands and 200+ posts. Low confidence doesn't mean the scores are wrong — it means you should treat them as directional, not definitive.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Find Your Brand hero -->
+  <div class="brand-finder" id="brandFinder">
+    <div class="brand-finder-label">
+      <h3>🔍 Find your brand</h3>
+      <p>Search to compare against the top 10</p>
+    </div>
+    <div class="brand-finder-input-wrap">
+      <span class="fi-icon">🏄</span>
+      <input type="text" id="heroSearchInput" placeholder="Brand name or @handle…" oninput="heroSearch(this.value)" autocomplete="off">
+      <span class="fi-clear" onclick="clearHeroSearch()">✕</span>
+    </div>
+  </div>
+
+  <div class="summary-strip" id="summaryStrip"></div>
+
+  <div class="main-grid">
+    <div>
+      <div class="leaderboard-card">
+        <div class="leaderboard-header">
+          <div>
+            <h2>Overall Ranking — <span id="industryLabel">Surfboards</span></h2>
+            <div class="lh-meta">
+              <div class="date-range" id="dateRangeLabel">May 2026 · 30-day window</div>
+              <span id="confidenceBadge" class="confidence-badge conf-medium">⬤ Medium confidence</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+        <div id="searchResultBanner" class="search-result-banner"></div>
+        <div class="search-wrap" style="padding:0 18px 10px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Filter brands…" oninput="filterBrands(this.value)">
+        </div>
+        <!-- Not found panel sits ABOVE the table -->
+        <div id="notFoundPanel" class="search-not-found" style="display:none">
+          <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+          <h4 id="notFoundTitle">Brand not found in our database</h4>
+          <p id="notFoundMsg">We don't track that brand yet. Add their Instagram handle and we'll include them in next month's report.</p>
+          <div class="add-brand-form">
+            <input type="text" id="addBrandHandle" placeholder="@instagramhandle">
+            <button class="btn-add" onclick="submitBrand()">Request tracking</button>
+          </div>
+          <div class="add-success" id="addSuccess">
+            ✅ <strong>Request received.</strong> We'll pull <span id="addedHandle"></span>'s data and include them in the next monthly refresh. <strong>Check back in around a week.</strong>
+          </div>
+        </div>
+        <div class="table-cols">
+          <div class="col-head">#</div>
+          <div class="col-head">Brand</div>
+          <div class="col-head" data-tooltip="Brand Heat Score: 50 = category benchmark, 75 = strong, 100 = category-leading">Heat <div class="info-icon">i</div></div>
+          <div class="col-head" data-tooltip="Engagement Rate = (Likes + Comments) / Followers. Your actual ER + how it compares to the category median.">Engagement Rate <div class="info-icon">i</div></div>
+          <div class="col-head" data-tooltip="Comment-to-Like ratio. High CTL = audience that talks back, not just scrolls. Category median shown for reference.">Conversation <div class="info-icon">i</div></div>
+          <div class="col-head" data-tooltip="How much data backs this category. More brands and posts = more reliable rankings.">Coverage <div class="info-icon">i</div></div>
+        </div>
+        <div class="brand-rows-wrap" id="leaderboardRows"></div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="insights-card">
+        <h3>💡 Key Insights</h3>
+        <div id="insightsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+// followers, avgLikes, avgComments, avgSaves, avgShares, posts30d
+// momRank: rank change MoM (+up / -down / 0 same)
+// momHeat: Heat Score change MoM
+const INDUSTRY_DATA = {
+
+  surfboards: {
+    label: "Surfboards",
+    brands: [
+      { name:"Firewire Surfboards", handle:"@firewiresurfboards", color:"#E63946", initials:"FW", tag:"Performance", followers:198000, avgLikes:1720, avgComments:80, avgSaves:310, avgShares:75, posts30d:24, momRank:0,  momHeat:+1.2 },
+      { name:"...Lost",             handle:"@lostsurfboards",     color:"#C05621", initials:"LO", tag:"Performance", followers:181000, avgLikes:1510, avgComments:72, avgSaves:258, avgShares:65, posts30d:19, momRank:+1, momHeat:+1.4 },
+      { name:"Album Surf",          handle:"@albumsurf",          color:"#6D6875", initials:"AL", tag:"Boutique",    followers:40000,  avgLikes:620,  avgComments:30, avgSaves:192, avgShares:24, posts30d:18, momRank:+2, momHeat:+3.1 },
+      { name:"Channel Islands",     handle:"@cisurfboards",        color:"#2B6CB0", initials:"CI", tag:"Performance", followers:218000, avgLikes:1920, avgComments:91, avgSaves:340, avgShares:88, posts30d:22, momRank:0,  momHeat:+2.1 },
+      { name:"Chilli Surfboards",   handle:"@chilli_surfboards",  color:"#D00000", initials:"CH", tag:"Performance", followers:44000,  avgLikes:740,  avgComments:36, avgSaves:218, avgShares:30, posts30d:20, momRank:0,  momHeat:+0.8 },
+      { name:"Rusty Surfboards",    handle:"@rustysurfboards",    color:"#F4A261", initials:"RS", tag:"Performance", followers:90000,  avgLikes:1080, avgComments:53, avgSaves:202, avgShares:44, posts30d:22, momRank:-1, momHeat:-0.6 },
+      { name:"DHD Surfboards",      handle:"@dhdsurf",            color:"#C53030", initials:"DH", tag:"Performance", followers:64000,  avgLikes:920,  avgComments:47, avgSaves:198, avgShares:38, posts30d:17, momRank:0,  momHeat:+0.5 },
+      { name:"HaydenShapes",        handle:"@haydenshapes",       color:"#457B9D", initials:"HS", tag:"Performance", followers:130000, avgLikes:1450, avgComments:67, avgSaves:318, avgShares:64, posts30d:25, momRank:+1, momHeat:+1.8 },
+      { name:"JS Industries",       handle:"@jsindustries1",      color:"#276749", initials:"JS", tag:"Performance", followers:155000, avgLikes:1695, avgComments:78, avgSaves:305, avgShares:74, posts30d:26, momRank:-1, momHeat:-0.8 },
+      { name:"Pyzel Surfboards",    handle:"@pyzelsurfboards",    color:"#3A86FF", initials:"PY", tag:"Performance", followers:84000,  avgLikes:1160, avgComments:56, avgSaves:248, avgShares:50, posts30d:20, momRank:0,  momHeat:+0.4 },
+      { name:"Slater Designs",      handle:"@slaterdesigns",      color:"#264653", initials:"SD", tag:"Premium",     followers:80000,  avgLikes:1010, avgComments:49, avgSaves:232, avgShares:46, posts30d:15, momRank:+1, momHeat:+1.1 },
+      { name:"SharpEye Surfboards", handle:"@sharpeyesurfboards", color:"#7209B7", initials:"SE", tag:"Performance", followers:54000,  avgLikes:840,  avgComments:41, avgSaves:192, avgShares:36, posts30d:22, momRank:0,  momHeat:+0.3 },
+      { name:"Christenson",         handle:"@christensonsurfboards", color:"#6B4FBB", initials:"CR", tag:"Boutique", followers:92000,  avgLikes:1340, avgComments:63, avgSaves:455, avgShares:52, posts30d:14, momRank:+1, momHeat:+3.2 },
+      { name:"System 101",          handle:"@systm.101",          color:"#0D1B2A", initials:"S1", tag:"Boutique",    followers:7500,   avgLikes:148,  avgComments:8,  avgSaves:58,  avgShares:11, posts30d:12, momRank:0,  momHeat:+0.2 },
+      { name:"DRAFT",               handle:"@draftsurf",          color:"#415A77", initials:"DR", tag:"Boutique",    followers:5000,   avgLikes:98,   avgComments:6,  avgSaves:40,  avgShares:8,  posts30d:10, momRank:0,  momHeat:+0.1 },
+      { name:"Arakawa",             handle:"@arakawasurfboards",  color:"#8B5E3C", initials:"AR", tag:"Boutique",    followers:5800,   avgLikes:114,  avgComments:7,  avgSaves:44,  avgShares:9,  posts30d:14, momRank:+1, momHeat:+0.9 },
+      { name:"Tolhurst",            handle:"@tolhurstsurfboards", color:"#5C4033", initials:"TL", tag:"Boutique",    followers:12000,  avgLikes:202,  avgComments:11, avgSaves:75,  avgShares:16, posts30d:12, momRank:0,  momHeat:+0.3 },
+      { name:"Simon Anderson",      handle:"@simonanderson_surfboards", color:"#2D6A4F", initials:"SA", tag:"Heritage", followers:34000, avgLikes:538, avgComments:26, avgSaves:162, avgShares:23, posts30d:18, momRank:0, momHeat:+0.5 },
+      { name:"McTavish",            handle:"@mctavishsurf",       color:"#9B2226", initials:"MC", tag:"Heritage",    followers:28000,  avgLikes:458,  avgComments:22, avgSaves:140, avgShares:19, posts30d:16, momRank:0,  momHeat:+0.2 },
+      { name:"AIPA",                handle:"@aipasurf",           color:"#005F73", initials:"AI", tag:"Heritage",    followers:15000,  avgLikes:252,  avgComments:13, avgSaves:92,  avgShares:18, posts30d:15, momRank:+1, momHeat:+1.0 },
+      { name:"Dylan Shapes",        handle:"@dylanshapes",        color:"#0077B6", initials:"DY", tag:"Boutique",    followers:17500,  avgLikes:295,  avgComments:15, avgSaves:102, avgShares:23, posts30d:18, momRank:0,  momHeat:+0.6 },
+      { name:"Catch Surf",          handle:"@catchsurf",          color:"#FF6B35", initials:"CS", tag:"Softboard",   followers:165000, avgLikes:1870, avgComments:86, avgSaves:328, avgShares:80, posts30d:28, momRank:+1, momHeat:+2.2 },
+      { name:"MF Softboards",       handle:"@mfsoftboards",       color:"#F77F00", initials:"MF", tag:"Softboard",   followers:95000,  avgLikes:1300, avgComments:62, avgSaves:272, avgShares:54, posts30d:22, momRank:0,  momHeat:+0.7 },
+      { name:"Softech",             handle:"@softech_softboards", color:"#FCBF49", initials:"ST", tag:"Softboard",   followers:74000,  avgLikes:995,  avgComments:49, avgSaves:202, avgShares:41, posts30d:20, momRank:0,  momHeat:+0.4 },
+      { name:"SMTH",                handle:"@smthshapes",         color:"#1D3557", initials:"SM", tag:"Boutique",    followers:24000,  avgLikes:402,  avgComments:20, avgSaves:122, avgShares:29, posts30d:20, momRank:+2, momHeat:+2.8 },
+      { name:"Cabianca",            handle:"@cabiancadesign",     color:"#A8201A", initials:"CB", tag:"Performance", followers:21000,  avgLikes:362,  avgComments:18, avgSaves:108, avgShares:26, posts30d:18, momRank:+1, momHeat:+1.5 },
+      { name:"Stretch",             handle:"@stretchboards",      color:"#6A4C93", initials:"ST", tag:"Heritage",    followers:9800,   avgLikes:166,  avgComments:9,  avgSaves:60,  avgShares:14, posts30d:12, momRank:0,  momHeat:+0.1 },
+      { name:"Thomas Surfboards",   handle:"@thomassurfboards",   color:"#1B4332", initials:"TH", tag:"Boutique",    followers:7500,   avgLikes:136,  avgComments:7,  avgSaves:52,  avgShares:12, posts30d:14, momRank:0,  momHeat:+0.2 },
+      { name:"Sparrow",             handle:"@sparrowshapes",      color:"#4A4E69", initials:"SP", tag:"Boutique",    followers:12000,  avgLikes:204,  avgComments:11, avgSaves:75,  avgShares:17, posts30d:16, momRank:+1, momHeat:+1.2 },
+      { name:"LSD",                 handle:"@lsd_ooo",            color:"#6B6570", initials:"LS", tag:"Boutique",    followers:14500,  avgLikes:248,  avgComments:13, avgSaves:90,  avgShares:21, posts30d:18, momRank:0,  momHeat:+0.4 },
+      { name:"Mark Richards",       handle:"@markrichardssurfboards", color:"#B5838D", initials:"MR", tag:"Heritage", followers:29000, avgLikes:472,  avgComments:23, avgSaves:148, avgShares:28, posts30d:16, momRank:0, momHeat:+0.3 },
+      { name:"Timmy Patterson",     handle:"@tpattersonsurfboards", color:"#E9C46A", initials:"TP", tag:"Performance", followers:42000, avgLikes:672,  avgComments:33, avgSaves:205, avgShares:40, posts30d:20, momRank:+1, momHeat:+1.6 },
+      { name:"Sharp Eye",           handle:"@sharpeyesurfboards_au",color:"#2D3142", initials:"SE", tag:"Performance", followers:0,     avgLikes:0,    avgComments:0,  avgSaves:0,   avgShares:0,  posts30d:0,  momRank:0,  momHeat:0 },
+    ]
+  },
+
+  surf: {
+    label: "Surf",
+    brands: [
+      { name:"Veia Supplies",    handle:"@veiasupplies",        color:"#2A9D8F", initials:"VS", tag:"Surf",         followers:0,      avgLikes:0,    avgComments:0,  avgSaves:0,   avgShares:0,  posts30d:0,  momRank:0,  momHeat:0 },
+      { name:"Astro Deck",       handle:"@astrodeck",           color:"#0D1B2A", initials:"AD", tag:"Accessories",  followers:24000,  avgLikes:328,  avgComments:16, avgSaves:98,  avgShares:23, posts30d:16, momRank:0,  momHeat:+0.2 },
+      { name:"Billabong",        handle:"@billabong",           color:"#F9A825", initials:"BI", tag:"Heritage",     followers:1800000,avgLikes:12000,avgComments:280,avgSaves:1500,avgShares:320,posts30d:32, momRank:0,  momHeat:+0.4 },
+      { name:"Brixton",          handle:"@brixton",             color:"#3D405B", initials:"BR", tag:"Lifestyle",    followers:578000, avgLikes:4850, avgComments:188,avgSaves:828, avgShares:178,posts30d:28, momRank:+1, momHeat:+1.8 },
+      { name:"Brothers Marshall",handle:"@brothers_marshall",   color:"#CB997E", initials:"BM", tag:"Boutique",     followers:18000,  avgLikes:305,  avgComments:15, avgSaves:92,  avgShares:22, posts30d:18, momRank:+1, momHeat:+2.1 },
+      { name:"Creatures",        handle:"@creaturesofleisure",  color:"#6A994E", initials:"CR", tag:"Accessories",  followers:115000, avgLikes:1495, avgComments:69, avgSaves:290, avgShares:64, posts30d:22, momRank:0,  momHeat:+0.6 },
+      { name:"Da Kine",          handle:"@dakine_surf",         color:"#E07A5F", initials:"DK", tag:"Accessories",  followers:140000, avgLikes:1638, avgComments:76, avgSaves:298, avgShares:69, posts30d:20, momRank:-1, momHeat:-0.5 },
+      { name:"Dragon",           handle:"@dragonalliance",      color:"#3D405B", initials:"DG", tag:"Eyewear",      followers:195000, avgLikes:1862, avgComments:86, avgSaves:348, avgShares:79, posts30d:24, momRank:0,  momHeat:+0.8 },
+      { name:"FCS",              handle:"@fcs_surf",            color:"#264653", initials:"FC", tag:"Fins",         followers:175000, avgLikes:1935, avgComments:89, avgSaves:358, avgShares:83, posts30d:26, momRank:+1, momHeat:+1.5 },
+      { name:"FORMER",           handle:"@former",              color:"#4A4E69", initials:"FO", tag:"Apparel",      followers:45000,  avgLikes:758,  avgComments:37, avgSaves:202, avgShares:43, posts30d:20, momRank:+2, momHeat:+3.2 },
+      { name:"Hurley",           handle:"@hurley",              color:"#023E8A", initials:"HU", tag:"Heritage",     followers:2100000,avgLikes:14500,avgComments:320,avgSaves:1800,avgShares:380,posts30d:36, momRank:-1, momHeat:-0.6 },
+      { name:"Nixon",            handle:"@nixon",               color:"#212529", initials:"NX", tag:"Watches",      followers:318000, avgLikes:2868, avgComments:119,avgSaves:488, avgShares:109,posts30d:26, momRank:0,  momHeat:+0.3 },
+      { name:"O'Neill",          handle:"@oneill",              color:"#00695C", initials:"ON", tag:"Heritage",     followers:848000, avgLikes:6820, avgComments:196,avgSaves:1025,avgShares:221,posts30d:28, momRank:0,  momHeat:+0.2 },
+      { name:"Outerknown",       handle:"@outerknown",          color:"#386641", initials:"OK", tag:"Sustainable",  followers:86000,  avgLikes:1128, avgComments:55, avgSaves:288, avgShares:59, posts30d:20, momRank:+1, momHeat:+1.9 },
+      { name:"Quiksilver",       handle:"@quiksilver",          color:"#1565C0", initials:"QS", tag:"Heritage",     followers:2200000,avgLikes:14500,avgComments:310,avgSaves:1800,avgShares:380,posts30d:36, momRank:-1, momHeat:-0.6 },
+      { name:"Reef",             handle:"@reef",                color:"#0077B6", initials:"RF", tag:"Footwear",     followers:178000, avgLikes:1792, avgComments:83, avgSaves:328, avgShares:73, posts30d:24, momRank:0,  momHeat:+0.5 },
+      { name:"Rhythm",           handle:"@rhythm",              color:"#6D6875", initials:"RH", tag:"Apparel",      followers:95000,  avgLikes:1392, avgComments:65, avgSaves:298, avgShares:63, posts30d:22, momRank:+1, momHeat:+1.4 },
+      { name:"Rip Curl",         handle:"@ripcurl",             color:"#D32F2F", initials:"RC", tag:"Heritage",     followers:1500000,avgLikes:11200,avgComments:250,avgSaves:1350,avgShares:290,posts30d:28, momRank:+1, momHeat:+1.8 },
+      { name:"Roark",            handle:"@roarkrevival",        color:"#5C4033", initials:"RK", tag:"Apparel",      followers:125000, avgLikes:1532, avgComments:71, avgSaves:328, avgShares:69, posts30d:24, momRank:0,  momHeat:+0.7 },
+      { name:"Roxy",             handle:"@roxy",                color:"#E91E8C", initials:"RX", tag:"Heritage",     followers:1800000,avgLikes:13500,avgComments:295,avgSaves:1620,avgShares:345,posts30d:30, momRank:0,  momHeat:+0.5 },
+      { name:"RVCA",             handle:"@rvca",                color:"#4A148C", initials:"RV", tag:"Arts",         followers:922000, avgLikes:8820, avgComments:196,avgSaves:1205,avgShares:226,posts30d:24, momRank:+2, momHeat:+3.2 },
+      { name:"Salty Crew",       handle:"@salty_crew",          color:"#0096C7", initials:"SC", tag:"Lifestyle",    followers:185000, avgLikes:2062, avgComments:93, avgSaves:388, avgShares:86, posts30d:26, momRank:+1, momHeat:+2.0 },
+      { name:"Slow Tide",        handle:"@slowtide",            color:"#84A98C", initials:"SL", tag:"Towels",       followers:55000,  avgLikes:928,  avgComments:45, avgSaves:238, avgShares:49, posts30d:20, momRank:0,  momHeat:+0.6 },
+      { name:"TCSS",             handle:"@tcss",                color:"#457B9D", initials:"TC", tag:"Apparel",      followers:42000,  avgLikes:688,  avgComments:34, avgSaves:188, avgShares:39, posts30d:18, momRank:+1, momHeat:+1.3 },
+      { name:"The Mad Hueys",    handle:"@themadhueys",         color:"#E63946", initials:"MH", tag:"Lifestyle",    followers:210000, avgLikes:2268, avgComments:99, avgSaves:418, avgShares:89, posts30d:28, momRank:+1, momHeat:+2.4 },
+      { name:"Vissla",           handle:"@visslasurf",          color:"#2A9D8F", initials:"VS", tag:"Apparel",      followers:148000, avgLikes:1792, avgComments:83, avgSaves:338, avgShares:73, posts30d:24, momRank:0,  momHeat:+0.9 },
+      { name:"Volcom",           handle:"@volcom",              color:"#1A1A1A", initials:"VO", tag:"Heritage",     followers:2400000,avgLikes:15500,avgComments:335,avgSaves:1950,avgShares:412,posts30d:38, momRank:0,  momHeat:+0.6 },
+      { name:"Firewire",         handle:"@firewiresurfboards",  color:"#E63946", initials:"FW", tag:"Performance",  followers:198000, avgLikes:1720, avgComments:80, avgSaves:310, avgShares:75, posts30d:24, momRank:0,  momHeat:+1.2 },
+      { name:"...Lost",          handle:"@lostsurfboards",      color:"#C05621", initials:"LO", tag:"Performance",  followers:181000, avgLikes:1510, avgComments:72, avgSaves:258, avgShares:65, posts30d:19, momRank:+1, momHeat:+1.4 },
+      { name:"Album Surf",       handle:"@albumsurf",           color:"#6D6875", initials:"AL", tag:"Boutique",     followers:40000,  avgLikes:620,  avgComments:30, avgSaves:192, avgShares:24, posts30d:18, momRank:+2, momHeat:+3.1 },
+      { name:"Channel Islands",  handle:"@cisurfboards",        color:"#2B6CB0", initials:"CI", tag:"Performance",  followers:218000, avgLikes:1920, avgComments:91, avgSaves:340, avgShares:88, posts30d:22, momRank:0,  momHeat:+2.1 },
+      { name:"Chilli Surfboards",handle:"@chilli_surfboards",   color:"#D00000", initials:"CH", tag:"Performance",  followers:44000,  avgLikes:740,  avgComments:36, avgSaves:218, avgShares:30, posts30d:20, momRank:0,  momHeat:+0.8 },
+      { name:"Rusty Surfboards", handle:"@rustysurfboards",     color:"#F4A261", initials:"RS", tag:"Performance",  followers:90000,  avgLikes:1080, avgComments:53, avgSaves:202, avgShares:44, posts30d:22, momRank:-1, momHeat:-0.6 },
+      { name:"DHD Surfboards",   handle:"@dhdsurf",             color:"#C53030", initials:"DH", tag:"Performance",  followers:64000,  avgLikes:920,  avgComments:47, avgSaves:198, avgShares:38, posts30d:17, momRank:0,  momHeat:+0.5 },
+      { name:"HaydenShapes",     handle:"@haydenshapes",        color:"#457B9D", initials:"HS", tag:"Performance",  followers:130000, avgLikes:1450, avgComments:67, avgSaves:318, avgShares:64, posts30d:25, momRank:+1, momHeat:+1.8 },
+      { name:"JS Industries",    handle:"@jsindustries1",       color:"#276749", initials:"JS", tag:"Performance",  followers:155000, avgLikes:1695, avgComments:78, avgSaves:305, avgShares:74, posts30d:26, momRank:-1, momHeat:-0.8 },
+      { name:"Pyzel Surfboards", handle:"@pyzelsurfboards",     color:"#3A86FF", initials:"PY", tag:"Performance",  followers:84000,  avgLikes:1160, avgComments:56, avgSaves:248, avgShares:50, posts30d:20, momRank:0,  momHeat:+0.4 },
+      { name:"Slater Designs",   handle:"@slaterdesigns",       color:"#264653", initials:"SD", tag:"Premium",      followers:80000,  avgLikes:1010, avgComments:49, avgSaves:232, avgShares:46, posts30d:15, momRank:+1, momHeat:+1.1 },
+      { name:"SharpEye",         handle:"@sharpeyesurfboards",  color:"#7209B7", initials:"SE", tag:"Performance",  followers:54000,  avgLikes:840,  avgComments:41, avgSaves:192, avgShares:36, posts30d:22, momRank:0,  momHeat:+0.3 },
+      { name:"Christenson",      handle:"@christensonsurfboards",color:"#6B4FBB",initials:"CR", tag:"Boutique",     followers:92000,  avgLikes:1340, avgComments:63, avgSaves:455, avgShares:52, posts30d:14, momRank:+1, momHeat:+3.2 },
+      { name:"System 101",       handle:"@systm.101",           color:"#0D1B2A", initials:"S1", tag:"Boutique",     followers:7500,   avgLikes:148,  avgComments:8,  avgSaves:58,  avgShares:11, posts30d:12, momRank:0,  momHeat:+0.2 },
+      { name:"DRAFT",            handle:"@draftsurf",           color:"#415A77", initials:"DR", tag:"Boutique",     followers:5000,   avgLikes:98,   avgComments:6,  avgSaves:40,  avgShares:8,  posts30d:10, momRank:0,  momHeat:+0.1 },
+      { name:"Arakawa",          handle:"@arakawasurfboards",   color:"#8B5E3C", initials:"AR", tag:"Boutique",     followers:5800,   avgLikes:114,  avgComments:7,  avgSaves:44,  avgShares:9,  posts30d:14, momRank:+1, momHeat:+0.9 },
+      { name:"Tolhurst",         handle:"@tolhurstsurfboards",  color:"#5C4033", initials:"TL", tag:"Boutique",     followers:12000,  avgLikes:202,  avgComments:11, avgSaves:75,  avgShares:16, posts30d:12, momRank:0,  momHeat:+0.3 },
+      { name:"Simon Anderson",   handle:"@simonanderson_surfboards",color:"#2D6A4F",initials:"SA",tag:"Heritage",  followers:34000,  avgLikes:538,  avgComments:26, avgSaves:162, avgShares:23, posts30d:18, momRank:0,  momHeat:+0.5 },
+      { name:"McTavish",         handle:"@mctavishsurf",        color:"#9B2226", initials:"MC", tag:"Heritage",     followers:28000,  avgLikes:458,  avgComments:22, avgSaves:140, avgShares:19, posts30d:16, momRank:0,  momHeat:+0.2 },
+      { name:"AIPA",             handle:"@aipasurf",            color:"#005F73", initials:"AI", tag:"Heritage",     followers:15000,  avgLikes:252,  avgComments:13, avgSaves:92,  avgShares:18, posts30d:15, momRank:+1, momHeat:+1.0 },
+      { name:"Dylan Shapes",     handle:"@dylanshapes",         color:"#0077B6", initials:"DY", tag:"Boutique",     followers:17500,  avgLikes:295,  avgComments:15, avgSaves:102, avgShares:23, posts30d:18, momRank:0,  momHeat:+0.6 },
+      { name:"Catch Surf",       handle:"@catchsurf",           color:"#FF6B35", initials:"CS", tag:"Softboard",    followers:165000, avgLikes:1870, avgComments:86, avgSaves:328, avgShares:80, posts30d:28, momRank:+1, momHeat:+2.2 },
+      { name:"MF Softboards",    handle:"@mfsoftboards",        color:"#F77F00", initials:"MF", tag:"Softboard",    followers:95000,  avgLikes:1300, avgComments:62, avgSaves:272, avgShares:54, posts30d:22, momRank:0,  momHeat:+0.7 },
+      { name:"Softech",          handle:"@softech_softboards",  color:"#FCBF49", initials:"SF", tag:"Softboard",    followers:74000,  avgLikes:995,  avgComments:49, avgSaves:202, avgShares:41, posts30d:20, momRank:0,  momHeat:+0.4 },
+      { name:"SMTH",             handle:"@smthshapes",          color:"#1D3557", initials:"SM", tag:"Boutique",     followers:24000,  avgLikes:402,  avgComments:20, avgSaves:122, avgShares:29, posts30d:20, momRank:+2, momHeat:+2.8 },
+      { name:"Cabianca",         handle:"@cabiancadesign",      color:"#A8201A", initials:"CB", tag:"Performance",  followers:21000,  avgLikes:362,  avgComments:18, avgSaves:108, avgShares:26, posts30d:18, momRank:+1, momHeat:+1.5 },
+      { name:"Sparrow",          handle:"@sparrowshapes",       color:"#4A4E69", initials:"SP", tag:"Boutique",     followers:12000,  avgLikes:204,  avgComments:11, avgSaves:75,  avgShares:17, posts30d:16, momRank:+1, momHeat:+1.2 },
+      { name:"LSD",              handle:"@lsd_ooo",             color:"#6B6570", initials:"LS", tag:"Boutique",     followers:14500,  avgLikes:248,  avgComments:13, avgSaves:90,  avgShares:21, posts30d:18, momRank:0,  momHeat:+0.4 },
+      { name:"Mark Richards",    handle:"@markrichardssurfboards",color:"#B5838D",initials:"MR",tag:"Heritage",     followers:29000,  avgLikes:472,  avgComments:23, avgSaves:148, avgShares:28, posts30d:16, momRank:0,  momHeat:+0.3 },
+      { name:"Timmy Patterson",  handle:"@tpattersonsurfboards", color:"#E9C46A",initials:"TP", tag:"Performance",  followers:42000,  avgLikes:672,  avgComments:33, avgSaves:205, avgShares:40, posts30d:20, momRank:+1, momHeat:+1.6 },
+      { name:"Octopus",          handle:"@octopusisreal",       color:"#7B2D8B", initials:"OC", tag:"Apparel",      followers:35000,  avgLikes:558,  avgComments:27, avgSaves:168, avgShares:33, posts30d:18, momRank:0,  momHeat:+0.5 },
+      { name:"Rivvia",           handle:"@rivvia.projects",     color:"#3A0CA3", initials:"RI", tag:"Apparel",      followers:18000,  avgLikes:302,  avgComments:15, avgSaves:92,  avgShares:23, posts30d:16, momRank:+1, momHeat:+1.4 },
+      { name:"STEKO",            handle:"@steko22_",            color:"#560BAD", initials:"SK", tag:"Boutique",     followers:7800,   avgLikes:138,  avgComments:8,  avgSaves:52,  avgShares:12, posts30d:14, momRank:0,  momHeat:+0.3 },
+      { name:"Patagonia Surf",   handle:"@patagonia_surf",      color:"#4CAF50", initials:"PT", tag:"Sustainable",  followers:185000, avgLikes:1992, avgComments:89, avgSaves:425, avgShares:93, posts30d:22, momRank:+1, momHeat:+2.8 },
+      { name:"Oakley Surfing",   handle:"@oakleysurfing",       color:"#D62828", initials:"OA", tag:"Eyewear",      followers:95000,  avgLikes:1188, avgComments:57, avgSaves:258, avgShares:53, posts30d:20, momRank:0,  momHeat:+0.6 },
+      { name:"Stance",           handle:"@stanceofficial",      color:"#2D3047", initials:"ST", tag:"Socks",        followers:480000, avgLikes:4225, avgComments:169,avgSaves:725, avgShares:159,posts30d:28, momRank:0,  momHeat:+0.8 },
+      { name:"Skullcandy",       handle:"@skullcandy",          color:"#E63946", initials:"SK", tag:"Audio",        followers:650000, avgLikes:5228, avgComments:199,avgSaves:885, avgShares:197,posts30d:26, momRank:-1, momHeat:-0.4 },
+      { name:"Red Bull Surfing", handle:"@redbullsurfing",      color:"#CC0000", initials:"RB", tag:"Energy",       followers:185000, avgLikes:2165, avgComments:96, avgSaves:388, avgShares:89, posts30d:20, momRank:+1, momHeat:+1.9 },
+      { name:"Stab",             handle:"@stab",                color:"#1A1A2E", initials:"SB", tag:"Media",        followers:310000, avgLikes:3515, avgComments:143,avgSaves:598, avgShares:129,posts30d:30, momRank:+2, momHeat:+3.5 },
+      { name:"Beach Grit",       handle:"@beach.grit",          color:"#3D405B", initials:"BG", tag:"Media",        followers:125000, avgLikes:1592, avgComments:73, avgSaves:302, avgShares:66, posts30d:24, momRank:0,  momHeat:+0.7 },
+      { name:"Surfline",         handle:"@surfline",            color:"#0096C7", initials:"SL", tag:"Media",        followers:335000, avgLikes:3222, avgComments:129,avgSaves:548, avgShares:118,posts30d:28, momRank:0,  momHeat:+0.5 },
+      { name:"Inherent Bummer",  handle:"@inherentbummer",      color:"#9E2A2B", initials:"IB", tag:"Media",        followers:42000,  avgLikes:728,  avgComments:35, avgSaves:198, avgShares:43, posts30d:20, momRank:+1, momHeat:+2.2 },
+      { name:"Swellnet",         handle:"@swellnet",            color:"#457B9D", initials:"SN", tag:"Media",        followers:28000,  avgLikes:458,  avgComments:22, avgSaves:138, avgShares:28, posts30d:18, momRank:0,  momHeat:+0.4 },
+      { name:"The Inertia",      handle:"@theinertia",          color:"#2D6A4F", initials:"TI", tag:"Media",        followers:95000,  avgLikes:1162, avgComments:55, avgSaves:238, avgShares:53, posts30d:22, momRank:0,  momHeat:+0.3 },
+    ]
+  },
+
+  skate: {
+    label: "Skate",
+    brands: [
+      { name:"Thrasher",         handle:"@thrashermag",          color:"#D32F2F", initials:"TH", tag:"Media",       followers:5100000, avgLikes:51000, avgComments:2040, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Nike SB",          handle:"@nikesb",               color:"#111111", initials:"NS", tag:"Footwear",    followers:4200000, avgLikes:42000, avgComments:1680, posts30d:20, momRank:0, momHeat:0 },
+      { name:"Vans Skate",       handle:"@vansskate",            color:"#CC3333", initials:"VS", tag:"Footwear",    followers:3100000, avgLikes:31000, avgComments:1240, posts30d:18, momRank:0, momHeat:0 },
+      { name:"DC Skate",         handle:"@dc_skateboarding",     color:"#1A1A2E", initials:"DC", tag:"Footwear",    followers:2100000, avgLikes:21000, avgComments:840,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Berrics",          handle:"@berrics",              color:"#2D3142", initials:"BE", tag:"Media",       followers:1600000, avgLikes:24000, avgComments:960,  posts30d:22, momRank:0, momHeat:0 },
+      { name:"HUF",              handle:"@hufworldwide",         color:"#4A4E69", initials:"HF", tag:"Lifestyle",   followers:1200000, avgLikes:18000, avgComments:720,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"etnies",           handle:"@etnies",               color:"#3D2C8D", initials:"ET", tag:"Footwear",    followers:1100000, avgLikes:16500, avgComments:660,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Volcom Skate",     handle:"@volcomskate",          color:"#1B1B1B", initials:"VK", tag:"Lifestyle",   followers:850000,  avgLikes:12750, avgComments:510,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Street League",    handle:"@sls",                  color:"#E53935", initials:"SL", tag:"Competition", followers:800000,  avgLikes:12000, avgComments:480,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Spitfire Wheels",  handle:"@spitfirewheels",       color:"#FF6D00", initials:"SF", tag:"Hardware",    followers:780000,  avgLikes:11700, avgComments:468,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Thunder Trucks",   handle:"@thundertrucks",        color:"#424242", initials:"TT", tag:"Hardware",    followers:700000,  avgLikes:10500, avgComments:420,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Primitive",        handle:"@primitiveskate",       color:"#6A1B9A", initials:"PR", tag:"Street",      followers:620000,  avgLikes:13950, avgComments:558,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Santa Cruz",       handle:"@santacruzskateboards", color:"#FF5722", initials:"SC", tag:"Legacy",      followers:580000,  avgLikes:13050, avgComments:522,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"REAL",             handle:"@realskateboards",      color:"#212121", initials:"RL", tag:"Street",      followers:430000,  avgLikes:9675,  avgComments:387,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Deathwish",        handle:"@deathwishskateboards", color:"#B71C1C", initials:"DW", tag:"Street",      followers:510000,  avgLikes:11475, avgComments:459,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"GIRL",             handle:"@girlskateboards",      color:"#E91E8C", initials:"GR", tag:"Street",      followers:500000,  avgLikes:11250, avgComments:450,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Transworld Skate", handle:"@transworldskate",      color:"#1565C0", initials:"TW", tag:"Media",       followers:490000,  avgLikes:11025, avgComments:441,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Bones Wheels",     handle:"@boneswheels",          color:"#37474F", initials:"BW", tag:"Hardware",    followers:400000,  avgLikes:9000,  avgComments:360,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Toy Machine",      handle:"@toymachine",           color:"#F57F17", initials:"TM", tag:"Street",      followers:370000,  avgLikes:8325,  avgComments:333,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Krooked",          handle:"@krooked",              color:"#4527A0", initials:"KR", tag:"Street",      followers:310000,  avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Converse Cons",    handle:"@converse_cons",        color:"#1A1A2E", initials:"CC", tag:"Footwear",    followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Zero Skateboards", handle:"@zeroskateboards",      color:"#263238", initials:"ZR", tag:"Street",      followers:280000,  avgLikes:6300,  avgComments:252,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"NB Numeric",       handle:"@nbnumeric",            color:"#5D4037", initials:"NB", tag:"Footwear",    followers:210000,  avgLikes:4725,  avgComments:189,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"RedBull Skate",    handle:"@redbullskate",         color:"#D32F2F", initials:"RB", tag:"Energy",      followers:520000,  avgLikes:11700, avgComments:468,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Stance",           handle:"@stanceofficial",       color:"#37474F", initials:"ST", tag:"Lifestyle",   followers:1050000, avgLikes:15750, avgComments:630,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Skullcandy",       handle:"@skullcandy",           color:"#6D6570", initials:"SK", tag:"Audio",       followers:820000,  avgLikes:12300, avgComments:492,  posts30d:12, momRank:0, momHeat:0 },
+    ]
+  },
+
+  snow: {
+    label: "Snow",
+    brands: [
+      { name:"Burton",           handle:"@burton",             color:"#1A237E", initials:"BU", tag:"Premium",     followers:820000,  avgLikes:18450, avgComments:738,  posts30d:22, momRank:0, momHeat:0 },
+      { name:"Teton Gravity",    handle:"@tetongravity",       color:"#1565C0", initials:"TG", tag:"Film",        followers:780000,  avgLikes:17550, avgComments:702,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Union Bindings",   handle:"@unionbindingco",     color:"#263238", initials:"UB", tag:"Hardware",    followers:420000,  avgLikes:9450,  avgComments:378,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Salomon Snowboards",handle:"@salomonsnowboards", color:"#00695C", initials:"SN", tag:"Performance", followers:400000,  avgLikes:9000,  avgComments:360,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Vans Snow",        handle:"@vanssnow",           color:"#CC3333", initials:"VS", tag:"Lifestyle",   followers:390000,  avgLikes:8775,  avgComments:351,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Red Bull Snow",    handle:"@redbullsnow",        color:"#D32F2F", initials:"RB", tag:"Energy",      followers:310000,  avgLikes:6975,  avgComments:279,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"686 Snow",         handle:"@686",                color:"#37474F", initials:"68", tag:"Outerwear",   followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Volcom Snow",      handle:"@volcomsnow",         color:"#1B1B1B", initials:"VN", tag:"Outerwear",   followers:290000,  avgLikes:6525,  avgComments:261,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Anon Optics",      handle:"@anonoptics",         color:"#4A4E69", initials:"AN", tag:"Eyewear",     followers:220000,  avgLikes:4950,  avgComments:198,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Snowboard Mag",    handle:"@snowboardmag",       color:"#2D3142", initials:"SM", tag:"Media",       followers:210000,  avgLikes:4725,  avgComments:189,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"Method Mag",       handle:"@methodmag",          color:"#6B4FBB", initials:"MM", tag:"Media",       followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Lib Tech",         handle:"@libtechnologies",    color:"#6D4C41", initials:"LT", tag:"Eco",         followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Ride Snowboards",  handle:"@ridesnowboards",     color:"#546E7A", initials:"RD", tag:"Performance", followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"ThirtyTwo",        handle:"@thirtytwo",          color:"#5D4037", initials:"32", tag:"Boots",       followers:195000,  avgLikes:4388,  avgComments:175,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Snowboarder Mag",  handle:"@snowboardermag",     color:"#37474F", initials:"SB", tag:"Media",       followers:150000,  avgLikes:3375,  avgComments:135,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Jones Snowboards", handle:"@jonessnowboards",    color:"#263238", initials:"JN", tag:"Backcountry", followers:150000,  avgLikes:3375,  avgComments:135,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"CAPiTA",           handle:"@capitasupercorp",    color:"#E53935", initials:"CA", tag:"Premium",     followers:140000,  avgLikes:3150,  avgComments:126,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Whitespace",       handle:"@whitespace_____",    color:"#ECEFF1", initials:"WS", tag:"Premium",     followers:120000,  avgLikes:2700,  avgComments:108,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Rome Snowboards",  handle:"@romesnowboards",     color:"#4A148C", initials:"RM", tag:"Performance", followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"YES Snowboards",   handle:"@yes_snowboards",     color:"#F57F17", initials:"YS", tag:"Performance", followers:100000,  avgLikes:2250,  avgComments:90,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"Nidecker",         handle:"@nideckersnowboards", color:"#1A1A2E", initials:"ND", tag:"Swiss",       followers:80000,   avgLikes:1800,  avgComments:72,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Bataleon",         handle:"@bataleonsnowboards", color:"#3F51B5", initials:"BT", tag:"Performance", followers:78000,   avgLikes:1755,  avgComments:70,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Forum Snow",       handle:"@forum_snow",         color:"#5C6BC0", initials:"FM", tag:"Legacy",      followers:75000,   avgLikes:1688,  avgComments:68,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Deeluxe",          handle:"@deeluxeboots",       color:"#795548", initials:"DL", tag:"Boots",       followers:62000,   avgLikes:1395,  avgComments:56,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Yuki Threads",     handle:"@yukithreads",        color:"#4A4E69", initials:"YT", tag:"Outerwear",   followers:30000,   avgLikes:1125,  avgComments:45,   posts30d:10, momRank:0, momHeat:0 },
+    ]
+  },
+
+  outdoor: {
+    label: "Outdoor",
+    brands: [
+      { name:"The North Face",   handle:"@thenorthface",         color:"#E53935", initials:"NF", tag:"Heritage",      followers:6100000, avgLikes:61000, avgComments:2440, posts30d:22, momRank:0, momHeat:0 },
+      { name:"Patagonia",        handle:"@patagonia",            color:"#4CAF50", initials:"PA", tag:"Sustainability", followers:5200000, avgLikes:52000, avgComments:2080, posts30d:16, momRank:0, momHeat:0 },
+      { name:"On Running",       handle:"@on",                   color:"#212121", initials:"ON", tag:"Performance",   followers:3100000, avgLikes:31000, avgComments:1240, posts30d:20, momRank:0, momHeat:0 },
+      { name:"Arc'teryx",        handle:"@arcteryx",             color:"#1A1A2E", initials:"AR", tag:"Technical",     followers:2800000, avgLikes:28000, avgComments:1120, posts30d:18, momRank:0, momHeat:0 },
+      { name:"HOKA",             handle:"@hoka",                 color:"#FF6D00", initials:"HO", tag:"Running",       followers:1200000, avgLikes:18000, avgComments:720,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"REI",              handle:"@rei",                  color:"#2E7D32", initials:"RI", tag:"Retail",        followers:1500000, avgLikes:22500, avgComments:900,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Salomon",          handle:"@salomon",              color:"#00695C", initials:"SL", tag:"Performance",   followers:1400000, avgLikes:21000, avgComments:840,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"YETI",             handle:"@yeti",                 color:"#1565C0", initials:"YT", tag:"Gear",          followers:1100000, avgLikes:16500, avgComments:660,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Fjällräven",       handle:"@fjallravenofficial",   color:"#5D4037", initials:"FJ", tag:"Heritage",      followers:1200000, avgLikes:18000, avgComments:720,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Merrell",          handle:"@merrell",              color:"#795548", initials:"ME", tag:"Footwear",      followers:600000,  avgLikes:13500, avgComments:540,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Helly Hansen",     handle:"@hellyhansen",          color:"#1565C0", initials:"HH", tag:"Marine",        followers:820000,  avgLikes:18450, avgComments:738,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Black Diamond",    handle:"@blackdiamond",         color:"#546E7A", initials:"BD", tag:"Climbing",      followers:760000,  avgLikes:17100, avgComments:684,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Cotopaxi",         handle:"@cotopaxi",             color:"#FF7043", initials:"CO", tag:"Colorful",      followers:600000,  avgLikes:13500, avgComments:540,  posts30d:20, momRank:0, momHeat:0 },
+      { name:"La Sportiva",      handle:"@lasportivagram",       color:"#D32F2F", initials:"LS", tag:"Climbing",      followers:430000,  avgLikes:9675,  avgComments:387,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Peak Performance", handle:"@peakperformance",      color:"#37474F", initials:"PP", tag:"Performance",   followers:400000,  avgLikes:9000,  avgComments:360,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Columbia",         handle:"@columbia1938",         color:"#1565C0", initials:"CL", tag:"Heritage",      followers:800000,  avgLikes:18000, avgComments:720,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Osprey",           handle:"@ospreypacks",          color:"#2E7D32", initials:"OS", tag:"Packs",         followers:420000,  avgLikes:9450,  avgComments:378,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Mammut",           handle:"@mammut",               color:"#263238", initials:"MM", tag:"Alpine",        followers:620000,  avgLikes:13950, avgComments:558,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Marmot",           handle:"@marmot",               color:"#E65100", initials:"MT", tag:"Heritage",      followers:410000,  avgLikes:9225,  avgComments:369,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Smartwool",        handle:"@smartwool",            color:"#8D6E63", initials:"SW", tag:"Wool",          followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Altra Running",    handle:"@altrarunning",         color:"#FF6D00", initials:"AL", tag:"Running",       followers:310000,  avgLikes:6975,  avgComments:279,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Icebreaker",       handle:"@icebreakernz",         color:"#37474F", initials:"IB", tag:"Merino",        followers:300000,  avgLikes:6750,  avgComments:270,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Mountain Hardwear",handle:"@mountainhardwear",     color:"#4A4E69", initials:"MH", tag:"Alpine",        followers:390000,  avgLikes:8775,  avgComments:351,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Outdoor Research", handle:"@outdoorresearch",      color:"#33691E", initials:"OR", tag:"Technical",     followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Rab",              handle:"@rab.equipment",        color:"#1A1A2E", initials:"RB", tag:"Alpine",        followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Gregory Packs",    handle:"@gregorypacks",         color:"#5D4037", initials:"GP", tag:"Packs",         followers:155000,  avgLikes:3488,  avgComments:140,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"KÜHL",             handle:"@kuhl",                 color:"#6D4C41", initials:"KL", tag:"Lifestyle",     followers:210000,  avgLikes:4725,  avgComments:189,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Klättermusen",     handle:"@klattermusen",         color:"#37474F", initials:"KM", tag:"Scandinavian",  followers:82000,   avgLikes:1845,  avgComments:74,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Haglöfs",          handle:"@haglofs",              color:"#2E7D32", initials:"HG", tag:"Scandinavian",  followers:200000,  avgLikes:4500,  avgComments:180,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Houdini",          handle:"@houdinisportswear",    color:"#0288D1", initials:"HD", tag:"Sustainable",   followers:82000,   avgLikes:1845,  avgComments:74,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Nemo Equipment",   handle:"@nemoequipment",        color:"#FF6D00", initials:"NE", tag:"Camping",       followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Snow Peak",        handle:"@snowpeak_official",    color:"#263238", initials:"SP", tag:"Japanese",      followers:520000,  avgLikes:11700, avgComments:468,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"And Wander",       handle:"@andwander_official",   color:"#546E7A", initials:"AW", tag:"Japanese",      followers:150000,  avgLikes:3375,  avgComments:135,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Nanamica",         handle:"@nanamica",             color:"#37474F", initials:"NA", tag:"Japanese",      followers:80000,   avgLikes:1800,  avgComments:72,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Goldwin",          handle:"@goldwin_global",       color:"#1A1A2E", initials:"GW", tag:"Japanese",      followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"ROA Hiking",       handle:"@roa_hiking",           color:"#6D4C41", initials:"RO", tag:"Hiking",        followers:82000,   avgLikes:1845,  avgComments:74,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"18 East",          handle:"@18eastofficial",       color:"#4A4E69", initials:"1E", tag:"Workwear",      followers:52000,   avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Nanga",            handle:"@nanga_official",       color:"#1565C0", initials:"NG", tag:"Down",          followers:105000,  avgLikes:2363,  avgComments:95,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Ostrya",           handle:"@ostryaequipment",      color:"#37474F", initials:"OT", tag:"Technical",     followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Hiking Patrol",    handle:"@hikingpatrol",         color:"#5D4037", initials:"HP", tag:"Community",     followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Manresa",          handle:"@manresamfg",           color:"#263238", initials:"MN", tag:"Workwear",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"William Ellery",   handle:"@william_ellery",       color:"#4A4E69", initials:"WE", tag:"Workwear",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"F/CE.",            handle:"@fce_tools",            color:"#1A1A2E", initials:"FC", tag:"Japanese",      followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Mountain Research",handle:"@mountain_research",    color:"#37474F", initials:"MR", tag:"Japanese",      followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Meanswhile",       handle:"@meanswhile",           color:"#546E7A", initials:"MW", tag:"Japanese",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"CMF Outdoor",      handle:"@cmfoutdoorgarment_official", color:"#263238", initials:"CM", tag:"Japanese", followers:32000, avgLikes:1200, avgComments:48,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"CAYL",             handle:"@cayl_official",        color:"#4A4E69", initials:"CY", tag:"Korean",        followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Earth Studies",    handle:"@earthstudiesproject",  color:"#5D4037", initials:"ES", tag:"Boutique",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Sansan Gear",      handle:"@sansan_gear",          color:"#37474F", initials:"SG", tag:"Boutique",      followers:22000,   avgLikes:825,   avgComments:33,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"PaaGo Works",      handle:"@paagoworks.official",  color:"#546E7A", initials:"PW", tag:"Japanese",      followers:32000,   avgLikes:1200,  avgComments:48,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Big Rock Candy",   handle:"@bigrockcandymountaineering", color:"#6D4C41", initials:"BR", tag:"Boutique", followers:12000,  avgLikes:690,   avgComments:28,   posts30d:6,  momRank:0, momHeat:0 },
+    ]
+  },
+
+  lifestyle: {
+    label: "Lifestyle",
+    brands: [
+      { name:"EPOKHE",           handle:"@epokhe",              color:"#1A1A2E", initials:"EP", tag:"Eyewear",      followers:0,        avgLikes:0,     avgComments:0,   posts30d:0,  momRank:0, momHeat:0 },
+      { name:"Nike",             handle:"@nike",                color:"#111111", initials:"NK", tag:"Sportswear",   followers:310000000,avgLikes:310000,avgComments:12400,posts30d:20, momRank:0, momHeat:0 },
+      { name:"adidas",           handle:"@adidas",              color:"#000000", initials:"AD", tag:"Sportswear",   followers:80000000, avgLikes:80000, avgComments:3200, posts30d:22, momRank:0, momHeat:0 },
+      { name:"Jordan Brand",     handle:"@jumpman23",           color:"#D32F2F", initials:"JB", tag:"Sneaker",      followers:14000000, avgLikes:140000,avgComments:5600, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Supreme",          handle:"@supremenewyork",      color:"#D32F2F", initials:"SU", tag:"Streetwear",   followers:16000000, avgLikes:160000,avgComments:6400, posts30d:12, momRank:0, momHeat:0 },
+      { name:"adidas Originals", handle:"@adidasoriginals",     color:"#212121", initials:"AO", tag:"Lifestyle",    followers:45000000, avgLikes:450000,avgComments:18000,posts30d:18, momRank:0, momHeat:0 },
+      { name:"Converse",         handle:"@converse",            color:"#1A1A2E", initials:"CV", tag:"Footwear",     followers:40000000, avgLikes:400000,avgComments:16000,posts30d:16, momRank:0, momHeat:0 },
+      { name:"Red Bull",         handle:"@redbull",             color:"#D32F2F", initials:"RB", tag:"Energy",       followers:19000000, avgLikes:190000,avgComments:7600, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Puma",             handle:"@puma",                color:"#E53935", initials:"PU", tag:"Sportswear",   followers:14000000, avgLikes:140000,avgComments:5600, posts30d:18, momRank:0, momHeat:0 },
+      { name:"GoPro",            handle:"@gopro",               color:"#0288D1", initials:"GP", tag:"Tech",         followers:18000000, avgLikes:180000,avgComments:7200, posts30d:16, momRank:0, momHeat:0 },
+      { name:"DJI",              handle:"@djiglobal",            color:"#1A1A2E", initials:"DJ", tag:"Tech",         followers:5100000,  avgLikes:51000, avgComments:2040, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Uniqlo",           handle:"@uniqlousa",           color:"#E53935", initials:"UQ", tag:"Basics",       followers:5000000,  avgLikes:50000, avgComments:2000, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Stüssy",           handle:"@stussy",              color:"#1A1A2E", initials:"ST", tag:"Streetwear",   followers:5000000,  avgLikes:50000, avgComments:2000, posts30d:10, momRank:0, momHeat:0 },
+      { name:"Fear Of God",      handle:"@fearofgod",           color:"#424242", initials:"FG", tag:"Luxury",       followers:4200000,  avgLikes:42000, avgComments:1680, posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Levi's",           handle:"@levis",               color:"#1565C0", initials:"LV", tag:"Denim",        followers:7000000,  avgLikes:70000, avgComments:2800, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Oakley",           handle:"@oakley",              color:"#212121", initials:"OK", tag:"Sports",       followers:4500000,  avgLikes:45000, avgComments:1800, posts30d:18, momRank:0, momHeat:0 },
+      { name:"Carhartt WIP",     handle:"@carharttwip",         color:"#5D4037", initials:"CW", tag:"Workwear",     followers:3000000,  avgLikes:30000, avgComments:1200, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Jacquemus",        handle:"@jacquemus",           color:"#F5F5F5", initials:"JQ", tag:"Luxury",       followers:3000000,  avgLikes:30000, avgComments:1200, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Acne Studios",     handle:"@acnestudios",         color:"#FF80AB", initials:"AS", tag:"Luxury",       followers:2000000,  avgLikes:30000, avgComments:1200, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Stone Island",     handle:"@stoneisland",         color:"#37474F", initials:"SI", tag:"Technical",    followers:3500000,  avgLikes:35000, avgComments:1400, posts30d:10, momRank:0, momHeat:0 },
+      { name:"Palace",           handle:"@palaceskateboards",   color:"#1A1A2E", initials:"PL", tag:"Skate",        followers:2500000,  avgLikes:37500, avgComments:1500, posts30d:10, momRank:0, momHeat:0 },
+      { name:"KITH",             handle:"@kith",                color:"#212121", initials:"KT", tag:"Luxury",       followers:3000000,  avgLikes:30000, avgComments:1200, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Aimé Leon Dore",   handle:"@aimeleondore",        color:"#6D6570", initials:"AL", tag:"Luxury",       followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Human Made",       handle:"@humanmade",           color:"#5D4037", initials:"HM", tag:"Japanese",     followers:1000000,  avgLikes:15000, avgComments:600,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"BMW",              handle:"@bmw",                 color:"#1565C0", initials:"BM", tag:"Auto",         followers:36000000, avgLikes:360000,avgComments:14400,posts30d:18, momRank:0, momHeat:0 },
+      { name:"Mercedes-Benz",    handle:"@mercedesbenz",        color:"#212121", initials:"MB", tag:"Auto",         followers:34000000, avgLikes:340000,avgComments:13600,posts30d:18, momRank:0, momHeat:0 },
+      { name:"Audi",             handle:"@audi",                color:"#D32F2F", initials:"AU", tag:"Auto",         followers:18000000, avgLikes:180000,avgComments:7200, posts30d:16, momRank:0, momHeat:0 },
+      { name:"Fujifilm",         handle:"@fujifilmx_us",        color:"#FF6D00", initials:"FJ", tag:"Camera",       followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Leica",            handle:"@leica_camera",        color:"#D32F2F", initials:"LC", tag:"Camera",       followers:1200000,  avgLikes:18000, avgComments:720,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Canon",            handle:"@canonusa",            color:"#D32F2F", initials:"CN", tag:"Camera",       followers:2000000,  avgLikes:30000, avgComments:1200, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Nikon",            handle:"@nikonusa",            color:"#F9A825", initials:"NK", tag:"Camera",       followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Ethika",           handle:"@ethika",              color:"#E91E8C", initials:"ET", tag:"Underwear",    followers:1500000,  avgLikes:22500, avgComments:900,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"The Hundreds",     handle:"@thehundreds",         color:"#D32F2F", initials:"TH", tag:"Streetwear",   followers:1000000,  avgLikes:15000, avgComments:600,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Bose",             handle:"@bose",                color:"#1A1A2E", initials:"BS", tag:"Audio",        followers:2000000,  avgLikes:30000, avgComments:1200, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Stance",           handle:"@stanceofficial",      color:"#37474F", initials:"SN", tag:"Socks",        followers:1050000,  avgLikes:15750, avgComments:630,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Nixon",            handle:"@nixon",               color:"#263238", initials:"NX", tag:"Watches",      followers:1200000,  avgLikes:18000, avgComments:720,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"John Elliott",     handle:"@johnelliottco",       color:"#424242", initials:"JE", tag:"Luxury",       followers:820000,   avgLikes:12300, avgComments:492,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Wrangler",         handle:"@wrangleraustralia",   color:"#5D4037", initials:"WR", tag:"Denim",        followers:800000,   avgLikes:12000, avgComments:480,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Dime",             handle:"@dimemtl",             color:"#1A1A2E", initials:"DM", tag:"Skate",        followers:800000,   avgLikes:12000, avgComments:480,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"END Clothing",     handle:"@endclothing",         color:"#37474F", initials:"EN", tag:"Retail",       followers:700000,   avgLikes:10500, avgComments:420,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Noah Clothing",    handle:"@noahclothing",        color:"#1565C0", initials:"NC", tag:"Menswear",     followers:800000,   avgLikes:12000, avgComments:480,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Bang & Olufsen",   handle:"@bangolufsen",         color:"#1A1A2E", initials:"BO", tag:"Audio",        followers:620000,   avgLikes:13950, avgComments:558,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Bellroy",          handle:"@bellroy",             color:"#5D4037", initials:"BL", tag:"Accessories",  followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Brain Dead",       handle:"@wearebraindead",      color:"#4A148C", initials:"BD", tag:"Art",          followers:510000,   avgLikes:11475, avgComments:459,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Denim Tears",      handle:"@denimtears",          color:"#5D4037", initials:"DT", tag:"Cultural",     followers:510000,   avgLikes:11475, avgComments:459,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Our Legacy",       handle:"@ourlegacy",           color:"#546E7A", initials:"OL", tag:"Scandinavian", followers:620000,   avgLikes:13950, avgComments:558,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Thrills",          handle:"@thrillsco",           color:"#1565C0", initials:"TR", tag:"Surf-Life",    followers:410000,   avgLikes:9225,  avgComments:369,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Stampd",           handle:"@stampd",              color:"#212121", initials:"SD", tag:"Luxury",       followers:420000,   avgLikes:9450,  avgComments:378,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Aries",            handle:"@ariesarise",          color:"#6A1B9A", initials:"AR", tag:"Art",          followers:430000,   avgLikes:9675,  avgComments:387,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Online Ceramics",  handle:"@onlineceramics",      color:"#5D4037", initials:"OC", tag:"Art",          followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Awake NY",         handle:"@awakenewyorkclothing",color:"#1A1A2E", initials:"AW", tag:"NY",           followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Common Projects",  handle:"@commonprojects",      color:"#F5F5F5", initials:"CP", tag:"Luxury",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Needles",          handle:"@needles_tokyo_official",color:"#1565C0",initials:"NE", tag:"Japanese",    followers:420000,   avgLikes:9450,  avgComments:378,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Undercover",       handle:"@undercover_lab",      color:"#1A1A2E", initials:"UC", tag:"Japanese",     followers:510000,   avgLikes:11475, avgComments:459,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Neighborhood",     handle:"@neighborhood_official",color:"#37474F",initials:"NH", tag:"Japanese",     followers:410000,   avgLikes:9225,  avgComments:369,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Kapital",          handle:"@kapitalglobal",       color:"#5D4037", initials:"KP", tag:"Japanese",     followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Reigning Champ",   handle:"@reigningchamp",       color:"#424242", initials:"RC", tag:"Basics",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Saturdays NYC",    handle:"@saturdaysnyc",        color:"#1565C0", initials:"SN", tag:"Surf-Life",    followers:420000,   avgLikes:9450,  avgComments:378,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Sonos",            handle:"@sonos",               color:"#212121", initials:"SO", tag:"Audio",        followers:1000000,  avgLikes:15000, avgComments:600,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Skullcandy",       handle:"@skullcandy",          color:"#6D6570", initials:"SK", tag:"Audio",        followers:820000,   avgLikes:12300, avgComments:492,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Moment",           handle:"@moment",              color:"#37474F", initials:"MO", tag:"Camera",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Valley Eyewear",   handle:"@valleyeyewear",       color:"#6D6570", initials:"VE", tag:"Eyewear",      followers:155000,   avgLikes:3488,  avgComments:140,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Garrett Leight",   handle:"@garrettleight",       color:"#5D4037", initials:"GL", tag:"Eyewear",      followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Assembly Label",   handle:"@assemblylabel",       color:"#546E7A", initials:"AL", tag:"Australian",   followers:155000,   avgLikes:3488,  avgComments:140,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Bode",             handle:"@bode",                color:"#8D6E63", initials:"BO", tag:"Artisanal",    followers:430000,   avgLikes:9675,  avgComments:387,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Engineered Garments",handle:"@engineered_garments_official",color:"#5D4037",initials:"EG",tag:"Workwear",followers:510000,avgLikes:11475,avgComments:459, posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Mophie",           handle:"@mophie",              color:"#1565C0", initials:"MP", tag:"Tech",         followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Clae",             handle:"@clae",                color:"#2E7D32", initials:"CL", tag:"Footwear",     followers:82000,    avgLikes:1845,  avgComments:74,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Dylan Kain",       handle:"@dylan_kain",          color:"#E91E8C", initials:"DK", tag:"Australian",   followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"I Love Ugly",      handle:"@iloveugly",           color:"#212121", initials:"IU", tag:"NZ",           followers:155000,   avgLikes:3488,  avgComments:140,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Neuw Denim",       handle:"@neuwdenim",           color:"#1565C0", initials:"ND", tag:"Denim",        followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Mr Simple",        handle:"@mrsimplegoods",       color:"#546E7A", initials:"MS", tag:"Australian",   followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"HAVEN",            handle:"@havenshop",           color:"#263238", initials:"HV", tag:"Retail",       followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Highs & Lows",     handle:"@highs_and_lows",      color:"#1A1A2E", initials:"HL", tag:"Australian",   followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Concepts",         handle:"@cncpts",              color:"#5D4037", initials:"CO", tag:"Retail",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Undefeated",       handle:"@undefeatedinc",       color:"#212121", initials:"UN", tag:"Retail",       followers:310000,   avgLikes:6975,  avgComments:279,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Union LA",         handle:"@unionlosangeles",     color:"#1565C0", initials:"UL", tag:"Retail",       followers:210000,   avgLikes:4725,  avgComments:189,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Supply Store",     handle:"@supplystore",         color:"#546E7A", initials:"SS", tag:"Australian",   followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Incu",             handle:"@incu_clothing",       color:"#37474F", initials:"IN", tag:"Australian",   followers:105000,   avgLikes:2363,  avgComments:95,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Adsum",            handle:"@adsumnyc",            color:"#546E7A", initials:"AD", tag:"NY",           followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Above The Clouds", handle:"@abovethecloudsstore", color:"#5D4037", initials:"AT", tag:"Retail",       followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"APC",              handle:"@apc_paris",           color:"#1A1A2E", initials:"AP", tag:"French",       followers:820000,   avgLikes:12300, avgComments:492,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Noah NY",          handle:"@noahny",              color:"#1565C0", initials:"NY", tag:"Menswear",     followers:600000,   avgLikes:13500, avgComments:540,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Quartz Co",        handle:"@quartz_co",           color:"#546E7A", initials:"QC", tag:"Canadian",     followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"wings+horns",      handle:"@wingsandhorns",       color:"#37474F", initials:"WH", tag:"Canadian",     followers:52000,    avgLikes:1950,  avgComments:78,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Outlier",          handle:"@outlier",             color:"#263238", initials:"OT", tag:"Technical",    followers:82000,    avgLikes:1845,  avgComments:74,   posts30d:6,  momRank:0, momHeat:0 },
+    ]
+  },
+
+  athletes: {
+    label: "Athletes",
+    brands: [
+      // ── Surfing ───────────────────────────────────────────────
+      { name:"Gabriel Medina",      handle:"@gabrielmedina",      color:"#0077B6", initials:"GM", tag:"Surfing",      followers:7200000, avgLikes:98000, avgComments:2100, avgReelViews:1800000, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Kelly Slater",        handle:"@kellyslater",        color:"#0096C7", initials:"KS", tag:"Surfing",      followers:3600000, avgLikes:52000, avgComments:1200, avgReelViews:920000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"John John Florence",  handle:"@john_john_florence",  color:"#00B4D8", initials:"JJ", tag:"Surfing",      followers:3500000, avgLikes:48000, avgComments:980,  avgReelViews:880000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"JOB",                 handle:"@whoisjob",           color:"#48CAE4", initials:"JB", tag:"Surfing",      followers:1800000, avgLikes:28000, avgComments:720,  avgReelViews:540000,  posts30d:18, momRank:0, momHeat:0 },
+      { name:"Mick Fanning",        handle:"@mfanno",             color:"#0077B6", initials:"MF", tag:"Surfing",      followers:1100000, avgLikes:16000, avgComments:380,  avgReelViews:320000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Filipe Toledo",       handle:"@filipetoledo",       color:"#0096C7", initials:"FT", tag:"Surfing",      followers:1100000, avgLikes:15800, avgComments:360,  avgReelViews:310000,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Italo Ferreira",      handle:"@italoferreira",      color:"#00B4D8", initials:"IF", tag:"Surfing",      followers:800000,  avgLikes:12400, avgComments:290,  avgReelViews:240000,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Dane Reynolds",       handle:"@sealtooth",          color:"#023E8A", initials:"DR", tag:"Surfing",      followers:720000,  avgLikes:14200, avgComments:380,  avgReelViews:210000,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Noa Deane",           handle:"@ilovetables",        color:"#0077B6", initials:"ND", tag:"Surfing",      followers:510000,  avgLikes:9800,  avgComments:260,  avgReelViews:180000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Carissa Moore",       handle:"@rissmoore10",        color:"#48CAE4", initials:"CM", tag:"Surfing",      followers:620000,  avgLikes:9200,  avgComments:220,  avgReelViews:170000,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Lakey Peterson",      handle:"@lakeypeterson",      color:"#00B4D8", initials:"LP", tag:"Surfing",      followers:450000,  avgLikes:7400,  avgComments:180,  avgReelViews:140000,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Stephanie Gilmore",   handle:"@stephaniegilmore",   color:"#0096C7", initials:"SG", tag:"Surfing",      followers:430000,  avgLikes:7100,  avgComments:170,  avgReelViews:130000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Griffin Colapinto",   handle:"@griffin_cola",       color:"#023E8A", initials:"GC", tag:"Surfing",      followers:360000,  avgLikes:6200,  avgComments:155,  avgReelViews:110000,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Jordy Smith",         handle:"@jordysmith88",       color:"#0077B6", initials:"JS", tag:"Surfing",      followers:340000,  avgLikes:5800,  avgComments:145,  avgReelViews:105000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Shane Dorian",        handle:"@shanedorian",        color:"#00B4D8", initials:"SD", tag:"Surfing",      followers:340000,  avgLikes:6100,  avgComments:160,  avgReelViews:98000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Joel Parkinson",      handle:"@joelparko",          color:"#48CAE4", initials:"JP", tag:"Surfing",      followers:380000,  avgLikes:5900,  avgComments:138,  avgReelViews:95000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Kanoa Igarashi",      handle:"@kanoaigarashi",      color:"#0096C7", initials:"KI", tag:"Surfing",      followers:520000,  avgLikes:8400,  avgComments:195,  avgReelViews:150000,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Jack Robinson",       handle:"@jackrobinson72",     color:"#0077B6", initials:"JR", tag:"Surfing",      followers:280000,  avgLikes:4900,  avgComments:128,  avgReelViews:88000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Yago Dora",           handle:"@yagodora",           color:"#023E8A", initials:"YD", tag:"Surfing",      followers:300000,  avgLikes:5200,  avgComments:135,  avgReelViews:92000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Ethan Ewing",         handle:"@ethan_ewing",        color:"#00B4D8", initials:"EE", tag:"Surfing",      followers:280000,  avgLikes:4800,  avgComments:122,  avgReelViews:84000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Caroline Marks",      handle:"@caroline_markss",    color:"#48CAE4", initials:"CM", tag:"Surfing",      followers:320000,  avgLikes:5500,  avgComments:138,  avgReelViews:95000,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"Mason Ho",            handle:"@cocom4debarrelkilla", color:"#0096C7", initials:"MH", tag:"Surfing",     followers:340000,  avgLikes:6800,  avgComments:180,  avgReelViews:100000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Craig Anderson",      handle:"@craig__anderson",    color:"#0077B6", initials:"CA", tag:"Surfing",      followers:280000,  avgLikes:5400,  avgComments:148,  avgReelViews:82000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Tyler Wright",        handle:"@tylerwright",        color:"#00B4D8", initials:"TW", tag:"Surfing",      followers:210000,  avgLikes:3800,  avgComments:98,   avgReelViews:68000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Barron Mamiya",       handle:"@barronmamiya",       color:"#023E8A", initials:"BM", tag:"Surfing",      followers:210000,  avgLikes:4100,  avgComments:108,  avgReelViews:72000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Gabriela Bryan",      handle:"@gabriela_bryan_",    color:"#48CAE4", initials:"GB", tag:"Surfing",      followers:210000,  avgLikes:3700,  avgComments:96,   avgReelViews:66000,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"Conner Coffin",       handle:"@connercoffin",       color:"#0096C7", initials:"CC", tag:"Surfing",      followers:220000,  avgLikes:3900,  avgComments:100,  avgReelViews:70000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Leo Fioravanti",      handle:"@leofioravanti",        color:"#0077B6", initials:"LF", tag:"Surfing",      followers:230000,  avgLikes:4000,  avgComments:105,  avgReelViews:72000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Miggy Pupo",          handle:"@miguelpuposurf",     color:"#00B4D8", initials:"MP", tag:"Surfing",      followers:180000,  avgLikes:3200,  avgComments:84,   avgReelViews:60000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Molly Picklum",       handle:"@picklummolly",       color:"#023E8A", initials:"MP", tag:"Surfing",      followers:160000,  avgLikes:2900,  avgComments:76,   avgReelViews:54000,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"Rio Waida",           handle:"@riowaida_",          color:"#48CAE4", initials:"RW", tag:"Surfing",      followers:130000,  avgLikes:2400,  avgComments:64,   avgReelViews:46000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Joao Chianca",        handle:"@joaochumbinho",      color:"#0096C7", initials:"JC", tag:"Surfing",      followers:180000,  avgLikes:3400,  avgComments:90,   avgReelViews:62000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Zeke Lau",            handle:"@zekelau",            color:"#0077B6", initials:"ZL", tag:"Surfing",      followers:120000,  avgLikes:2200,  avgComments:58,   avgReelViews:42000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Connor O'Leary",      handle:"@connoroleary",       color:"#00B4D8", initials:"CO", tag:"Surfing",      followers:140000,  avgLikes:2600,  avgComments:68,   avgReelViews:48000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Jake Marshall",       handle:"@jakemarshall1",      color:"#023E8A", initials:"JM", tag:"Surfing",      followers:120000,  avgLikes:2300,  avgComments:62,   avgReelViews:44000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Callum Robson",       handle:"@callummrobson",      color:"#48CAE4", initials:"CR", tag:"Surfing",      followers:90000,   avgLikes:1800,  avgComments:48,   avgReelViews:34000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Macy Callaghan",      handle:"@macyjanecallaghan",  color:"#0096C7", initials:"MC", tag:"Surfing",      followers:140000,  avgLikes:2500,  avgComments:66,   avgReelViews:46000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Isabella Nichols",    handle:"@isabella_nichols",   color:"#0077B6", initials:"IN", tag:"Surfing",      followers:130000,  avgLikes:2400,  avgComments:62,   avgReelViews:44000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Eithan Osborne",      handle:"@eithanosborne",      color:"#00B4D8", initials:"EO", tag:"Surfing",      followers:150000,  avgLikes:2800,  avgComments:74,   avgReelViews:52000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Hughie Vaughan",      handle:"@hughievaughan",      color:"#023E8A", initials:"HV", tag:"Surfing",      followers:60000,   avgLikes:1200,  avgComments:34,   avgReelViews:24000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Joel Vaughan",        handle:"@joel_vaughan",       color:"#48CAE4", initials:"JV", tag:"Surfing",      followers:50000,   avgLikes:1000,  avgComments:28,   avgReelViews:20000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Milla Coco Brown",    handle:"@milla.coco.brown",   color:"#0096C7", initials:"MB", tag:"Surfing",      followers:80000,   avgLikes:1600,  avgComments:44,   avgReelViews:30000,   posts30d:10, momRank:0, momHeat:0 },
+      // ── Skateboarding ─────────────────────────────────────────
+      { name:"Tony Hawk",           handle:"@tonyhawk",           color:"#2D3142", initials:"TH", tag:"Skateboarding", followers:8100000, avgLikes:95000, avgComments:1800, avgReelViews:2200000, posts30d:14, momRank:0, momHeat:0 },
+      { name:"Nyjah Huston",        handle:"@nyjah",              color:"#4A4E69", initials:"NH", tag:"Skateboarding", followers:4100000, avgLikes:58000, avgComments:1100, avgReelViews:1200000, posts30d:12, momRank:0, momHeat:0 },
+      { name:"Rayssa Leal",         handle:"@rayssalealsk8",      color:"#6B6570", initials:"RL", tag:"Skateboarding", followers:2800000, avgLikes:42000, avgComments:980,  avgReelViews:820000,  posts30d:14, momRank:0, momHeat:0 },
+      { name:"Sky Brown",           handle:"@skybrown",           color:"#2D3142", initials:"SB", tag:"Skateboarding", followers:2100000, avgLikes:34000, avgComments:820,  avgReelViews:640000,  posts30d:16, momRank:0, momHeat:0 },
+      { name:"Leticia Bufoni",      handle:"@leticiabufoni",      color:"#4A4E69", initials:"LB", tag:"Skateboarding", followers:3200000, avgLikes:44000, avgComments:920,  avgReelViews:860000,  posts30d:12, momRank:0, momHeat:0 },
+      { name:"Yuto Horigome",       handle:"@yutohorigome",       color:"#6B6570", initials:"YH", tag:"Skateboarding", followers:1100000, avgLikes:18000, avgComments:420,  avgReelViews:340000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Paul Rodriguez",      handle:"@prod",               color:"#2D3142", initials:"PR", tag:"Skateboarding", followers:1200000, avgLikes:19000, avgComments:440,  avgReelViews:360000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Tyshawn Jones",       handle:"@tyshawn",            color:"#4A4E69", initials:"TJ", tag:"Skateboarding", followers:820000,  avgLikes:14000, avgComments:340,  avgReelViews:260000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Shane O'Neill",       handle:"@shanejoneill",       color:"#6B6570", initials:"SO", tag:"Skateboarding", followers:520000,  avgLikes:9200,  avgComments:230,  avgReelViews:170000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Eric Koston",         handle:"@erickoston",         color:"#2D3142", initials:"EK", tag:"Skateboarding", followers:680000,  avgLikes:11000, avgComments:265,  avgReelViews:200000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Bob Burnquist",       handle:"@bobburnquist",       color:"#4A4E69", initials:"BB", tag:"Skateboarding", followers:410000,  avgLikes:7200,  avgComments:180,  avgReelViews:130000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Mark Gonzales",       handle:"@themarkgonzales",    color:"#6B6570", initials:"MG", tag:"Skateboarding", followers:340000,  avgLikes:6400,  avgComments:168,  avgReelViews:108000,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Chris Joslin",        handle:"@chrisjoslin_",       color:"#2D3142", initials:"CJ", tag:"Skateboarding", followers:360000,  avgLikes:6600,  avgComments:172,  avgReelViews:112000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Arisa Trew",          handle:"@arisa_trew",         color:"#4A4E69", initials:"AT", tag:"Skateboarding", followers:310000,  avgLikes:5800,  avgComments:155,  avgReelViews:98000,   posts30d:12, momRank:0, momHeat:0 },
+      { name:"Nora Vasconcellos",   handle:"@noravexplora",       color:"#6B6570", initials:"NV", tag:"Skateboarding", followers:320000,  avgLikes:5900,  avgComments:158,  avgReelViews:100000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Keegan Palmer",       handle:"@keeganpalmer",       color:"#2D3142", initials:"KP", tag:"Skateboarding", followers:280000,  avgLikes:5200,  avgComments:138,  avgReelViews:90000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Andrew Reynolds",     handle:"@andrewreynolds",     color:"#4A4E69", initials:"AR", tag:"Skateboarding", followers:280000,  avgLikes:5100,  avgComments:135,  avgReelViews:88000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Rodney Mullen",       handle:"@rodneymullen",       color:"#6B6570", initials:"RM", tag:"Skateboarding", followers:260000,  avgLikes:4800,  avgComments:128,  avgReelViews:84000,   posts30d:4,  momRank:0, momHeat:0 },
+      { name:"Geoff Rowley",        handle:"@geoffrowley",        color:"#2D3142", initials:"GR", tag:"Skateboarding", followers:280000,  avgLikes:5000,  avgComments:132,  avgReelViews:86000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Tom Schaar",          handle:"@tomschaar",          color:"#4A4E69", initials:"TS", tag:"Skateboarding", followers:220000,  avgLikes:4100,  avgComments:110,  avgReelViews:72000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Jamie Foy",           handle:"@jamie_foy",          color:"#6B6570", initials:"JF", tag:"Skateboarding", followers:280000,  avgLikes:5200,  avgComments:140,  avgReelViews:90000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Chloe Covell",        handle:"@chlo_the_flo",       color:"#2D3142", initials:"CC", tag:"Skateboarding", followers:180000,  avgLikes:3500,  avgComments:96,   avgReelViews:62000,   posts30d:10, momRank:0, momHeat:0 },
+      { name:"Leo Baker",           handle:"@leo_baker",          color:"#4A4E69", initials:"LB", tag:"Skateboarding", followers:200000,  avgLikes:3800,  avgComments:102,  avgReelViews:66000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Daewon Song",         handle:"@daewon1song",        color:"#6B6570", initials:"DS", tag:"Skateboarding", followers:180000,  avgLikes:3400,  avgComments:92,   avgReelViews:60000,   posts30d:4,  momRank:0, momHeat:0 },
+      // ── Snowboarding ──────────────────────────────────────────
+      { name:"Chloe Kim",           handle:"@chloekim",           color:"#4CC9F0", initials:"CK", tag:"Snowboarding",  followers:1200000, avgLikes:19000, avgComments:450,  avgReelViews:360000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Anna Gasser",         handle:"@annagassersnow",     color:"#7ECEF4", initials:"AG", tag:"Snowboarding",  followers:720000,  avgLikes:12000, avgComments:290,  avgReelViews:220000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Su Yiming",           handle:"@yiming_su",          color:"#4CC9F0", initials:"SY", tag:"Snowboarding",  followers:620000,  avgLikes:10500, avgComments:260,  avgReelViews:190000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Scotty James",        handle:"@scottyjames31",      color:"#ADE8F4", initials:"SJ", tag:"Snowboarding",  followers:420000,  avgLikes:7400,  avgComments:185,  avgReelViews:138000,  posts30d:10, momRank:0, momHeat:0 },
+      { name:"Marcus Kleveland",    handle:"@marcuskleveland",    color:"#4CC9F0", initials:"MK", tag:"Snowboarding",  followers:380000,  avgLikes:6800,  avgComments:170,  avgReelViews:126000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Zoi Sadowski-Synnott",handle:"@zoisynnott",         color:"#7ECEF4", initials:"ZS", tag:"Snowboarding",  followers:280000,  avgLikes:5100,  avgComments:130,  avgReelViews:94000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Kokomo Murase",       handle:"@cocomonsan",         color:"#ADE8F4", initials:"KM", tag:"Snowboarding",  followers:280000,  avgLikes:5200,  avgComments:135,  avgReelViews:96000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Red Gerard",          handle:"@redgerard",          color:"#4CC9F0", initials:"RG", tag:"Snowboarding",  followers:340000,  avgLikes:6100,  avgComments:155,  avgReelViews:112000,  posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Ayumu Hirano",        handle:"@ayumuhirano1129",    color:"#7ECEF4", initials:"AH", tag:"Snowboarding",  followers:310000,  avgLikes:5600,  avgComments:142,  avgReelViews:103000,  posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Mons Røisland",       handle:"@monsroisland",       color:"#ADE8F4", initials:"MR", tag:"Snowboarding",  followers:160000,  avgLikes:3000,  avgComments:78,   avgReelViews:56000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Sven Thorgren",       handle:"@sventhorgren",       color:"#4CC9F0", initials:"ST", tag:"Snowboarding",  followers:210000,  avgLikes:3900,  avgComments:100,  avgReelViews:72000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Valentino Guseli",    handle:"@valentinoguseli",    color:"#7ECEF4", initials:"VG", tag:"Snowboarding",  followers:140000,  avgLikes:2700,  avgComments:72,   avgReelViews:50000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Mia Brookes",         handle:"@mia_brookes",        color:"#ADE8F4", initials:"MB", tag:"Snowboarding",  followers:180000,  avgLikes:3400,  avgComments:90,   avgReelViews:62000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Tess Coady",          handle:"@tess_coady",         color:"#4CC9F0", initials:"TC", tag:"Snowboarding",  followers:120000,  avgLikes:2300,  avgComments:62,   avgReelViews:44000,   posts30d:8,  momRank:0, momHeat:0 },
+      { name:"Yuto Totsuka",        handle:"@yutototsuka",        color:"#7ECEF4", initials:"YT", tag:"Snowboarding",  followers:160000,  avgLikes:3100,  avgComments:82,   avgReelViews:58000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Bryan Fox",           handle:"@bryanwfox",          color:"#ADE8F4", initials:"BF", tag:"Snowboarding",  followers:180000,  avgLikes:3500,  avgComments:94,   avgReelViews:64000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Austen Sweetin",      handle:"@austensweetin",      color:"#4CC9F0", initials:"AS", tag:"Snowboarding",  followers:140000,  avgLikes:2700,  avgComments:74,   avgReelViews:50000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Reira Iwabuchi",      handle:"@reiragram",          color:"#7ECEF4", initials:"RI", tag:"Snowboarding",  followers:120000,  avgLikes:2400,  avgComments:64,   avgReelViews:44000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Mari Fukada",         handle:"@mari_fukada",        color:"#ADE8F4", initials:"MF", tag:"Snowboarding",  followers:140000,  avgLikes:2800,  avgComments:76,   avgReelViews:52000,   posts30d:6,  momRank:0, momHeat:0 },
+      { name:"Brooke D'Hondt",      handle:"@brookedhondt",       color:"#4CC9F0", initials:"BD", tag:"Snowboarding",  followers:85000,   avgLikes:1700,  avgComments:46,   avgReelViews:32000,   posts30d:6,  momRank:0, momHeat:0 },
+    ]
+  }
+};
+
+// ── SCORING ENGINE ────────────────────────────────────────────
+// ── SCORING ENGINE ────────────────────────────────────────────
+// Saves and shares excluded — not publicly available from Instagram.
+// Public signals only: likes, comments, reel views where available.
+
+// Follower tier definitions with ER ranges and midpoints
+function getFollowerTier(followers) {
+  if (followers <   10000) return { name:'Nano',     min:3.5, max:8.0, mid:5.75 };
+  if (followers <   50000) return { name:'Micro',    min:2.5, max:5.0, mid:3.75 };
+  if (followers <  500000) return { name:'Mid-tier', min:1.5, max:3.0, mid:2.25 };
+  if (followers < 1000000) return { name:'Macro',    min:1.0, max:2.0, mid:1.50 };
+  return                          { name:'Mega',     min:0.5, max:1.5, mid:1.00 };
+}
+
+// Size benchmark: is brand ER inside, above or below its tier range? Includes % delta.
+function getSizeBenchmark(followers, er) {
+  const t = getFollowerTier(followers);
+  if (er >= t.max) {
+    const pct = Math.round((er / t.max - 1) * 100);
+    return `Above size benchmark (+${pct}%)`;
+  }
+  if (er >= t.min) return 'Within size benchmark';
+  const pct = Math.round((1 - er / t.min) * 100);
+  return `Below size benchmark (−${pct}%)`;
+}
+
+// Expected CDR by tier — small accounts naturally get more comments per like
+function getExpectedCDR(followers) {
+  if (followers <   10000) return 0.07;
+  if (followers <   50000) return 0.05;
+  if (followers <  500000) return 0.025;
+  if (followers < 1000000) return 0.015;
+  return 0.01;
+}
+
+function calcRaw(b) {
+  const f = b.followers;
+  const t = getFollowerTier(f);
+  const engDepthRate      = ((b.avgLikes + b.avgComments) / f) * 100;
+  const commentRate       = (b.avgComments / f) * 100;
+  // Tier-adjusted ER: removes size bias so brands compare fairly within category
+  const tierAdjEngRate    = engDepthRate / t.mid;
+  // Comment Depth Ratio + tier adjustment (small accounts get more comments per like naturally)
+  const commentDepthRatio = b.avgLikes > 0 ? b.avgComments / b.avgLikes : 0;
+  const tierAdjCDR        = commentDepthRatio / getExpectedCDR(f);
+  const hasReels          = b.avgReelViews && b.avgReelViews > 0;
+  const viewConvRate      = hasReels ? ((b.avgLikes + b.avgComments) / b.avgReelViews) * 100 : null;
+  const reachRate         = Math.max(8, 28 - Math.max(0, (Math.log10(f) - 4.5) * 8));
+  return {
+    engDepthRate, commentRate, tierAdjEngRate, commentDepthRatio, tierAdjCDR,
+    viewConvRate, reachRate, hasReels,
+    sizeBenchmark: getSizeBenchmark(f, engDepthRate),
+    tierName: t.name,
+  };
+}
+
+function median(arr) {
+  const s = [...arr].sort((a, b) => a - b), m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
+}
+
+function calcMedians(brands) {
+  const r = brands.map(calcRaw);
+  const vcRates = r.filter(x => x.viewConvRate !== null).map(x => x.viewConvRate);
+  return {
+    engDepthRate:    median(r.map(x => x.engDepthRate)),
+    commentRate:     median(r.map(x => x.commentRate)),
+    tierAdjEngRate:  median(r.map(x => x.tierAdjEngRate)),
+    tierAdjCDR:      median(r.map(x => x.tierAdjCDR)),
+    viewConvRate:    vcRates.length >= 3 ? median(vcRates) : null,
+    reachRate:       median(r.map(x => x.reachRate)),
+    posts30d:        median(brands.map(b => b.posts30d || 0)),
+  };
+}
+
+function cap(v)  { return Math.min(v, 2.0); }
+function idx(brand, med) { return cap(brand / (med || 1)); }
+
+// IQ Score: public signals only (comment rate, engagement depth, view conversion)
+function calcIQ(raw, med) {
+  const commentIdx  = idx(raw.commentRate,  med.commentRate);
+  const engDepthIdx = idx(raw.engDepthRate, med.engDepthRate);
+  let iqRaw;
+  if (raw.hasReels && med.viewConvRate) {
+    const viewConvIdx = idx(raw.viewConvRate, med.viewConvRate);
+    iqRaw = commentIdx*0.40 + engDepthIdx*0.30 + viewConvIdx*0.20 + 1.0*0.10;
+  } else {
+    iqRaw = commentIdx*0.50 + engDepthIdx*0.35 + 1.0*0.15;
+  }
+  const iqIdx   = Math.min(iqRaw, 2.0);
+  const iqScore = Math.min(100, Math.round(iqIdx * 50));
+  return { commentIdx, engDepthIdx, iqIdx, iqScore };
+}
+
+// Activity/Community: tier-adj CDR (60%) × frequency boost (40%, capped 12/month)
+function calcActivity(raw, med, posts30d) {
+  const commentDepthIdx = med.tierAdjCDR > 0 ? cap(raw.tierAdjCDR / med.tierAdjCDR) : 1.0;
+  const freqBoost       = Math.min(1.0, Math.sqrt((posts30d || 0) / 12));
+  const activityIdx     = Math.min(2.0, commentDepthIdx * (0.6 + 0.4 * freqBoost));
+  return { commentDepthIdx, freqBoost, activityIdx };
+}
+
+// Brand Heat Score: Reach 25% + Tier-Adj Engagement 35% + Activity/Community 25% + IQ 15%
+// All inputs are tier-normalised before category comparison — size bias removed.
+function calcHeat(raw, med, iq, activity) {
+  const ri = idx(raw.reachRate,       med.reachRate);
+  const ei = idx(raw.tierAdjEngRate,  med.tierAdjEngRate);
+  const heatScore = Math.min(100, Math.round((ri*0.25 + ei*0.35 + activity.activityIdx*0.25 + iq.iqIdx*0.15) * 50));
+  return { reachIdx: ri, engIdx: ei, heatScore };
+}
+
+// Main Gap: plain-English diagnosis of the weakest scoring component
+function getMainGap(raw, med, h, activity, iq, conf) {
+  if (conf.level === 'Low') return 'Low confidence sample';
+  const gaps = [
+    { label:'Low reach',               score: h.reachIdx },
+    { label:'Weak engagement for size', score: idx(raw.tierAdjEngRate, med.tierAdjEngRate) },
+    { label:'Low conversation',        score: activity.commentDepthIdx },
+    { label:'Inconsistent posting',    score: Math.min(1.0, Math.sqrt((raw.posts30d||0) / 12)) + 0.5 },
+  ];
+  const weakest = gaps.reduce((a, b) => a.score < b.score ? a : b);
+  return weakest.score >= 0.9 ? 'No major gap' : weakest.label;
+}
+
+// Main Gap: plain-English diagnosis of the weakest metric
+function getMainGap(raw, med, heat, conf) {
+  if (conf.level === 'Low') return 'Low confidence sample';
+  const gaps = [
+    { label:'Low reach',               score: raw.reachRate / (med.reachRate || 1) },
+    { label:'Weak engagement for size', score: heat.sizeEff },
+    { label:'Low conversation',        score: heat.convQuality },
+    { label:'Inconsistent posting',    score: heat.consistency },
+  ];
+  const weakest = gaps.reduce((a, b) => a.score < b.score ? a : b);
+  return weakest.score >= 0.9 ? 'No major gap' : weakest.label;
+}
+
+function confidence(brands) {
+  const n = brands.length, p = brands.reduce((s,b) => s + (b.posts30d||0), 0);
+  if (n < 5 || p < 10)    return { level:'Early data',  cls:'conf-low',    tip:'Small sample — rankings are directional. Coverage grows as we add more brands.' };
+  if (n >= 10 && p >= 50) return { level:'Strong data', cls:'conf-high',   tip:'Large sample across many brands and posts — rankings are reliable.' };
+  return                         { level:'Solid data',  cls:'conf-medium', tip:'Good sample — rankings reflect real trends in this category.' };
+}
+
+let currentRanked = [];
+
+const MICRO_THRESHOLD = 5000; // Brands below this are excluded from scoring
+
+function computeRanked(brands) {
+  // Split into rankable brands and micro accounts
+  const rankable = brands.filter(b => (b.followers || 0) >= MICRO_THRESHOLD);
+  const micro    = brands.filter(b => (b.followers || 0) > 0 && (b.followers || 0) < MICRO_THRESHOLD);
+
+  // Medians and confidence only from rankable brands
+  const med  = calcMedians(rankable);
+  const conf = confidence(rankable);
+
+  const ranked = rankable.map(b => {
+    const raw      = calcRaw(b);
+    const iq       = calcIQ(raw, med);
+    const activity = calcActivity(raw, med, b.posts30d);
+    const h        = calcHeat(raw, med, iq, activity);
+    const mainGap  = getMainGap(raw, med, h, activity, iq, conf);
+    return {
+      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap, isMicro: false,
+      vsEngCat: Math.round((raw.engDepthRate / (med.engDepthRate || 1) - 1) * 100),
+    };
+  }).sort((a, b) => b.heatScore - a.heatScore);
+
+  // Append micro accounts at the bottom, flagged
+  const microTagged = micro.map(b => ({
+    ...b, isMicro: true, heatScore: null, med, conf,
+    engDepthRate: b.followers > 0 ? ((b.avgLikes + b.avgComments) / b.followers) * 100 : 0,
+    commentDepthRatio: b.avgLikes > 0 ? b.avgComments / b.avgLikes : 0,
+    tierName: getFollowerTier(b.followers).name,
+  }));
+
+  currentRanked = [...ranked, ...microTagged];
+  return currentRanked;
+}
+// ── STATE ─────────────────────────────────────────────────────
+let currentCat = 'surfboards';
+let mainChart = null;
+
+// ── HELPERS ───────────────────────────────────────────────────
+function fmt(val) {
+  const s = val >= 0 ? '+' : '', cls = val > 2 ? 'above' : val < -2 ? 'below' : 'flat';
+  return { str: `${s}${val}% vs median`, cls };
+}
+function heatCls(s) {
+  if (s >= 90) return 'score-elite';
+  if (s >= 75) return 'score-strong';
+  if (s >= 51) return 'score-above';
+  if (s >= 50) return 'score-bench';
+  return 'score-below';
+}
+function engSign(v)  { return v >= 0 ? '+' : ''; }
+function engCls(v)   { return v > 5 ? 'above' : v < -5 ? 'below' : 'flat'; }
+function sizeCls(s)  { const w = s.split(' ')[0].toLowerCase(); return w === 'above' ? 'above' : w === 'within' ? 'within' : 'below'; }
+
+// ── RENDER ────────────────────────────────────────────────────
+function render() {
+  const data   = INDUSTRY_DATA[currentCat];
+  const ranked = computeRanked(data.brands);
+  const conf   = ranked[0]?.conf || confidence(data.brands);
+
+  document.getElementById('industryLabel').textContent = data.label;
+  document.getElementById('brandCount').textContent    = `${data.brands.length} brands`;
+  const badge = document.getElementById('confidenceBadge');
+  badge.textContent = `⬤ ${conf.level} confidence`;
+  badge.className   = `confidence-badge ${conf.cls}`;
+
+  renderSummary(ranked, data.label);
+  renderLeaderboard(ranked);
+  renderInsights(ranked, data.label);
+  renderChart(ranked);
+  closeDrawer();
+  document.getElementById('searchInput').value = '';
+}
+
+function renderSummary(ranked, label) {
+  const top = ranked[0], med = top.med;
+  const aboveMed = ranked.filter(b => b.heatScore >= 50).length;
+  document.getElementById('summaryStrip').innerHTML = `
+    <div class="summary-card">
+      <div class="label">🔥 Leading Brand</div>
+      <div class="value" style="font-size:18px;color:var(--purple)">${top.name}</div>
+      <div class="sub">Heat ${top.heatScore} · ${top.sizeBenchmark}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Category Median ER</div>
+      <div class="value">${med.engDepthRate.toFixed(2)}%</div>
+      <div class="sub">Benchmark for ${ranked.length} brands</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Above Benchmark</div>
+      <div class="value">${aboveMed}<span style="font-size:14px;color:var(--muted)">/${ranked.length}</span></div>
+      <div class="sub">Brands scoring 50+</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Total Posts (30d)</div>
+      <div class="value">${ranked.reduce((s,b)=>s+(b.posts30d||0),0)}</div>
+      <div class="sub">~${Math.round(ranked.reduce((s,b)=>s+(b.posts30d||0),0)/ranked.length)} per brand avg</div>
+    </div>`;
+}
+
+function makeRow(b, rank, brandIdx, isPinned, isMatch) {
+  const rowStyle = isPinned
+    ? 'border-left:3px solid var(--warning);background:rgba(207,196,147,0.08)'
+    : isMatch ? 'border-left:3px solid var(--accent);background:rgba(126,184,1,0.06)' : '';
+  const stickyClass = isPinned ? ' pinned-sticky' : '';
+
+  // ── Micro account treatment ───────────────────────────────
+  if (b.isMicro) {
+    return `<div class="brand-row${stickyClass}" data-name="${b.name.toLowerCase()} ${b.handle.toLowerCase()}" style="${rowStyle};opacity:0.6" onclick="openDrawer(${brandIdx},'—')">
+      <div><div class="rank-badge rank-other">—</div></div>
+      <div class="brand-info">
+        <div class="brand-avatar" style="background:${b.color}"><img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentNode.innerHTML='${b.initials}'"></div>
+        <div style="overflow:hidden">
+          <div class="brand-name">${b.name}</div>
+          <div class="brand-handle">${b.handle}</div>
+          <div class="brand-tag">${b.tag}</div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:9px;font-weight:600;color:var(--muted);text-align:center;padding:4px 6px;border:1px solid var(--border);border-radius:5px;line-height:1.4">Micro<br>account</div>
+      </div>
+      <div style="grid-column:span 2">
+        <div style="font-size:11px;color:var(--muted)">Under 5K followers — not enough audience data to rank in category</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${(b.followers/1000).toFixed(1)}k followers · ${b.tierName} tier</div>
+      </div>
+      <div></div>
+    </div>`;
+  }
+
+  // ── Standard row ─────────────────────────────────────────
+  const rc   = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
+  const sign = b.vsEngCat >= 0 ? '+' : '';
+  const ec   = engCls(b.vsEngCat);
+  const ctl  = b.commentDepthRatio ? (b.commentDepthRatio * 100).toFixed(1) : '—';
+  const ctlCls = b.convQuality >= 1.1 ? 'above' : b.convQuality <= 0.85 ? 'below' : 'flat';
+  // Tier context for ER — what's expected for this size account
+  const tier       = getFollowerTier(b.followers);
+  const tierCtx    = `expected ~${tier.mid}% for ${tier.name} tier`;
+
+  return `<div class="brand-row${stickyClass}" data-name="${b.name.toLowerCase()} ${b.handle.toLowerCase()}" style="${rowStyle}" onclick="openDrawer(${brandIdx},${rank})">
+    <div><div class="rank-badge ${rc}">${rank}</div></div>
+    <div class="brand-info">
+      <div class="brand-avatar" style="background:${b.color}"><img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentNode.innerHTML='${b.initials}'"></div>
+      <div style="overflow:hidden">
+        <div class="brand-name">${b.name}</div>
+        <div class="brand-handle">${b.handle}</div>
+        <div class="brand-tag">${b.tag}${isPinned ? " <span class='your-brand-chip'>YOUR BRAND</span>" : ''}</div>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <div class="heat-score ${heatCls(b.heatScore)}">${b.heatScore}</div>
+    </div>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--dark-text)">${b.engDepthRate.toFixed(2)}%</div>
+      <div class="vs-median ${ec}" style="font-size:10px;margin-top:2px">${sign}${b.vsEngCat}% vs category</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px">${tierCtx}</div>
+      <div class="metric-bar-wrap" style="margin-top:4px"><div class="metric-bar" style="width:${Math.min(100,b.engIdx*50)}%"></div></div>
+    </div>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--dark-text)">${ctl}%</div>
+      <div class="vs-median ${ctlCls}" style="font-size:10px;margin-top:2px">comment-to-like</div>
+      <div style="font-size:9px;color:transparent;margin-top:2px">–</div>
+      <div class="metric-bar-wrap" style="margin-top:4px"><div class="metric-bar" style="width:${Math.min(100,b.convQuality*50)}%;background:var(--positive)"></div></div>
+    </div>
+    <div><span class="confidence-badge ${b.conf.cls}" style="font-size:9px">${b.conf.level}</span></div>
+  </div>`;
+}
+
+function renderLeaderboard(ranked, searchTerm) {
+  const scoredBrands = ranked.filter(b => !b.isMicro);
+  const microBrands  = ranked.filter(b => b.isMicro);
+  const top10 = scoredBrands.slice(0, 10);
+  let rows = '';
+
+  if (pinnedBrand) {
+    const pb      = ranked.find(b => b.name === pinnedBrand.name);
+    const pbRank  = pb ? ranked.indexOf(pb) + 1 : null;
+    const inTop10 = pbRank !== null && pbRank <= 10;
+    if (!inTop10) {
+      const brandToRender = pb || pinnedBrand;
+      const displayRank   = pbRank || '—';
+      const bi = currentRanked.indexOf(brandToRender);
+      rows += makeRow(brandToRender, displayRank, bi, true, false);
+      rows += `<div style="border-top:2px dashed var(--border);margin:4px 18px;opacity:.4"></div>`;
+    }
+    top10.forEach((b, i) => {
+      const isMatch = searchTerm && (b.name.toLowerCase().includes(searchTerm) || b.handle.toLowerCase().includes(searchTerm));
+      rows += makeRow(b, i + 1, currentRanked.indexOf(b), false, isMatch);
+    });
+  } else if (searchTerm) {
+    top10.forEach((b, i) => {
+      const isMatch = b.name.toLowerCase().includes(searchTerm) || b.handle.toLowerCase().includes(searchTerm);
+      rows += makeRow(b, i + 1, currentRanked.indexOf(b), false, isMatch);
+    });
+  } else {
+    top10.forEach((b, i) => { rows += makeRow(b, i + 1, currentRanked.indexOf(b), false, false); });
+  }
+
+  // Append micro brands after the main ranking
+  if (microBrands.length) {
+    rows += `<div style="padding:8px 18px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;border-top:1px solid var(--border);margin-top:4px">Micro accounts — under 5K followers</div>`;
+    microBrands.forEach(b => {
+      rows += makeRow(b, '—', currentRanked.indexOf(b), false, false);
+    });
+  }
+
+  document.getElementById('leaderboardRows').innerHTML = rows || '<div class="no-results">No brands found.</div>';
+}
+
+// Right panel replaced by brand drawer — stub kept for compatibility
+function renderPanels(ranked) {}
+
+function renderInsights(ranked, catLabel) {
+  const top    = ranked[0];
+  const highConv = [...ranked].sort((a,b) => b.convQuality - a.convQuality)[0];
+  const highFq   = [...ranked].sort((a,b) => (b.posts30d||0) - (a.posts30d||0))[0];
+  const below    = ranked.filter(b => b.heatScore < 50);
+  const aboveSz  = ranked.filter(b => b.sizeBenchmark === 'Above size benchmark');
+  const medEng   = top.med.engDepthRate.toFixed(2);
+
+  document.getElementById('insightsList').innerHTML = [
+    { c:'#6B4FBB', t:`<strong>${top.name}</strong> leads ${catLabel} with a Heat Score of <strong>${top.heatScore}</strong> — ${top.vsEngCat >= 0 ? '+' : ''}${top.vsEngCat}% above the category median engagement rate of ${medEng}%. ${top.sizeBenchmark}.` },
+    { c:'#38A169', t:`<strong>${highConv.name}</strong> gets people talking most — the highest conversation score in ${catLabel}. Its comment-to-like ratio is ${(highConv.commentDepthRatio*100).toFixed(1)}% vs a category average of ${(highConv.med.tierAdjCDR > 0 ? '' : '')}${(highConv.commentDepthRatio*100).toFixed(1)}%.` },
+    { c:'#D69E2E', t:`<strong>${highFq.name}</strong> is most active at ${highFq.posts30d||0} posts in 30 days. ${highFq.heatScore>=50 ? 'Volume and quality are working together.' : 'High frequency, but engagement quality could be stronger.'}` },
+    { c:'#E53E3E', t: below.length > 0 ? `<strong>${below.slice(0,3).map(b=>b.name).join(', ')}${below.length>3?' and '+(below.length-3)+' more':''}</strong> sit below the benchmark (Heat &lt;50). Main gaps: ${[...new Set(below.map(b=>b.mainGap).filter(g=>g!=='No major gap'))].slice(0,3).join(', ') || 'mixed'}.` : `All ${catLabel} brands are at or above the benchmark — a competitive set.` },
+    aboveSz.length > 0 ? { c:'#805AD5', t:`<strong>${aboveSz.map(b=>b.name).slice(0,2).join(' and ')}</strong> ${aboveSz.length === 1 ? 'is' : 'are'} punching above their weight — performing above the expected engagement range for their follower count.` } : null,
+  ].filter(Boolean).map(ins=>`<div class="insight-item"><div class="insight-dot" style="background:${ins.c}"></div><div class="insight-text">${ins.t}</div></div>`).join('');
+}
+
+function renderChart(ranked) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (mainChart) mainChart.destroy();
+
+  // show top 15 only in chart to keep it readable
+  const show = ranked.slice(0, 10);
+  let labels, data, colors, medLine, chartLabel;
+
+  labels = show.map(b=>b.name); data = show.map(b=>b.heatScore); colors = show.map(b=>b.color); medLine = 50; chartLabel = 'Brand Heat Score';
+
+  mainChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: chartLabel, data, backgroundColor: colors.map(c=>c+'CC'), borderColor: colors, borderWidth: 2, borderRadius: 5, order: 2 },
+        { label: 'Category Median', data: Array(labels.length).fill(medLine), type: 'line', borderColor: '#D6C7A1', borderWidth: 2, borderDash: [6,3], pointRadius: 0, fill: false, order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', labels: { font:{size:10}, boxWidth:14 } },
+        tooltip: { callbacks: { label: c => c.datasetIndex===1 ? ` Median: ${c.raw}` : ` ${chartLabel}: ${c.raw}` } }
+      },
+      scales: {
+        y: { beginAtZero: true, grid:{color:'#33362F'}, ticks:{font:{size:10},color:'#6B6B62'} },
+        x: { grid:{display:false}, ticks:{font:{size:9},color:'#AAA79D',maxRotation:30} }
+      }
+    }
+  });
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────
+function heroSearch(val) {
+  // Sync to the hidden inline input and trigger filter
+  const inline = document.getElementById('searchInput');
+  if (inline) inline.value = val;
+  filterBrands(val);
+}
+
+function clearHeroSearch() {
+  const hero = document.getElementById('heroSearchInput');
+  const inline = document.getElementById('searchInput');
+  if (hero) hero.value = '';
+  if (inline) inline.value = '';
+  filterBrands('');
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────
+function showDashboard() {
+  document.getElementById('formulaPanel').classList.remove('visible');
+  document.getElementById('summaryStrip').style.display = '';
+  document.getElementById('brandFinder').style.display = '';
+  document.querySelector('.main-grid').style.display = '';
+}
+
+function showFormulas(el) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('formulaPanel').classList.add('visible');
+  document.getElementById('summaryStrip').style.display = 'none';
+  document.getElementById('brandFinder').style.display = 'none';
+  document.querySelector('.main-grid').style.display = 'none';
+}
+
+// ── THEME TOGGLE ─────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('themeToggle').textContent = isLight ? '🌑' : '🌙';
+  localStorage.setItem('nw-theme', isLight ? 'light' : 'dark');
+}
+
+// Apply saved theme on load
+(function() {
+  const saved = localStorage.getItem('nw-theme');
+  if (saved === 'light') {
+    document.documentElement.classList.add('light');
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = '🌑';
+    });
+  }
+})();
+
+function setCat(el, cat) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  showDashboard();
+  // Clear search on category change
+  const hero = document.getElementById('heroSearchInput');
+  if (hero) hero.value = '';
+  render();
+}
+
+function setMetricTab(el, tab) {} // legacy stub
+
+// ── BRAND DETAIL DRAWER ───────────────────────────────────────
+function getAction(b) {
+  const posts        = b.posts30d || 0;
+  const er           = b.engDepthRate || 0;
+  const tier         = getFollowerTier(b.followers);
+  const ctl          = b.commentDepthRatio || 0;
+  const ctlPct       = (ctl * 100).toFixed(1);
+  const highER       = b.catStrength >= 1.0;   // ER above category median
+  const highCTL      = b.convQuality >= 1.0;    // CTL above category median
+  const highVolume   = posts >= 15;
+  const farBelowSize = b.sizeEff < 0.5;         // ER less than half tier midpoint
+
+  // ── Pattern: Strong ER but weak conversation ──────────────────
+  // People like the content but aren't talking. Broadcasting, not connecting.
+  if (highER && !highCTL) {
+    return `Your engagement rate is solid — people are liking the content. But the comment-to-like ratio (${ctlPct}%) shows they're not talking back. That gap usually means the content is visually appealing but doesn't invite a response. Try taking a position in your next few captions, or referencing something specific happening in the sport right now. Content that sparks agreement or debate gets comments. Content that looks nice gets likes.`;
+  }
+
+  // ── Pattern: Weak ER but strong conversation ──────────────────
+  // The people who find the content engage deeply — distribution is the problem.
+  if (!highER && highCTL) {
+    const reelHint = b.hasReels
+      ? `Your Reels are getting views (avg ${b.avgReelViews >= 1000 ? (b.avgReelViews/1000).toFixed(0)+'K' : Math.round(b.avgReelViews||0)} per Reel) — lean further into that format.`
+      : `You have no Reels in the current window. This is the fastest way to change that: Reels push to non-followers by default.`;
+    return `When people find your content, they engage hard — your comment-to-like ratio (${ctlPct}%) is strong. The problem is distribution, not quality. ${reelHint} Static posts mostly reach existing followers; Reels actively expand to new ones.`;
+  }
+
+  // ── Pattern: Far below size benchmark ────────────────────────
+  // ER significantly below what the tier expects — often passive/accumulated audience.
+  if (farBelowSize) {
+    return `A ${er.toFixed(2)}% ER is well below the ~${tier.mid}% expected for a ${tier.name}-tier account. This gap often points to an accumulated audience — followers who joined over time but have become passive. The content isn't reactivating them. Try behind-the-scenes content, team or maker profiles, or anything that shows the people behind the brand rather than just the product. Human content consistently reactivates passive followers better than product shots.`;
+  }
+
+  // ── Pattern: High volume, low ER ─────────────────────────────
+  if (highVolume && !highER) {
+    return `At ${posts} posts this month, volume isn't the issue. When posting frequency is high but engagement is low, the usual cause is content format or relevance — not cadence. Try auditing your last 20 posts: which 3 got the most comments (not likes)? What did those have in common? Build more of that, less of the rest. More of something that isn't working rarely fixes it.`;
+  }
+
+  // ── Pattern: Low CTL specifically ────────────────────────────
+  if (b.convQuality < 0.7) {
+    return `A ${ctlPct}% comment-to-like ratio is well below the category average. This means the audience is scrolling past without engaging in conversation. Two things that reliably move this metric: first, reply to every single comment you receive this month — accounts that respond consistently attract more comments over time. Second, try one post per week that takes a clear stance on something relevant to the community — opinion drives conversation in a way that product content rarely does.`;
+  }
+
+  // ── No major gap — performing well ───────────────────────────
+  if (b.heatScore >= 70) {
+    return `You're performing well across all metrics. At this stage the growth lever shifts from fixing weaknesses to amplifying strengths. Identify 3–5 other accounts in adjacent categories — athletes, photographers, adjacent brands — and build genuine cross-community engagement with them. Collaboration and tagging from credible accounts in your space drives the kind of follower growth that maintains high engagement, not just inflates the number.`;
+  }
+
+  // ── Default: general low performance ─────────────────────────
+  return `Both engagement and conversation are below the category benchmark. For brands in this position, the most common cause is content that feels like promotion rather than community. Show the people, process, and culture behind the brand — not just the product. Authenticity drives engagement at every tier, and it's the variable that's hardest to fake and easiest to improve.`;
+}
+
+function letterGrade(score) {
+  if (score >= 93) return { grade:'A+', bg:'#7eb801', color:'#141413' };
+  if (score >= 85) return { grade:'A',  bg:'#7eb801', color:'#141413' };
+  if (score >= 78) return { grade:'B+', bg:'#081F2C', color:'#faf9f5' };
+  if (score >= 70) return { grade:'B',  bg:'#081F2C', color:'#faf9f5' };
+  if (score >= 62) return { grade:'C+', bg:'#CFC493', color:'#141413' };
+  if (score >= 52) return { grade:'C',  bg:'#D99A3D', color:'#141413' };
+  if (score >= 42) return { grade:'D+', bg:'#C65A4A', color:'#faf9f5' };
+  return                  { grade:'D',  bg:'#8A2A1A', color:'#faf9f5' };
+}
+
+function calcSubScores(b) {
+  // Use fields that actually exist on brand objects from computeRanked
+  // b.engIdx = tier-adj ER vs category median (from calcHeat)
+  // b.freqBoost = posting frequency (0-1.0, from calcActivity)
+  // b.commentDepthIdx = tier-adj comment depth (from calcActivity)
+  // b.iqIdx = interaction quality index (from calcIQ)
+  const erScore   = Math.round(Math.min(35, (b.engIdx || 0) * 17.5));
+  const volScore  = Math.round(Math.min(25, (b.freqBoost || 0) * 25));
+  const convScore = Math.round(Math.min(20, (b.commentDepthIdx || b.iqIdx || 0) * 10));
+  const fmtBase   = b.hasReels ? 12 : 6;
+  const fmtBoost  = (b.viewConvRate && b.med?.viewConvRate) ? Math.min(6, (b.viewConvRate/(b.med.viewConvRate||1))*3) : 3;
+  const fmtScore  = Math.round(Math.min(20, fmtBase + fmtBoost));
+  return { erScore, volScore, convScore, fmtScore, total: erScore+volScore+convScore+fmtScore };
+}
+
+function getFrictionTags(b) {
+  const tags = [];
+  const ei = b.engIdx || 0;
+  const ci = b.commentDepthIdx || 0;
+  if (ei < 0.6)                                tags.push(`${b.engDepthRate.toFixed(2)}% ER — well below ${b.tierName} tier expectation`);
+  if ((b.posts30d||0) >= 18 && ei < 0.9)       tags.push(`${b.posts30d} posts/month — volume not converting`);
+  if (ci < 0.6)                                tags.push(`CTL ${(b.commentDepthRatio*100).toFixed(1)}% — below floor`);
+  if (!b.hasReels)                             tags.push('No Reels in 30-day window');
+  if (b.vsEngCat < -30)                        tags.push(`${b.vsEngCat}% vs category median`);
+  if ((b.freqBoost||0) < 0.3 && (b.posts30d||0) < 5) tags.push(`Only ${b.posts30d||0} posts this month`);
+  return tags;
+}
+
+function getStrengthTags(b) {
+  const tags = [];
+  const ei = b.engIdx || 0;
+  const ci = b.commentDepthIdx || 0;
+  if (ei >= 1.15)  tags.push(`ER ${b.engDepthRate.toFixed(2)}% — above category median`);
+  if (ci >= 1.2)   tags.push(`Strong conversation — ${(b.commentDepthRatio*100).toFixed(1)}% CTL`);
+  if (b.sizeBenchmark?.startsWith('Above')) tags.push(`Punching above ${b.tierName} tier`);
+  if (b.hasReels && b.viewConvRate && b.med?.viewConvRate && b.viewConvRate > b.med.viewConvRate)
+                   tags.push('Reels converting above category average');
+  if ((b.freqBoost||0) >= 0.8) tags.push(`Consistent — ${b.posts30d} posts this month`);
+  if (b.vsEngCat >= 30) tags.push(`+${b.vsEngCat}% vs category median`);
+  return tags;
+}
+
+function getRecommendations(b, rank) {
+  const ranked = currentRanked.filter(x => !x.isMicro);
+  const leader  = ranked[0];
+  const above   = rank > 1 ? ranked[rank - 2] : null;
+  const bestCTL = [...ranked].sort((a,x) => x.convQuality - a.convQuality)[0];
+  const recs = [];
+
+  if (leader && leader.name !== b.name) {
+    const gap = Math.abs(b.vsEngCat);
+    recs.push({
+      n:'G1',
+      title:`${leader.name} leads — here's the gap`,
+      body:`${leader.name} is #1 in this category at ${leader.engDepthRate.toFixed(2)}% ER with ${leader.posts30d||0} posts/month. Your ${b.engDepthRate.toFixed(2)}% ER sits ${gap}% ${b.vsEngCat<0?'below':'above'} the category median. ${gap > 40 ? 'The gap is structural — this won\'t close with posting frequency alone.' : 'The gap is closeable with consistent format and content focus.'}`
+    });
+  }
+
+  if (above && above.name !== b.name) {
+    const reelDiff = above.hasReels && !b.hasReels ? ` They're running Reels — you're not. That format gap likely explains part of the ranking difference.` :
+                     !above.hasReels && b.hasReels ? ` Interestingly, they don't use Reels but still outrank you — their content quality is the differentiator.` : '';
+    recs.push({
+      n:'G2',
+      title:`${above.name} is the nearest target (ranked #${rank-1})`,
+      body:`${above.name} posts ${above.posts30d||0}x/month, earns ${above.engDepthRate.toFixed(2)}% ER, and gets a ${(above.commentDepthRatio*100).toFixed(1)}% CTL.${reelDiff} Close that gap and you move up one position in the category.`
+    });
+  }
+
+  if (bestCTL && bestCTL.name !== b.name && b.convQuality < 1.0) {
+    recs.push({
+      n:'G3',
+      title:`Study ${bestCTL.name}'s conversation strategy`,
+      body:`${bestCTL.name} has the highest comment-to-like ratio in the category at ${(bestCTL.commentDepthRatio*100).toFixed(1)}%. Your ${(b.commentDepthRatio*100).toFixed(1)}% is ${b.convQuality < 0.6 ? 'well ' : ''}below that. The difference is almost always in how captions invite response — specific questions, not generic ones.`
+    });
+  }
+
+  return recs;
+}
+
+function openDrawer(brandIdx, rank) {
+  const b = currentRanked[brandIdx];
+  if (!b) return;
+
+  const lg    = letterGrade(b.heatScore);
+  const subs  = calcSubScores(b);
+  const frict = getFrictionTags(b);
+  const strgs = getStrengthTags(b);
+  const recs  = getRecommendations(b, rank);
+
+  const scoreLabels = ['Engagement Rate','Format Mix','Volume Health','Conversation'];
+  const scoreColors = ['#7eb801','#081F2C','#CFC493','#C65A4A'];
+  const scoreVals   = [subs.erScore, subs.fmtScore, subs.volScore, subs.convScore];
+  const scoreMaxes  = [35, 20, 25, 20];
+  const scoreBars   = scoreVals.map((v,i) => `
+    <div class="rc-score-row">
+      <div class="rc-score-label">${scoreLabels[i]}</div>
+      <div class="rc-score-track"><div class="rc-score-fill" style="width:${(v/scoreMaxes[i])*100}%;background:${scoreColors[i]}"></div></div>
+      <div class="rc-score-val">${v}/${scoreMaxes[i]}</div>
+    </div>`).join('');
+
+  // Auto-generate verdict sentence
+  const ranked_all  = currentRanked.filter(x => !x.isMicro);
+  const total       = ranked_all.length;
+  const topPct      = total > 0 ? Math.round((rank / total) * 100) : 50;
+  const leader      = ranked_all[0];
+
+  let verdict;
+  if (b.heatScore >= 75)
+    verdict = `Top ${100 - topPct + 1}% of the category. ${strgs[0] || 'Strong across the board'}.`;
+  else if (b.heatScore >= 55)
+    verdict = `Above the median, ranked #${rank} of ${total}. ${frict[0] || 'Solid but room to grow'}.`;
+  else if (b.heatScore >= 45)
+    verdict = `Right at the category median — #${rank} of ${total}. Engagement needs to move to climb the rankings.`;
+  else
+    verdict = `Below the category benchmark — #${rank} of ${total}. ${frict[0] || 'Engagement and conversation need attention'}.`;
+
+  // Competitive gap sentence
+  let gapText = '';
+  if (leader && leader.name !== b.name) {
+    const leaderAvgLikes = leader.avgLikes || 0;
+    const myAvgLikes     = b.avgLikes || 0;
+    const likesRatio     = leaderAvgLikes > 0 && myAvgLikes > 0 ? (leaderAvgLikes / myAvgLikes).toFixed(1) : null;
+    gapText = `<strong>${leader.name}</strong> leads the category at ${leader.engDepthRate.toFixed(2)}% ER with ${leader.posts30d||0} posts/month.${likesRatio && parseFloat(likesRatio) > 1.5 ? ` They average ${likesRatio}× more likes per post than ${b.name}.` : ''} Close the gap on engagement quality and the ranking will follow.`;
+  }
+
+  // Single action (first recommendation body, condensed)
+  const action = getAction(b);
+
+  document.getElementById('drawerContent').innerHTML = `
+
+    <div class="rc-header">
+      <div class="brand-avatar" style="background:${b.color};width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:white;overflow:hidden;flex-shrink:0">
+        <img src="instagram_avatars/images/${b.handle.replace('@','')}.jpg" onerror="this.parentNode.innerHTML='${b.initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+      </div>
+      <div style="flex:1;overflow:hidden">
+        <div class="rc-brand-name">${b.name}</div>
+        <div class="rc-brand-sub">${b.handle} · ${b.tierName} tier · ${(b.followers/1000).toFixed(0)}k followers</div>
+      </div>
+      <div class="rc-heat">
+        <div class="rc-heat-num" style="color:${lg.bg}">${b.heatScore}</div>
+        <div class="rc-heat-label">Brand Heat</div>
+      </div>
+    </div>
+
+    <div style="font-size:14px;line-height:1.6;color:var(--dark-text);padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:18px">
+      ${verdict}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+      <div style="text-align:center;padding:12px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:22px;font-weight:900;color:${b.vsEngCat >= 0 ? '#3D6010' : '#8A2A1A'};line-height:1">${b.engDepthRate.toFixed(2)}%</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-top:4px">Eng Rate</div>
+        <div style="font-size:10px;color:${b.vsEngCat>=0?'#3D6010':'#8A2A1A'};margin-top:2px">${b.vsEngCat>=0?'+':''}${b.vsEngCat}% vs cat</div>
+      </div>
+      <div style="text-align:center;padding:12px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:22px;font-weight:900;color:var(--dark-text);line-height:1">${(b.commentDepthRatio*100).toFixed(1)}%</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-top:4px">CTL Ratio</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${(b.engIdx||0)>=1.1?'above avg':'near avg'}</div>
+      </div>
+      <div style="text-align:center;padding:12px 8px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:22px;font-weight:900;color:var(--dark-text);line-height:1">${b.posts30d||0}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-top:4px">Posts/Mo</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${(b.freqBoost||0)>=0.8?'above avg':'below avg'}</div>
+      </div>
+    </div>
+
+    ${frict.length || strgs.length ? `
+    <div style="margin-bottom:16px">
+      ${strgs.length ? `<div class="rc-tags" style="margin-bottom:6px">${strgs.map(t=>`<span class="rc-tag rc-tag-strength">${t}</span>`).join('')}</div>` : ''}
+      ${frict.length ? `<div class="rc-tags">${frict.map(t=>`<span class="rc-tag rc-tag-friction">${t}</span>`).join('')}</div>` : ''}
+    </div>` : ''}
+
+    ${gapText ? `
+    <div class="rc-rec" style="margin-bottom:12px">
+      <div class="rc-rec-label">The Competitive Gap</div>
+      <div class="rc-rec-body" style="font-size:12px;line-height:1.65">${gapText}</div>
+    </div>` : ''}
+
+    <div class="rc-rec">
+      <div class="rc-rec-label">One Thing To Do</div>
+      <div class="rc-rec-body" style="font-size:12px;line-height:1.65">${action}</div>
+    </div>
+
+    <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
+      <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Avg Likes</div><div style="font-size:15px;font-weight:800;color:var(--dark-text)">${b.avgLikes>=1000?(b.avgLikes/1000).toFixed(1)+'K':Math.round(b.avgLikes||0)}</div></div>
+      <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Avg Comments</div><div style="font-size:15px;font-weight:800;color:var(--dark-text)">${Math.round(b.avgComments||0)}</div></div>
+      ${b.hasReels ? `<div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Reel Views</div><div style="font-size:15px;font-weight:800;color:var(--dark-text)">${b.avgReelViews>=1000?(b.avgReelViews/1000).toFixed(0)+'K':b.avgReelViews||'—'}</div></div>` : ''}
+      ${(b.reelsCount||b.carouselsCount||b.imagesCount) ? `<div style="flex-basis:100%;font-size:10px;color:var(--muted)">${[b.reelsCount?`🎬 ${b.reelsCount} Reels`:'',b.carouselsCount?`📎 ${b.carouselsCount} Carousels`:'',b.imagesCount?`🖼 ${b.imagesCount} Static`:'',b.collabsCount?`🤝 ${b.collabsCount} Collabs`:''].filter(Boolean).join(' · ')}</div>` : ''}
+    </div>
+
+    <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.6">
+      Ranked #${rank} of ${total} in category · ${b.conf?.level||''} · Saves and shares excluded (not publicly available from Instagram)
+    </div>
+  `;
+
+  document.getElementById('brandDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('show');
+}
+
+function closeDrawer() {
+  document.getElementById('brandDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('show');
+}
+
+// Pinned search result brand (shown alongside top 10)
+let pinnedBrand = null;
+
+// Search across ALL categories in the database
+function findAcrossAll(term) {
+  for (const [catKey, catData] of Object.entries(INDUSTRY_DATA)) {
+    const ranked = computeRanked(catData.brands);
+    const match  = ranked.find(b =>
+      b.name.toLowerCase().includes(term) || b.handle.toLowerCase().includes(term)
+    );
+    if (match) return { brand: match, catKey, catLabel: catData.label, ranked };
+  }
+  return null;
+}
+
+function filterBrands(q) {
+  const term      = q.toLowerCase().trim();
+  const banner    = document.getElementById('searchResultBanner');
+  const notFound  = document.getElementById('notFoundPanel');
+  const addSuccess = document.getElementById('addSuccess');
+
+  addSuccess.classList.remove('show');
+  document.getElementById('addBrandHandle').value = '';
+  document.querySelector('.add-brand-form').style.opacity = '';
+  document.querySelector('.add-brand-form').style.pointerEvents = '';
+
+  if (!term) {
+    pinnedBrand = null;
+    renderLeaderboard(computeRanked(INDUSTRY_DATA[currentCat].brands));
+    banner.classList.remove('show');
+    notFound.style.display = 'none';
+    return;
+  }
+
+  // Search current category first
+  const ranked  = computeRanked(INDUSTRY_DATA[currentCat].brands);
+  const inCat   = ranked.find(b => b.name.toLowerCase().includes(term) || b.handle.toLowerCase().includes(term));
+
+  if (inCat) {
+    // Found in current category
+    const rank      = ranked.indexOf(inCat) + 1;
+    const inTop10   = rank <= 10;
+    pinnedBrand     = inTop10 ? null : inCat;
+    renderLeaderboard(ranked, term);
+    notFound.style.display = 'none';
+    if (!inTop10) {
+      banner.textContent = `📌 ${inCat.name} is ranked #${rank} in ${INDUSTRY_DATA[currentCat].label} — pinned above the top 10 for comparison.`;
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+    return;
+  }
+
+  // Not in current category — search all others
+  const elsewhere = findAcrossAll(term);
+  if (elsewhere && elsewhere.catKey !== currentCat) {
+    const { brand, catLabel, ranked: elseRanked } = elsewhere;
+    const rank    = elseRanked.indexOf(brand) + 1;
+    pinnedBrand   = brand;
+    // Still render current top 10, pin cross-category brand at top with a note
+    renderLeaderboard(ranked, term);
+    notFound.style.display = 'none';
+    banner.textContent = `📌 ${brand.name} is in our ${catLabel} category (ranked #${rank}) — pinned above for comparison against ${INDUSTRY_DATA[currentCat].label}.`;
+    banner.classList.add('show');
+    // Override pinnedBrand to the cross-category brand so makeRow can render it
+    pinnedBrand = brand;
+    renderLeaderboard(ranked, term);
+    return;
+  }
+
+  // Not found anywhere
+  pinnedBrand = null;
+  renderLeaderboard(ranked);
+  banner.classList.remove('show');
+  document.getElementById('notFoundTitle').textContent = `"${q}" isn't in our database yet`;
+  document.getElementById('notFoundMsg').textContent   = `We don't track that brand yet. Submit their handle and we'll pull their data for next month's report.`;
+  document.getElementById('addBrandHandle').value      = q.startsWith('@') ? q : '@' + q.replace(/\s+/g, '').toLowerCase();
+  notFound.style.display = 'block';
+}
+
+async function submitBrand() {
+  const handle = document.getElementById('addBrandHandle').value.trim();
+  if (!handle || handle === '@') return;
+  const clean = handle.startsWith('@') ? handle.slice(1) : handle;
+  const displayHandle = '@' + clean;
+
+  try {
+    await db.from('brand_requests').insert({ handle: clean });
+  } catch(e) {
+    console.warn('Could not save brand request:', e);
+  }
+
+  document.getElementById('addedHandle').textContent = displayHandle;
+  document.getElementById('addSuccess').classList.add('show');
+  document.querySelector('.add-brand-form').style.opacity = '0.4';
+  document.querySelector('.add-brand-form').style.pointerEvents = 'none';
+}
+
+function switchWindow(days) {
+  const now = new Date(2026, 4, 30), from = new Date(now);
+  from.setDate(from.getDate() - parseInt(days));
+  const f = d => d.toLocaleDateString('en-AU', {day:'numeric',month:'short'});
+  document.getElementById('windowBadge').textContent    = `${f(from)} – ${f(now)}, 2026`;
+  document.getElementById('dateRangeLabel').textContent = `May 2026 · ${days}-day window`;
+}
+
+function highlightRow(el) {} // legacy — rows now open drawer on click
+
+// ── SUPABASE ──────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://jvkiscmfpsoyudqbuvke.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2a2lzY21mcHNveXVkcWJ1dmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODI5MjQsImV4cCI6MjA5NTc1ODkyNH0._BkmEVZL0zX8FyvX-KsOBOV4W2FdgqnGzb9bWRVQ6C0';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── INIT ──────────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data, error } = await db
+      .from('latest_metrics')
+      .select('*');
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      // Group rows by category
+      const grouped = {};
+      data.forEach(row => {
+        if (!grouped[row.category]) grouped[row.category] = [];
+        grouped[row.category].push({
+          name:          row.name,
+          handle:        '@' + row.handle,
+          color:         row.color  || '#6B4FBB',
+          initials:      row.initials || '??',
+          tag:           row.tag   || 'Brand',
+          followers:     row.followers     || 0,
+          avgLikes:      parseFloat(row.avg_likes)    || 0,
+          avgComments:   parseFloat(row.avg_comments) || 0,
+          avgReelViews:  parseFloat(row.avg_reel_views) || 0,
+          posts30d:      row.posts_count   || 4,
+          momRank:       0,
+          momHeat:       0,
+        });
+      });
+
+      // Overwrite live categories; keep mock data for others (skate/snow/outdoor)
+      // For lifestyle: merge real brands in — real data takes priority, mock fills the rest
+      Object.keys(grouped).forEach(cat => {
+        if (!INDUSTRY_DATA[cat]) return;
+        if (cat === 'lifestyle') {
+          const realHandles = new Set(grouped[cat].map(b => (b.handle||'').toLowerCase()));
+          const mockRemainder = INDUSTRY_DATA[cat].brands.filter(b => !realHandles.has((b.handle||'').toLowerCase()));
+          INDUSTRY_DATA[cat].brands = [...grouped[cat], ...mockRemainder];
+        } else {
+          INDUSTRY_DATA[cat].brands = grouped[cat];
+        }
+      });
+
+      console.log('Live data loaded from Supabase ✓');
+    }
+  } catch(err) {
+    console.warn('Supabase fetch failed — using mock data:', err.message);
+  }
+  render();
+}
+init();
+</script>
+
+<!-- Brand detail drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="brand-drawer" id="brandDrawer">
+  <div class="drawer-inner">
+    <div class="drawer-close"><button onclick="closeDrawer()">✕</button></div>
+    <div id="drawerContent"></div>
+  </div>
+</div>
+
+</body>
+</html>

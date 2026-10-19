@@ -1,0 +1,79 @@
+name: Monthly leaderboard refresh
+
+# Rescans every account, caches report-card images, rebuilds the site and pushes it.
+# The push redeploys leaderboard.thisisneverwork.com, so nothing needs running by hand.
+on:
+  schedule:
+    - cron: '0 20 1 * *'   # 1st of each month 20:00 UTC = 2nd, 6am Brisbane
+  workflow_dispatch:
+    inputs:
+      scan:
+        description: 'Rescan Instagram (about $0.70 of Apify). Untick to only rebuild the site and refresh card images.'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: leaderboard-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      LEADERBOARD_BASE_URL: ${{ vars.LEADERBOARD_BASE_URL || 'https://ig-analysis-six.vercel.app' }}
+      SHEET_CSV: https://docs.google.com/spreadsheets/d/1vKfq9-cKaHWmEO9gbqQT-SoaTlu4MFDxclSA24A1DaU/gviz/tq?tqx=out:csv&sheet=Master
+      NW_DEPLOY: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+
+      - name: Pick up new accounts from the directory sheet
+        if: github.event_name == 'schedule' || inputs.scan
+        run: |
+          # Only trust the sheet if it looks like the curated list; otherwise keep last month's directory.
+          if curl -fsSL "$SHEET_CSV" -o sheet.csv \
+             && head -1 sheet.csv | grep -q '^"\?Handle"\?,"\?Display Name' \
+             && [ "$(wc -l < sheet.csv)" -ge 150 ]; then
+            cp pipeline/directory.js /tmp/directory.prev.js
+            node pipeline/rebuild-directory.js sheet.csv || cp /tmp/directory.prev.js pipeline/directory.js
+          else
+            echo "::warning::Directory sheet unreadable or too short, keeping the current directory."
+          fi
+
+      - name: Scan Instagram
+        if: github.event_name == 'schedule' || inputs.scan
+        run: |
+          cp pipeline/leaderboard.json /tmp/leaderboard.prev.json
+          node pipeline/build-leaderboard.js --base "$LEADERBOARD_BASE_URL" --out pipeline/leaderboard.json
+          node pipeline/build-leaderboard.js --base "$LEADERBOARD_BASE_URL" --out pipeline/leaderboard.json --retry || true
+          # Never ship a collapsed scan: need at least 85% of last month's scored accounts.
+          python3 - <<'EOF'
+          import json, shutil, sys
+          new = json.load(open('pipeline/leaderboard.json')); old = json.load(open('/tmp/leaderboard.prev.json'))
+          print(f"scored {new['ok']} (last run {old['ok']})")
+          if new['ok'] < 0.85 * old['ok']:
+              shutil.copy('/tmp/leaderboard.prev.json', 'pipeline/leaderboard.json')
+              print("::error::Scan came back short. Kept last month's data and stopped."); sys.exit(1)
+          EOF
+
+      - name: Cache report-card thumbnails
+        run: python3 pipeline/cache_card_media.py pipeline/leaderboard.json "" .
+
+      - name: Build the site
+        run: python3 pipeline/build2.py pipeline/base-live.html pipeline/leaderboard.json pipeline/logo_line.txt pipeline/v2.html pipeline/app.js index.html
+
+      - name: Publish
+        run: |
+          git config user.name "leaderboard-bot"
+          git config user.email "leaderboard-bot@users.noreply.github.com"
+          git add -A index.html pipeline card-thumbs brand-logos
+          if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
+          git commit -m "Monthly refresh $(date -u +%Y-%m-%d)"
+          git push
