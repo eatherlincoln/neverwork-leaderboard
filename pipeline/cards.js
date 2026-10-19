@@ -152,68 +152,68 @@ const shortDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-AU',
 
 // ── one card ──────────────────────────────────────────────────
 function renderCard(b, card, media) {
-  const W = 1080, H = 1350, M = 80, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const W = 1080, H = 1350, M = 96, c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d'); x.textBaseline = 'alphabetic';
   backdrop(x, W, H);
   // header
-  if (media.nw) x.drawImage(media.nw, M, 78, 300, 300 * 125 / 800);
-  x.fillStyle = DIM; x.font = '700 21px ' + CARD_SANS; spaced(x, (monthLabel + ' report card').toUpperCase(), W - M, 116, 4, 'right');
+  if (media.nw) x.drawImage(media.nw, M, 84, 230, 230 * 125 / 800);
+  x.fillStyle = DIM; x.font = '700 17px ' + CARD_SANS; spaced(x, (monthLabel + ' report card').toUpperCase(), W - M, 114, 4, 'right');
   // name + brand mark
-  const markH = 92, markMax = 240;
+  const markH = 64, markMax = 190;
   if (media.logo) media.logo = trimmed(media.logo);
   const markW = media.logo ? Math.min(markMax, markH * media.logo.width / media.logo.height) : media.avatar ? markH : 0;
-  x.fillStyle = CREAM; const ns = fitSize(x, b.name, 600, CARD_SERIF, 124, 64, W - 2 * M - (markW ? markW + 28 : 0));
-  x.fillText(b.name, M, 300);
+  x.fillStyle = CREAM; const ns = fitSize(x, b.name, 600, CARD_SERIF, 104, 60, W - 2 * M - (markW ? markW + 28 : 0));
+  x.fillText(b.name, M, 318);
   const nameW = x.measureText(b.name).width;
-  if (media.logo) brandMark(x, media.logo, M + nameW + 28, 300 - ns * 0.68 - (markH - ns * 0.68) / 2 - 6, markH, markMax, false);
-  else if (media.avatar) brandMark(x, media.avatar, M + nameW + 28, 300 - ns * 0.68 - (markH - ns * 0.68) / 2 - 6, markH, markH, true);
-  x.fillStyle = DIM; x.font = '400 30px ' + CARD_SANS; x.fillText(b.handle + '  ·  ' + b.ladderLabel, M, 356);
+  if (media.logo) brandMark(x, media.logo, M + nameW + 28, 318 - ns * 0.68 - (markH - ns * 0.68) / 2 + 6, markH, markMax, false);
+  else if (media.avatar) brandMark(x, media.avatar, M + nameW + 28, 318 - ns * 0.68 - (markH - ns * 0.68) / 2 + 6, markH, markH, true);
+  x.fillStyle = DIM; x.font = '400 25px ' + CARD_SANS; x.fillText(b.handle + '  ·  ' + b.ladderLabel, M, 368);
   // hero
-  const hs = 290, base = 630; let hx = M;
+  const hs = 250, base = 640; let hx = M;
   if (card.hero.pre === 'up') hx += heroGlyph(x, 'up', hx, base, hs) + 22;
   else if (card.hero.pre) { x.fillStyle = GREEN; x.font = '400 ' + Math.round(hs * 0.6) + 'px ' + CARD_SANS; x.fillText(card.hero.pre, hx, base); hx += x.measureText(card.hero.pre).width + 8; }
   x.fillStyle = GREEN; x.font = '600 ' + hs + 'px ' + CARD_SERIF; x.fillText(card.hero.num, hx, base); hx += x.measureText(card.hero.num).width;
   if (card.hero.post === 'x') heroGlyph(x, 'x', hx + 18, base, hs);
-  x.fillStyle = CREAM; fitSize(x, card.sub, 700, CARD_SANS, 50, 34, W - 2 * M); x.fillText(card.sub, M, 716);
+  x.fillStyle = CREAM; fitSize(x, card.sub, 400, CARD_SANS, 40, 30, W - 2 * M); x.fillText(card.sub, M, 722);
   // status row
   const bd = band(b.heatScore), stat = bd === 'a' ? '▲ AHEAD' : bd === 'b' ? 'CHASING' : 'IN THE PACK';
-  x.font = '700 26px ' + CARD_SANS; const cw = x.measureText(stat).width + 3 * stat.length + 32;
-  if (bd === 'a') { x.fillStyle = GREEN; rr(x, M, 760, cw, 48, 8); x.fill(); x.fillStyle = INK; }
-  else { x.strokeStyle = CREAM; x.lineWidth = 2; rr(x, M, 760, cw, 48, 8); x.stroke(); x.fillStyle = CREAM; }
-  spaced(x, stat, M + 16, 793, 3);
-  x.fillStyle = DIM; x.font = '400 28px ' + CARD_SANS; x.fillText('Ranked #' + b.rank + ' of ' + b.pn + ' ' + groupNoun(b) + '  ·  Heat ' + b.heatScore, M + cw + 22, 793);
+  x.font = '700 21px ' + CARD_SANS; const cw = x.measureText(stat).width + 3 * stat.length + 28;
+  if (bd === 'a') { x.fillStyle = GREEN; rr(x, M, 778, cw, 42, 8); x.fill(); x.fillStyle = INK; }
+  else { x.strokeStyle = CREAM; x.lineWidth = 2; rr(x, M, 778, cw, 42, 8); x.stroke(); x.fillStyle = CREAM; }
+  spaced(x, stat, M + 14, 807, 3);
+  x.fillStyle = DIM; x.font = '400 23px ' + CARD_SANS; x.fillText('#' + b.rank + ' of ' + b.pn + '  ·  Heat ' + b.heatScore, M + cw + 20, 807);
   // badges
-  const bg = badgesFor(b, card), bw = (W - 2 * M - 32) / 2, by = 846, bh = 150;
-  bg.forEach((g, i) => { const X = M + i * (bw + 32);
-    x.save(); if (g.on) { x.shadowColor = 'rgba(126,184,1,.55)'; x.shadowBlur = 28; }
+  const bg = badgesFor(b, card), bw = (W - 2 * M - 28) / 2, by = 872, bh = 118;
+  bg.forEach((g, i) => { const X = M + i * (bw + 28);
+    x.save(); if (g.on) { x.shadowColor = 'rgba(126,184,1,.35)'; x.shadowBlur = 18; }
     x.fillStyle = g.on ? 'rgba(126,184,1,.07)' : 'rgba(242,238,227,.04)'; rr(x, X, by, bw, bh, 18); x.fill();
-    x.strokeStyle = g.on ? GREEN : 'rgba(242,238,227,.3)'; x.lineWidth = 3; x.stroke(); x.restore();
-    x.fillStyle = g.on ? GREEN : CREAM; x.font = '700 64px ' + CARD_SANS; x.fillText(g.big, X + 28, by + 74);
-    x.fillStyle = CREAM; fitSize(x, g.label.charAt(0).toUpperCase() + g.label.slice(1), 700, CARD_SANS, 30, 20, bw - 56);
-    x.fillText(g.label.charAt(0).toUpperCase() + g.label.slice(1), X + 28, by + 120); });
+    x.strokeStyle = g.on ? GREEN : 'rgba(242,238,227,.3)'; x.lineWidth = 2; x.stroke(); x.restore();
+    x.fillStyle = g.on ? GREEN : CREAM; x.font = '700 50px ' + CARD_SANS; x.fillText(g.big, X + 26, by + 62);
+    x.fillStyle = CREAM; fitSize(x, g.label.charAt(0).toUpperCase() + g.label.slice(1), 700, CARD_SANS, 23, 18, bw - 52);
+    x.fillText(g.label.charAt(0).toUpperCase() + g.label.slice(1), X + 26, by + 96); });
   // best post row
   const top = b.top && b.top[0];
   if (top) {
-    const fmtN = (FMT_NAME[top.f] || 'post').toUpperCase(), ly = 1052;
-    x.fillStyle = DIM; x.font = '700 21px ' + CARD_SANS;
+    const fmtN = (FMT_NAME[top.f] || 'post').toUpperCase(), ly = 1060;
+    x.fillStyle = DIM; x.font = '700 17px ' + CARD_SANS;
     spaced(x, card.postLabel || ('TOP ' + fmtN + (LB.days >= 85 && LB.days <= 95 ? ' OF THE QUARTER' : ', LAST ' + LB.days + ' DAYS')), M, ly, 4);
-    const tw = 250, th = 140, ty = ly + 20;
+    const tw = 200, th = 112, ty = ly + 22;
     x.save(); rr(x, M, ty, tw, th, 16); x.clip(); x.fillStyle = '#1E211B'; x.fillRect(M, ty, tw, th);
     if (media.thumb) { const r = Math.max(tw / media.thumb.width, th / media.thumb.height), iw = media.thumb.width * r, ih = media.thumb.height * r; x.drawImage(media.thumb, M + (tw - iw) / 2, ty + (th - ih) / 2, iw, ih); x.fillStyle = 'rgba(0,0,0,.18)'; x.fillRect(M, ty, tw, th); }
     x.restore();
-    if (top.f === 'reel') { x.fillStyle = 'rgba(14,15,13,.6)'; x.beginPath(); x.arc(M + tw / 2, ty + th / 2, 30, 0, Math.PI * 2); x.fill(); x.fillStyle = CREAM; playIcon(x, M + tw / 2 + 3, ty + th / 2, 20); }
-    const tx2 = M + tw + 32, tW = W - M - tx2;
-    x.fillStyle = CREAM; x.font = '700 34px ' + CARD_SANS;
+    if (top.f === 'reel') { x.fillStyle = 'rgba(14,15,13,.6)'; x.beginPath(); x.arc(M + tw / 2, ty + th / 2, 24, 0, Math.PI * 2); x.fill(); x.fillStyle = CREAM; playIcon(x, M + tw / 2 + 3, ty + th / 2, 16); }
+    const tx2 = M + tw + 28, tW = W - M - tx2;
+    x.fillStyle = CREAM; x.font = '700 27px ' + CARD_SANS;
     const cap = cleanCap(top.cap) || (FMT_NAME[top.f] || 'Post') + ' from ' + shortDate(top.d);
-    const ls = lines(x, cap, tW, 2); ls.forEach((l, i) => x.fillText(l, tx2, ty + 38 + i * 42));
-    let sx = tx2; const sy = ty + 38 + ls.length * 42 + 12; x.fillStyle = DIM; x.font = '400 27px ' + CARD_SANS;
-    if (top.f === 'reel' && top.v) { playIcon(x, sx + 9, sy - 9, 14); sx += 26; const t1 = fmtK(top.v) + ' views  ·  '; x.fillText(t1, sx, sy); sx += x.measureText(t1).width; }
-    heartIcon(x, sx + 11, sy - 10, 10); sx += 30; const t2 = fmtK(top.l) + ' likes  ·  ' + shortDate(top.d); x.fillText(t2, sx, sy);
+    const ls = lines(x, cap, tW, 2); ls.forEach((l, i) => x.fillText(l, tx2, ty + 34 + i * 34));
+    let sx = tx2; const sy = ty + 34 + ls.length * 34 + 12; x.fillStyle = DIM; x.font = '400 22px ' + CARD_SANS;
+    if (top.f === 'reel' && top.v) { playIcon(x, sx + 8, sy - 8, 12); sx += 24; const t1 = fmtK(top.v) + ' views  ·  '; x.fillText(t1, sx, sy); sx += x.measureText(t1).width; }
+    heartIcon(x, sx + 9, sy - 8, 8); sx += 26; const t2 = fmtK(top.l) + ' likes  ·  ' + shortDate(top.d); x.fillText(t2, sx, sy);
   }
   // footer
-  x.fillStyle = DIM; x.font = '400 22px ' + CARD_SANS;
-  x.fillText('Ranked against ' + b.pn + ' ' + groupNoun(b) + ' on public posts, ' + LB.days + ' days to ' + dateLabel + '.', M, H - 76);
-  x.fillStyle = CREAM; x.font = '700 22px ' + CARD_SANS; x.fillText('leaderboard.thisisneverwork.com', M, H - 44);
+  x.fillStyle = DIM; x.font = '400 19px ' + CARD_SANS;
+  x.fillText('Ranked against ' + b.pn + ' ' + groupNoun(b) + ' on public posts, ' + LB.days + ' days to ' + dateLabel + '.', M, H - 84);
+  x.fillStyle = CREAM; x.font = '700 19px ' + CARD_SANS; x.fillText('leaderboard.thisisneverwork.com', M, H - 54);
   return c;
 }
 
