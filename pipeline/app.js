@@ -421,22 +421,22 @@ function renderList(k, sc, um, label) {
   if (st.band === 'u') list = um.map(b => [b, '–']);
   else list = sc.map((b, i) => [b, b.rank]).filter(([b]) => st.band === 'all' || band(b.heatScore) === st.band);
   const cf = $('#cfilters');
-  if (st.type === 'creator' && st.band !== 'u') {
+  if (st.band !== 'u') {
     const sz = SIZES.find(s => s[0] === st.size) || SIZES[0], before = list.length;
     list = list.filter(([b]) => b.followers >= sz[2] && b.followers < sz[3]);
     if (st.sort !== 'heat') list.sort((p, q) => sortVal[st.sort](q[0]) - sortVal[st.sort](p[0]));
     cf.hidden = false;
     cf.innerHTML = `<label>Size <select data-f="size">${SIZES.map(s => `<option value="${s[0]}"${st.size === s[0] ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></label>
       <label>Sort by <select data-f="sort">${SORTS.map(s => `<option value="${s[0]}"${st.sort === s[0] ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></label>
-      <span class="cnt">${list.length === before ? before + ' creators' : list.length + ' of ' + before + ' match'}. Pick the ones you like with Shortlist.</span>`;
-  } else cf.hidden = true;
+      <span class="cnt">${list.length === before ? before + (st.type === 'creator' ? ' creators' : ' brands') : list.length + ' of ' + before + ' match'}.${st.type === 'creator' ? ' Pick the ones you like with Shortlist.' : ''}</span>`;
+  } else { cf.hidden = true; cf.innerHTML = ''; }
   const LIM = 10, shown = st.all ? list : list.slice(0, LIM);
   let html = '';
   const me = st.you && ALLBY[st.you];
   if (me && me.ladder === k && !me.isMicro && st.band === 'all' && !st.all && me.rank > LIM) html += rowHtml(me, me.rank, k, sc) + '<div style="border-top:1px dashed var(--line)"></div>';
   html += shown.map(([b, r]) => rowHtml(b, r, k, sc)).join('') || '<div class="empty">Nothing in this view.</div>';
   // Always show 10 rows in the default view: fill short groups with tracked-but-not-ranked accounts, then open slots.
-  if (st.band === 'all' && !st.all && !(st.type === 'creator' && st.size !== 'any') && list.length < LIM) {
+  if (st.band === 'all' && !st.all && st.size === 'any' && st.sort === 'heat' && list.length < LIM) {
     let fill = LIM - list.length;
     um.slice(0, fill).forEach(b => { html += rowHtml(b, '–', k, sc); });
     fill -= Math.min(fill, um.length);
