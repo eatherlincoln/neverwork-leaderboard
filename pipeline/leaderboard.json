@@ -1,14 +1,14 @@
 {
- "generatedAt": "2026-10-19T06:20:03.942Z",
+ "generatedAt": "2026-10-19T07:43:09.287Z",
  "days": 90,
  "scanned": 295,
- "ok": 272,
+ "ok": 268,
  "buckets": [
   {
    "key": "brand|Surf",
    "benchmarkType": "brand",
    "discipline": "Surf",
-   "n": 71,
+   "n": 69,
    "rows": [
     {
      "handle": "markrichardssurfboards",
@@ -2997,79 +2997,6 @@
      "rank": 42
     },
     {
-     "handle": "sharpeyesurfboards_au",
-     "name": "Sharp Eye Surfboards AU",
-     "type": "Brand",
-     "category": "Surfboards",
-     "followers": 62825,
-     "er": 0.537,
-     "score": 74,
-     "grade": "B",
-     "conf": "Medium",
-     "own": 5,
-     "pic": "https://scontent-cdg4-2.cdninstagram.com/v/t51.2885-19/18809009_1075224415913148_5357023334326337536_a.jpg?stp=dst-jpg_e0_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby41ODcuYzIifQ&_nc_ht=scontent-cdg4-2.cdninstagram.com&_nc_cat=100&_nc_oc=Q6cZ2gGaIPxGgkPeAMmIPIGyoEEjpzCOsiydSJUZcrnzVyMuV-R_3CnHqN12Y8638WQfjnc&_nc_ohc=2NFohRh3p-QQ7kNvwFolPsG&_nc_gid=Yf3MxTDO9cfRZ88Y7Kd7qw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AQN3Z_qeAxlhDK1RAHjUSVn8TPIjF2YIDXXulyE0u610AA&oe=6ADBA20A&_nc_sid=8b3546",
-     "avgLikes": 331.2,
-     "avgComments": 6.4,
-     "avgReelViews": 2770,
-     "posts": 5,
-     "typLikes": 331.2,
-     "typComments": 6.4,
-     "hidden": 0,
-     "fmt": {
-      "reel": {
-       "n": 5,
-       "er": 0.537
-      },
-      "carousel": {
-       "n": 0,
-       "er": 0
-      },
-      "image": {
-       "n": 0,
-       "er": 0
-      }
-     },
-     "top": [
-      {
-       "url": "https://www.instagram.com/p/DeLr0ayyFnR/",
-       "f": "reel",
-       "l": 544,
-       "c": 5,
-       "v": 4895,
-       "d": "2026-10-07",
-       "cap": "@itsjust_morgan with a fresh hair cut and a Spring session in tricky conditions. In these everyday conditions, Morgs is riding the Inferno 7",
-       "th": "https://scontent-cdg4-2.cdninstagram.com/v/t51.82787-15/837888087_18562349686078873_958754699468276802_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-cdg4-2.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2gGaIPxGgkPeAMmIPIGyoEEjpzCOsiydSJUZcrnzVyMuV-R_3CnHqN12Y8638WQfjnc&_nc_ohc=03AQXg3WPuYQ7kNvwG36JQO&_nc_gid=Yf3MxTDO9cfRZ88Y7Kd7qw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AQM6M4ws85IAwMVUb-6mFXkhKdlVocdd9kt8kKcfWKexbg&oe=6ADB92F0&_nc_sid=8b3546"
-      },
-      {
-       "url": "https://www.instagram.com/p/DeXzexuSqwz/",
-       "f": "reel",
-       "l": 412,
-       "c": 9,
-       "v": 2508,
-       "d": "2026-10-11",
-       "cap": "@thomasbourkecreations rides the #77 YTH 5’0 x 15 3/4 x 2 - 15.9L Tommy // 4’11 & 33kg Elite YTH Performance for the Next Generation Availab",
-       "th": "https://scontent-cdg4-2.cdninstagram.com/v/t51.82787-15/843763663_18563594536078873_4736209662492678661_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-cdg4-2.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2gGaIPxGgkPeAMmIPIGyoEEjpzCOsiydSJUZcrnzVyMuV-R_3CnHqN12Y8638WQfjnc&_nc_ohc=ltCuvD5iHkkQ7kNvwFEvmIm&_nc_gid=Yf3MxTDO9cfRZ88Y7Kd7qw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AQNK0JGyKPks5WKozk8CnXZN-gtX4rbwG5tbjgpra5CLcQ&oe=6ADB99C9&_nc_sid=8b3546"
-      },
-      {
-       "url": "https://www.instagram.com/p/DeJHROiSfA3/",
-       "f": "reel",
-       "l": 271,
-       "c": 8,
-       "v": 3320,
-       "d": "2026-10-06",
-       "cap": "Elite Performance for the Next Generation. #77 YTH and File Fifty YTH available now 🔥 Check out the full clip playing live at sharpeyesurfb",
-       "th": "https://scontent-cdg4-2.cdninstagram.com/v/t51.82787-15/837011277_18562123213078873_7173440492628808176_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-cdg4-2.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2gGaIPxGgkPeAMmIPIGyoEEjpzCOsiydSJUZcrnzVyMuV-R_3CnHqN12Y8638WQfjnc&_nc_ohc=XJqniK5Uw_sQ7kNvwHCwhhW&_nc_gid=Yf3MxTDO9cfRZ88Y7Kd7qw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AQPxHhhAorKVT3a-obSoXk-u8DVITi2wtx_uxUlDB7Kw7Q&oe=6ADB9721&_nc_sid=8b3546"
-      }
-     ],
-     "perMonth": 15.5,
-     "convoIndex": 2,
-     "reachIndex": 0.367,
-     "cadenceIndex": 1.165,
-     "tier": "Mid",
-     "expER": 0.308,
-     "rank": 43
-    },
-    {
      "handle": "nixon",
      "name": "Nixon",
      "type": "Brand",
@@ -3140,7 +3067,7 @@
      "cadenceIndex": 1.116,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 44
+     "rank": 43
     },
     {
      "handle": "mctavishsurf",
@@ -3213,7 +3140,7 @@
      "cadenceIndex": 1.141,
      "tier": "Large",
      "expER": 0.201,
-     "rank": 45
+     "rank": 44
     },
     {
      "handle": "redbullsurfing",
@@ -3286,7 +3213,7 @@
      "cadenceIndex": 1.097,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 46
+     "rank": 45
     },
     {
      "handle": "chilli_surfboards",
@@ -3359,80 +3286,7 @@
      "cadenceIndex": 1.17,
      "tier": "Large",
      "expER": 0.201,
-     "rank": 47
-    },
-    {
-     "handle": "dylanshapes",
-     "name": "DYLAN",
-     "type": "Brand",
-     "category": "Surfboards",
-     "followers": 66650,
-     "er": 0.27,
-     "score": 64,
-     "grade": "C",
-     "conf": "Medium",
-     "own": 4,
-     "pic": "https://scontent-sea5-1.cdninstagram.com/v/t51.2885-19/399196629_873403470648359_7842629395591994441_n.jpg?stp=dst-jpg_e0_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=scontent-sea5-1.cdninstagram.com&_nc_cat=111&_nc_oc=Q6cZ2gGZxLVdZnY2wb3B0SeI_ex5SrfUfoSwXSBrLQ-HhphEcfiRJ1NLhModEtZANdfqC5tJ0rLQzX0sCdwzXI4_wtM2&_nc_ohc=-4lVDMmudoQQ7kNvwEEqTOV&_nc_gid=k9FDfErneb_zIk8RfeRMHQ&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AQOlpW-Omibi2kF5JIY1uCKQH6v_3GLXlsQA9d7TZZPQgg&oe=6ADB880F&_nc_sid=8b3546",
-     "avgLikes": 172.5,
-     "avgComments": 7.5,
-     "avgReelViews": 0,
-     "posts": 4,
-     "typLikes": 172.5,
-     "typComments": 7.5,
-     "hidden": 0,
-     "fmt": {
-      "reel": {
-       "n": 0,
-       "er": 0
-      },
-      "carousel": {
-       "n": 1,
-       "er": 0.533
-      },
-      "image": {
-       "n": 3,
-       "er": 0.183
-      }
-     },
-     "top": [
-      {
-       "url": "https://www.instagram.com/p/Deh_8iME-D0/",
-       "f": "carousel",
-       "l": 348,
-       "c": 7,
-       "v": 0,
-       "d": "2026-10-15",
-       "cap": "Nice to get a day off the tools and work with @pro_guarding on a commercial here in Cronulla with @azza_graham @chasehardaker_ @short_films_",
-       "th": "https://scontent-sea5-1.cdninstagram.com/v/t51.82787-15/846927391_18647764426030377_6135676286132117270_n.jpg?stp=dst-jpg_e35_s1080x1080_sh2.08_tt6&_nc_ht=scontent-sea5-1.cdninstagram.com&_nc_cat=109&_nc_oc=Q6cZ2gGZxLVdZnY2wb3B0SeI_ex5SrfUfoSwXSBrLQ-HhphEcfiRJ1NLhModEtZANdfqC5tJ0rLQzX0sCdwzXI4_wtM2&_nc_ohc=XYZbTOTvwSUQ7kNvwEu2nkN&_nc_gid=k9FDfErneb_zIk8RfeRMHQ&edm=AOQ1c0wBAAAA&ccb=7-5&ig_cache_key=NDAwODc2NTQyNjU1NzEzNDg0Ng%3D%3D.3-ccb7-5&oh=00_AQOx9QDZrpYKVf6Eo90qlmeN2cZC4WbqmCAi1GbXN64cyQ&oe=6ADB909D&_nc_sid=8b3546"
-      },
-      {
-       "url": "https://www.instagram.com/p/DebJg9mTcOx/",
-       "f": "image",
-       "l": 150,
-       "c": 6,
-       "v": 0,
-       "d": "2026-10-13",
-       "cap": "Big Gun for Brian in South Oz, Gland Express Model for Matho and Laurie Towner Model for Harry heading to Caves Beach",
-       "th": "https://scontent-sea5-1.cdninstagram.com/v/t51.82787-15/845091941_18646741270030377_2669334744487138818_n.jpg?stp=dst-jpg_e35_p1080x1080_sh2.08_tt6&_nc_ht=scontent-sea5-1.cdninstagram.com&_nc_cat=109&_nc_oc=Q6cZ2gGZxLVdZnY2wb3B0SeI_ex5SrfUfoSwXSBrLQ-HhphEcfiRJ1NLhModEtZANdfqC5tJ0rLQzX0sCdwzXI4_wtM2&_nc_ohc=leRbZvo_ilQQ7kNvwFLJJJi&_nc_gid=k9FDfErneb_zIk8RfeRMHQ&edm=AOQ1c0wBAAAA&ccb=7-5&ig_cache_key=NDAwNjgzODE0MTA1ODkyNTQ4OQ%3D%3D.3-ccb7-5&oh=00_AQM-CcHUvAz7VgHK74RveKK16XljIlI2d-FT16yINyCyQQ&oe=6ADB8E27&_nc_sid=8b3546"
-      },
-      {
-       "url": "https://www.instagram.com/p/Ded1UbUTP34/",
-       "f": "image",
-       "l": 128,
-       "c": 14,
-       "v": 0,
-       "d": "2026-10-14",
-       "cap": "Cronulla shredder @jay_mc_kenzie picking up his new epoxy stringer Mexican Model",
-       "th": "https://scontent-sea5-1.cdninstagram.com/v/t51.82787-15/842281362_18647122801030377_8859739113403436530_n.jpg?stp=dst-jpg_e35_p1080x1080_sh2.08_tt6&_nc_ht=scontent-sea5-1.cdninstagram.com&_nc_cat=109&_nc_oc=Q6cZ2gGZxLVdZnY2wb3B0SeI_ex5SrfUfoSwXSBrLQ-HhphEcfiRJ1NLhModEtZANdfqC5tJ0rLQzX0sCdwzXI4_wtM2&_nc_ohc=5duLf67AYH0Q7kNvwE8L5gu&_nc_gid=k9FDfErneb_zIk8RfeRMHQ&edm=AOQ1c0wBAAAA&ccb=7-5&ig_cache_key=NDAwNzU5Mzc0MzYxNTg1MjAyNA%3D%3D.3-ccb7-5&oh=00_AQORJat1Ok6r8tiOskWU09IUkMXsARrR366CqJhfkjXhAA&oe=6ADBA18D&_nc_sid=8b3546"
-      }
-     ],
-     "perMonth": 38.6,
-     "convoIndex": 2,
-     "reachIndex": null,
-     "cadenceIndex": 1.161,
-     "tier": "Mid",
-     "expER": 0.308,
-     "rank": 48
+     "rank": 46
     },
     {
      "handle": "ripcurl",
@@ -3505,7 +3359,7 @@
      "cadenceIndex": 0.97,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 49
+     "rank": 47
     },
     {
      "handle": "fcs_surf",
@@ -3578,7 +3432,7 @@
      "cadenceIndex": 1.134,
      "tier": "XL",
      "expER": 0.142,
-     "rank": 50
+     "rank": 48
     },
     {
      "handle": "jsindustries99",
@@ -3651,7 +3505,7 @@
      "cadenceIndex": 0.836,
      "tier": "Large",
      "expER": 0.201,
-     "rank": 51
+     "rank": 49
     },
     {
      "handle": "salty_crew",
@@ -3724,7 +3578,7 @@
      "cadenceIndex": 1.173,
      "tier": "XL",
      "expER": 0.142,
-     "rank": 52
+     "rank": 50
     },
     {
      "handle": "patagonia_surf",
@@ -3797,7 +3651,7 @@
      "cadenceIndex": 1.135,
      "tier": "XL",
      "expER": 0.142,
-     "rank": 53
+     "rank": 51
     },
     {
      "handle": "softech_softboards",
@@ -3870,7 +3724,7 @@
      "cadenceIndex": 1.027,
      "tier": "Mid",
      "expER": 0.308,
-     "rank": 54
+     "rank": 52
     },
     {
      "handle": "volcom",
@@ -3943,7 +3797,7 @@
      "cadenceIndex": 1.211,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 55
+     "rank": 53
     },
     {
      "handle": "simonanderson_surfboards",
@@ -4016,7 +3870,7 @@
      "cadenceIndex": 1.026,
      "tier": "Mid",
      "expER": 0.308,
-     "rank": 56
+     "rank": 54
     },
     {
      "handle": "stanceofficial",
@@ -4089,7 +3943,7 @@
      "cadenceIndex": 1.147,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 57
+     "rank": 55
     },
     {
      "handle": "swellnet",
@@ -4162,7 +4016,7 @@
      "cadenceIndex": 1.083,
      "tier": "Mid",
      "expER": 0.308,
-     "rank": 58
+     "rank": 56
     },
     {
      "handle": "quiksilver",
@@ -4235,7 +4089,7 @@
      "cadenceIndex": 1.187,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 59
+     "rank": 57
     },
     {
      "handle": "slowtide",
@@ -4308,7 +4162,7 @@
      "cadenceIndex": 1.159,
      "tier": "Large",
      "expER": 0.201,
-     "rank": 60
+     "rank": 58
     },
     {
      "handle": "tcss",
@@ -4381,7 +4235,7 @@
      "cadenceIndex": 0.994,
      "tier": "Mid",
      "expER": 0.308,
-     "rank": 61
+     "rank": 59
     },
     {
      "handle": "billabong",
@@ -4454,7 +4308,7 @@
      "cadenceIndex": 0.988,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 62
+     "rank": 60
     },
     {
      "handle": "rvca",
@@ -4527,7 +4381,7 @@
      "cadenceIndex": 1.282,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 63
+     "rank": 61
     },
     {
      "handle": "roark",
@@ -4600,7 +4454,7 @@
      "cadenceIndex": 0.7,
      "tier": "Large",
      "expER": 0.201,
-     "rank": 64
+     "rank": 62
     },
     {
      "handle": "rhythm",
@@ -4673,7 +4527,7 @@
      "cadenceIndex": 1.14,
      "tier": "Large",
      "expER": 0.201,
-     "rank": 65
+     "rank": 63
     },
     {
      "handle": "visslasurf",
@@ -4746,7 +4600,7 @@
      "cadenceIndex": 0.7,
      "tier": "XL",
      "expER": 0.142,
-     "rank": 66
+     "rank": 64
     },
     {
      "handle": "roxy",
@@ -4819,7 +4673,7 @@
      "cadenceIndex": 1.276,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 67
+     "rank": 65
     },
     {
      "handle": "reef",
@@ -4892,7 +4746,7 @@
      "cadenceIndex": 1.149,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 68
+     "rank": 66
     },
     {
      "handle": "inherentbummer",
@@ -4965,7 +4819,7 @@
      "cadenceIndex": 0.963,
      "tier": "Mid",
      "expER": 0.308,
-     "rank": 69
+     "rank": 67
     },
     {
      "handle": "hurley",
@@ -5038,7 +4892,7 @@
      "cadenceIndex": 1.19,
      "tier": "Mega",
      "expER": 0.106,
-     "rank": 70
+     "rank": 68
     },
     {
      "handle": "futuresfins",
@@ -5111,7 +4965,7 @@
      "cadenceIndex": 0.943,
      "tier": "Mid",
      "expER": 2,
-     "rank": 71
+     "rank": 69
     },
     {
      "handle": "oneillusa",
@@ -7943,81 +7797,8 @@
    "key": "brand|Outdoor",
    "benchmarkType": "brand",
    "discipline": "Outdoor",
-   "n": 33,
+   "n": 32,
    "rows": [
-    {
-     "handle": "salomon",
-     "name": "Salomon",
-     "type": "Brand",
-     "category": "Footwear",
-     "followers": 1613170,
-     "er": 0.277,
-     "score": 96,
-     "grade": "A",
-     "conf": "Low",
-     "own": 8,
-     "pic": "https://scontent-lhr11-1.cdninstagram.com/v/t51.2885-19/306243280_759794385080754_1595501620449954284_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=1&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy44NDIuQzMifQ%3D%3D&_nc_ohc=vLUeSfVDGPQQ7kNvwFEn-nA&_nc_oc=AdpDrJRFcoBhCDuXn77YWLfsxZP9PFIemFUMdnvWPNYbigo6DsK6GTx1YGoPw9c8IGM&_nc_zt=24&_nc_ht=scontent-lhr11-1.cdninstagram.com&_nc_ss=70a8c&oh=00_AQPUzIObTXxNU9z_VPGquw6G9BHwTM_ho5Erp8A6uoCo3w&oe=6ADB9C83",
-     "avgLikes": 39432.3,
-     "avgComments": 699.1,
-     "avgReelViews": 306842,
-     "posts": 8,
-     "typLikes": 4424.4,
-     "typComments": 39.8,
-     "hidden": 0,
-     "fmt": {
-      "reel": {
-       "n": 4,
-       "er": 2.407
-      },
-      "carousel": {
-       "n": 4,
-       "er": 2.568
-      },
-      "image": {
-       "n": 0,
-       "er": 0
-      }
-     },
-     "top": [
-      {
-       "url": "https://www.instagram.com/p/Dd0l398sFAa/",
-       "f": "reel",
-       "l": 141094,
-       "c": 3111,
-       "v": 1134050,
-       "d": "2026-09-28",
-       "cap": "IN THE OPEN Wherever you’re going. Whatever the weather. Set in South Korea, IN THE OPEN explores the relationship between urban life and th",
-       "th": "https://scontent-lhr11-1.cdninstagram.com/v/t51.82787-15/829122931_18624045376028020_8981727820838015028_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-lhr11-1.cdninstagram.com&_nc_cat=104&_nc_oc=Q6cZ2gHaXgIDpYdFhRPp-VwB4wf8oIdaLsUsL2ME1CADEUIEwigDOAPrbjiJuER58nPTRrM&_nc_ohc=oZ5mU4Lsmo4Q7kNvwFKQiuq&_nc_gid=A4-GUry34tHU9u1Busp4uA&edm=APU89FABAAAA&ccb=7-5&oh=00_AQOl1s6U7zOWdtuXofK_5kdT3XhirmAGcIa-bJWtQJK80g&oe=6ADB8FC1&_nc_sid=bc0c2c"
-      },
-      {
-       "url": "https://www.instagram.com/p/DeE5-wjjIeO/",
-       "f": "carousel",
-       "l": 83423,
-       "c": 1267,
-       "v": 0,
-       "d": "2026-10-04",
-       "cap": "A glimpse behind the scenes on our IN THE OPEN campaign shoot, starring Salomon Global Ambassador, JISOO.​ Rain, fog and wind shape every fr",
-       "th": "https://scontent-lhr11-1.cdninstagram.com/v/t51.82787-15/829299255_18625314997028020_8926472611929490986_n.jpg?stp=dst-jpg_e35_p1080x1080_sh2.08_tt6&_nc_ht=scontent-lhr11-1.cdninstagram.com&_nc_cat=104&_nc_oc=Q6cZ2gHaXgIDpYdFhRPp-VwB4wf8oIdaLsUsL2ME1CADEUIEwigDOAPrbjiJuER58nPTRrM&_nc_ohc=1dXEk_N6_-cQ7kNvwFiRA7M&_nc_gid=A4-GUry34tHU9u1Busp4uA&edm=APU89FABAAAA&ccb=7-5&oh=00_AQPKVZb3zQMSRvBbhnteyxnd613n5lz7NHM-yhUuXG3ISw&oe=6ADB84C8&_nc_sid=bc0c2c"
-      },
-      {
-       "url": "https://www.instagram.com/p/Dd6mz-GjJTb/",
-       "f": "carousel",
-       "l": 68819,
-       "c": 1016,
-       "v": 0,
-       "d": "2026-09-30",
-       "cap": "For JISOO, comfort is about moving freely through everyday life adapting to the moment, the weather and the world around her. IN THE OPEN Wh",
-       "th": "https://scontent-lhr11-1.cdninstagram.com/v/t51.82787-15/830562767_18624784225028020_8884929579473041396_n.jpg?stp=dst-jpg_e15_fr_p1080x1080_tt6&_nc_ht=scontent-lhr11-1.cdninstagram.com&_nc_cat=104&_nc_oc=Q6cZ2gHaXgIDpYdFhRPp-VwB4wf8oIdaLsUsL2ME1CADEUIEwigDOAPrbjiJuER58nPTRrM&_nc_ohc=MdtEUhK_u4YQ7kNvwGbYSLJ&_nc_gid=A4-GUry34tHU9u1Busp4uA&edm=APU89FABAAAA&ccb=7-5&oh=00_AQNX7lNNYASGhaMpjEN40CRIN9LNh7KUxglthcCX-GTuWg&oe=6ADB79D4&_nc_sid=bc0c2c"
-      }
-     ],
-     "perMonth": 8.9,
-     "convoIndex": 2,
-     "reachIndex": 2,
-     "cadenceIndex": 1.135,
-     "tier": "Mega",
-     "expER": 0.131,
-     "rank": 1
-    },
     {
      "handle": "earthstudiesproject",
      "name": "Earth\\Studies",
@@ -8089,7 +7870,7 @@
      "cadenceIndex": 0.973,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 2
+     "rank": 1
     },
     {
      "handle": "manresamfg",
@@ -8162,7 +7943,7 @@
      "cadenceIndex": 0.7,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 3
+     "rank": 2
     },
     {
      "handle": "columbia1938",
@@ -8235,7 +8016,7 @@
      "cadenceIndex": 0.791,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 4
+     "rank": 3
     },
     {
      "handle": "cayl_official",
@@ -8308,7 +8089,7 @@
      "cadenceIndex": 1.109,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 5
+     "rank": 4
     },
     {
      "handle": "william_ellery",
@@ -8381,7 +8162,7 @@
      "cadenceIndex": 0.7,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 6
+     "rank": 5
     },
     {
      "handle": "klattermusen",
@@ -8454,7 +8235,7 @@
      "cadenceIndex": 1.113,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 7
+     "rank": 6
     },
     {
      "handle": "cotopaxi",
@@ -8527,7 +8308,7 @@
      "cadenceIndex": 0.822,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 8
+     "rank": 7
     },
     {
      "handle": "bigrockcandymountaineering",
@@ -8600,7 +8381,7 @@
      "cadenceIndex": 1.223,
      "tier": "Micro",
      "expER": 0.726,
-     "rank": 9
+     "rank": 8
     },
     {
      "handle": "roahiking",
@@ -8673,7 +8454,7 @@
      "cadenceIndex": 1.062,
      "tier": "XL",
      "expER": 0.174,
-     "rank": 10
+     "rank": 9
     },
     {
      "handle": "sansan_gear",
@@ -8746,7 +8527,7 @@
      "cadenceIndex": 1.081,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 11
+     "rank": 10
     },
     {
      "handle": "peakperformance",
@@ -8819,7 +8600,7 @@
      "cadenceIndex": 1.141,
      "tier": "XL",
      "expER": 0.174,
-     "rank": 12
+     "rank": 11
     },
     {
      "handle": "kuhl",
@@ -8892,7 +8673,7 @@
      "cadenceIndex": 1.24,
      "tier": "XL",
      "expER": 0.174,
-     "rank": 13
+     "rank": 12
     },
     {
      "handle": "merrell",
@@ -8965,7 +8746,7 @@
      "cadenceIndex": 1.13,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 14
+     "rank": 13
     },
     {
      "handle": "mammut",
@@ -9038,7 +8819,7 @@
      "cadenceIndex": 1.166,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 15
+     "rank": 14
     },
     {
      "handle": "paagoworks.official",
@@ -9111,7 +8892,7 @@
      "cadenceIndex": 0.83,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 16
+     "rank": 15
     },
     {
      "handle": "outdoorresearch",
@@ -9184,7 +8965,7 @@
      "cadenceIndex": 1.129,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 17
+     "rank": 16
     },
     {
      "handle": "houdinisportswear",
@@ -9257,7 +9038,7 @@
      "cadenceIndex": 1.107,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 18
+     "rank": 17
     },
     {
      "handle": "nemoequipment",
@@ -9330,7 +9111,7 @@
      "cadenceIndex": 1.153,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 19
+     "rank": 18
     },
     {
      "handle": "montbell_official",
@@ -9403,7 +9184,7 @@
      "cadenceIndex": 1.002,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 20
+     "rank": 19
     },
     {
      "handle": "haglofs",
@@ -9476,7 +9257,7 @@
      "cadenceIndex": 0.906,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 21
+     "rank": 20
     },
     {
      "handle": "mountainhardwear",
@@ -9549,7 +9330,7 @@
      "cadenceIndex": 1.154,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 22
+     "rank": 21
     },
     {
      "handle": "ospreypacks",
@@ -9622,7 +9403,7 @@
      "cadenceIndex": 1.162,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 23
+     "rank": 22
     },
     {
      "handle": "rei",
@@ -9695,7 +9476,7 @@
      "cadenceIndex": 1.091,
      "tier": "Mega",
      "expER": 0.131,
-     "rank": 24
+     "rank": 23
     },
     {
      "handle": "mountain_research",
@@ -9768,7 +9549,7 @@
      "cadenceIndex": 0.859,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 25
+     "rank": 24
     },
     {
      "handle": "gregorypacks",
@@ -9841,7 +9622,7 @@
      "cadenceIndex": 1.113,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 26
+     "rank": 25
     },
     {
      "handle": "icebreakernz",
@@ -9914,7 +9695,7 @@
      "cadenceIndex": 1.195,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 27
+     "rank": 26
     },
     {
      "handle": "smartwool",
@@ -9987,7 +9768,7 @@
      "cadenceIndex": 1.066,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 28
+     "rank": 27
     },
     {
      "handle": "goldwin_global",
@@ -10060,7 +9841,7 @@
      "cadenceIndex": 1.092,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 29
+     "rank": 28
     },
     {
      "handle": "cmfoutdoorgarment_official",
@@ -10133,7 +9914,7 @@
      "cadenceIndex": 0.715,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 30
+     "rank": 29
     },
     {
      "handle": "meanswhile",
@@ -10206,7 +9987,7 @@
      "cadenceIndex": 0.883,
      "tier": "Mid",
      "expER": 0.378,
-     "rank": 31
+     "rank": 30
     },
     {
      "handle": "nanga_official",
@@ -10279,7 +10060,7 @@
      "cadenceIndex": 1.044,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 32
+     "rank": 31
     },
     {
      "handle": "nanamica",
@@ -10352,7 +10133,7 @@
      "cadenceIndex": 1.058,
      "tier": "Large",
      "expER": 0.247,
-     "rank": 33
+     "rank": 32
     },
     {
      "handle": "18eastofficial",
@@ -14293,81 +14074,8 @@
    "key": "brand|Skate",
    "benchmarkType": "brand",
    "discipline": "Skate",
-   "n": 24,
+   "n": 23,
    "rows": [
-    {
-     "handle": "berrics",
-     "name": "Berrics",
-     "type": "Brand",
-     "category": "Media",
-     "followers": 2859251,
-     "er": 0.615,
-     "score": 84,
-     "grade": "B",
-     "conf": "Medium",
-     "own": 11,
-     "pic": "https://scontent-ssn1-1.cdninstagram.com/v/t51.2885-19/355816775_267441825879352_4434873490703062352_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=1&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=jaQgO_WO9BAQ7kNvwHMJsQP&_nc_oc=AdpGsIMHDjFNAbfPrWnOt5zL1AZ3reAxxIzP18lLEANnT4JTAkqCPRNSW-CHnYa7zIw&_nc_zt=24&_nc_ht=scontent-ssn1-1.cdninstagram.com&_nc_ss=70689&oh=00_AQNk17VvT-w6GOt64j0jGMxysTpniQoOJfgdF7eo3PnxKA&oe=6ADB7733",
-     "avgLikes": 21452.9,
-     "avgComments": 381.9,
-     "avgReelViews": 104500,
-     "posts": 11,
-     "typLikes": 17390.3,
-     "typComments": 186.3,
-     "hidden": 0,
-     "fmt": {
-      "reel": {
-       "n": 6,
-       "er": 0.356
-      },
-      "carousel": {
-       "n": 5,
-       "er": 1.253
-      },
-      "image": {
-       "n": 0,
-       "er": 0
-      }
-     },
-     "top": [
-      {
-       "url": "https://www.instagram.com/p/DeaO3aLEnQ_/",
-       "f": "carousel",
-       "l": 62079,
-       "c": 758,
-       "v": 0,
-       "d": "2026-10-12",
-       "cap": "When it comes to pushing the boundaries of skateboarding, few have done more than “The Chief” himself… @jamiethomas !! From his groundbreaki",
-       "th": "https://scontent-gmp1-1.cdninstagram.com/v/t51.82787-15/844190339_18643934416004833_1599182627981357963_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-gmp1-1.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2gGxIAE-TqzOF8zBWtoixWAuxUUCr7dLh-DJNeB7XPjii2XsOs1I5QGSj7XxYdZVS1E&_nc_ohc=L3PHnDJ7M28Q7kNvwEHUgni&_nc_gid=cy5QE4U_ob4-iIn1kSo_IQ&edm=APU89FABAAAA&ccb=7-5&oh=00_AQNJLagC22DS_WwhPrgG7MH4kJCXs9XpR4IkGjkeWsSSIg&oe=6ADB9272&_nc_sid=bc0c2c"
-      },
-      {
-       "url": "https://www.instagram.com/p/DeR54anmznO/",
-       "f": "carousel",
-       "l": 41366,
-       "c": 206,
-       "v": 0,
-       "d": "2026-10-09",
-       "cap": "Every week we’re going to look at #❤️skateboarders and pull what we see and feature them on our page, no matter who they are, what they’re d",
-       "th": "https://scontent-gmp1-1.cdninstagram.com/v/t51.82787-15/843161726_18642667909004833_2421832494992175694_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-gmp1-1.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2gGxIAE-TqzOF8zBWtoixWAuxUUCr7dLh-DJNeB7XPjii2XsOs1I5QGSj7XxYdZVS1E&_nc_ohc=Ql-0Q42p6DIQ7kNvwFZlNNp&_nc_gid=cy5QE4U_ob4-iIn1kSo_IQ&edm=APU89FABAAAA&ccb=7-5&oh=00_AQOR1l67YdltkRUGDow195U3-ovUobu_shBaox8bXoyn6g&oe=6ADB9C9E&_nc_sid=bc0c2c"
-      },
-      {
-       "url": "https://www.instagram.com/p/DeidxF3FHxq/",
-       "f": "carousel",
-       "l": 35439,
-       "c": 482,
-       "v": 0,
-       "d": "2026-10-16",
-       "cap": "Every single skateboarder who’s ever been in a contest has (at some point) dreamt 💭 of having that special “Contest Moment” in their lifeti",
-       "th": "https://scontent-gmp1-1.cdninstagram.com/v/t51.82787-15/849737049_18645144481004833_449243386857678952_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=scontent-gmp1-1.cdninstagram.com&_nc_cat=101&_nc_oc=Q6cZ2gGxIAE-TqzOF8zBWtoixWAuxUUCr7dLh-DJNeB7XPjii2XsOs1I5QGSj7XxYdZVS1E&_nc_ohc=PyO7fYmVYaAQ7kNvwHSFOKD&_nc_gid=cy5QE4U_ob4-iIn1kSo_IQ&edm=APU89FABAAAA&ccb=7-5&oh=00_AQMaOrI0XlN4IYpLlfVhThrB1XMu-H27rW0X-u6lgMswmQ&oe=6ADB8A93&_nc_sid=bc0c2c"
-      }
-     ],
-     "perMonth": 27.6,
-     "convoIndex": 2,
-     "reachIndex": 0.914,
-     "cadenceIndex": 1.071,
-     "tier": "Mega",
-     "expER": 0.306,
-     "rank": 1
-    },
     {
      "handle": "deathwishskateboards",
      "name": "DeathWish",
@@ -14439,7 +14147,7 @@
      "cadenceIndex": 1.159,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 2
+     "rank": 1
     },
     {
      "handle": "thrashermag",
@@ -14512,7 +14220,7 @@
      "cadenceIndex": 1.221,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 3
+     "rank": 2
     },
     {
      "handle": "zeroskateboards",
@@ -14585,7 +14293,7 @@
      "cadenceIndex": 0.925,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 4
+     "rank": 3
     },
     {
      "handle": "boneswheels",
@@ -14658,7 +14366,7 @@
      "cadenceIndex": 1.099,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 5
+     "rank": 4
     },
     {
      "handle": "nbnumeric",
@@ -14731,7 +14439,7 @@
      "cadenceIndex": 1.067,
      "tier": "XL",
      "expER": 0.408,
-     "rank": 6
+     "rank": 5
     },
     {
      "handle": "thundertrucks",
@@ -14804,7 +14512,7 @@
      "cadenceIndex": 1.168,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 7
+     "rank": 6
     },
     {
      "handle": "primitiveskate",
@@ -14877,7 +14585,7 @@
      "cadenceIndex": 1.175,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 8
+     "rank": 7
     },
     {
      "handle": "spitfirewheels",
@@ -14950,7 +14658,7 @@
      "cadenceIndex": 1.084,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 9
+     "rank": 8
     },
     {
      "handle": "toymachine",
@@ -15023,7 +14731,7 @@
      "cadenceIndex": 1.125,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 10
+     "rank": 9
     },
     {
      "handle": "palaceskateboards",
@@ -15096,7 +14804,7 @@
      "cadenceIndex": 1.005,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 11
+     "rank": 10
     },
     {
      "handle": "girlskateboards",
@@ -15169,7 +14877,7 @@
      "cadenceIndex": 1.086,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 12
+     "rank": 11
     },
     {
      "handle": "santacruzskateboards",
@@ -15242,7 +14950,7 @@
      "cadenceIndex": 0.7,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 13
+     "rank": 12
     },
     {
      "handle": "dc_skateboarding",
@@ -15315,7 +15023,7 @@
      "cadenceIndex": 0.97,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 14
+     "rank": 13
     },
     {
      "handle": "krooked",
@@ -15388,7 +15096,7 @@
      "cadenceIndex": 1.082,
      "tier": "XL",
      "expER": 0.408,
-     "rank": 15
+     "rank": 14
     },
     {
      "handle": "volcomskate",
@@ -15461,7 +15169,7 @@
      "cadenceIndex": 1.125,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 16
+     "rank": 15
     },
     {
      "handle": "realskateboards",
@@ -15534,7 +15242,7 @@
      "cadenceIndex": 0.812,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 17
+     "rank": 16
     },
     {
      "handle": "sls",
@@ -15607,7 +15315,7 @@
      "cadenceIndex": 1.079,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 18
+     "rank": 17
     },
     {
      "handle": "nikesb",
@@ -15680,7 +15388,7 @@
      "cadenceIndex": 0.895,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 19
+     "rank": 18
     },
     {
      "handle": "supremenewyork",
@@ -15753,7 +15461,7 @@
      "cadenceIndex": 0.7,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 20
+     "rank": 19
     },
     {
      "handle": "redbullskate",
@@ -15826,7 +15534,7 @@
      "cadenceIndex": 1.272,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 21
+     "rank": 20
     },
     {
      "handle": "etnies",
@@ -15899,7 +15607,7 @@
      "cadenceIndex": 1.169,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 22
+     "rank": 21
     },
     {
      "handle": "hufworldwide",
@@ -15972,7 +15680,7 @@
      "cadenceIndex": 0.921,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 23
+     "rank": 22
     },
     {
      "handle": "vansskate",
@@ -16045,7 +15753,7 @@
      "cadenceIndex": 1.153,
      "tier": "Mega",
      "expER": 0.306,
-     "rank": 24
+     "rank": 23
     },
     {
      "handle": "converse_cons",
@@ -19971,6 +19679,30 @@
   {
    "handle": "686",
    "reason": "no profile / rate-limited"
+  },
+  {
+   "handle": "dylanshapes",
+   "reason": "scan request failed"
+  },
+  {
+   "handle": "berrics",
+   "reason": "scan request failed"
+  },
+  {
+   "handle": "salomon",
+   "reason": "scan request failed"
+  },
+  {
+   "handle": "berrics",
+   "reason": "scan request failed"
+  },
+  {
+   "handle": "salomon",
+   "reason": "scan request failed"
+  },
+  {
+   "handle": "sharpeyesurfboards_au",
+   "reason": "scan request failed"
   }
  ]
 }
