@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      LEADERBOARD_BASE_URL: ${{ vars.LEADERBOARD_BASE_URL || 'https://ig-analysis-six.vercel.app' }}
+      LEADERBOARD_BASE_URL: ${{ vars.LEADERBOARD_BASE_URL || 'https://ig-analysis-lincoln-eathers-projects.vercel.app' }}
       SHEET_CSV: https://docs.google.com/spreadsheets/d/1vKfq9-cKaHWmEO9gbqQT-SoaTlu4MFDxclSA24A1DaU/gviz/tq?tqx=out:csv&sheet=Master
       NW_DEPLOY: ${{ github.workspace }}
     steps:
