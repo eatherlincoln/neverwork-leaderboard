@@ -50,6 +50,7 @@ LB.buckets.forEach(bk => {
       if (b.btype !== t || b.tracked || b.followers < MICRO_THRESHOLD || b.own < MIN_POSTS) return;
       const er = (b.avgLikes + b.avgComments) / b.followers * 100;
       if (er > 0) { pts.push([Math.log(b.followers), Math.log(er)]); (ER_PTS[t] = ER_PTS[t] || []).push([Math.log(b.followers), er, b.handle]); }
+      const rm = rawMetrics(b); M_KEYS.forEach(k => { if (rm[k] > 0) { M_PTS[t] = M_PTS[t] || {}; (M_PTS[t][k] = M_PTS[t][k] || []).push([Math.log(b.followers), rm[k], b.handle]); } });
     }));
     if (pts.length < 12) return;
     const n = pts.length, mx = pts.reduce((s,p)=>s+p[0],0)/n, my = pts.reduce((s,p)=>s+p[1],0)/n;
@@ -183,10 +184,10 @@ function renderHow() {
   <p class="hp">On the leaderboard, <b>Ahead</b> means Heat 60 or more, <b>In the pack</b> is 40 to 59, and <b>Behind</b> is under 40. "Hot" means Ahead. "Not" means Behind.</p>
 
   <h2>The formula</h2>
-  <p>Four parts. Each one is the account's number divided by the group median. A 1.0 means "same as the middle". A 2.0 means "twice the middle". Then we weight them and scale so the middle lands on 50.</p>
+  <p>Four parts. Each one is the account's number, judged for its size, divided by the group median. A 1.0 means "same as the middle". A 2.0 means "twice the middle". Then we weight them and scale so the middle lands on 50.</p>
   <div class="wbar" role="img" aria-label="Engagement for size 35 percent, Reach 25 percent, Community 25 percent, Interaction quality 15 percent"><i>35%</i><i>25%</i><i>25%</i><i>15%</i></div>
   <div class="wleg"><span><b>35%</b> Engagement for size</span><span><b>25%</b> Reach</span><span><b>25%</b> Community</span><span><b>15%</b> Interaction quality</span></div>
-  <div class="fline">Heat = ( Engagement × 0.35 + Reach × 0.25 + Community × 0.25 + Quality × 0.15 ) × 50<br>Each part = account ÷ group median, capped at 2.0. Heat is capped at 100.</div>
+  <div class="fline">Heat = ( Engagement × 0.35 + Reach × 0.25 + Community × 0.25 + Quality × 0.15 ) × 50<br>Each part = account (for its size) ÷ group median, capped at 2.0. Heat is capped at 100.<br>Few posts? Heat is nudged towards 50 by posts ÷ (posts + 4). At 12 posts an account keeps three-quarters of its distance from 50, at 30 about nine-tenths.</div>
 
   <h2>The four parts</h2>
   <div class="mcards">
@@ -194,13 +195,13 @@ function renderHow() {
       <p>We take the typical post's likes plus comments and divide by followers. Then we compare it with what accounts of the same size normally get. Big accounts always get a lower rate, so a small account is held to a higher bar than a huge one.</p>
       <div class="ex"><span class="lb">Example</span>An account with 20K followers gets 2.4% engagement. Accounts that size typically get 1.2%. That is <b>2.0× for its size</b>, so this part scores the maximum.</div></div>
     <div class="mcard"><div class="top"><h3>Reach</h3><span class="wt">25%</span></div><div class="q">How many followers actually watch?</div>
-      <p>Average Reel views divided by followers. It shows if content travels past the people who already follow. Accounts with no Reels get a neutral 1.0 here, so they are not punished or rewarded.</p>
-      <div class="ex"><span class="lb">Example</span>10K followers, Reels average 15K views. Reach is <b>1.5× followers</b>. If the group median is 0.75×, this part scores <b>2.0×</b>.</div></div>
+      <p>Average Reel views divided by followers, compared with what accounts of the same size normally get. Small accounts usually reach a bigger share of their followers than huge ones, so size is taken out. It shows if content travels past the people who already follow. Accounts with no Reels get a neutral 1.0 here, so they are not punished or rewarded.</p>
+      <div class="ex"><span class="lb">Example</span>10K followers, Reels average 15K views. Reach is <b>1.5× followers</b>. Accounts that size typically get 0.6×, and the group's middle is 1.0× on that scale. That is <b>2.5× for its size</b>, so this part scores the maximum.</div></div>
     <div class="mcard"><div class="top"><h3>Community</h3><span class="wt">25%</span></div><div class="q">Do people talk, and does the account keep showing up?</div>
       <p>Comments per like, adjusted for size, then lifted or trimmed by how often the account posts (up to about 12 posts a month). Comments take more effort than a like, so they say more about a real audience. Accounts where comments are over 15% of likes are left unranked, because giveaways inflate that.</p>
       <div class="ex"><span class="lb">Example</span>40 comments for every 1,000 likes is a 4% ratio. If the typical ratio at that size is 2.5%, that is <b>1.6×</b>. Posting 3 times a month instead of 12 trims it by about 20%.</div></div>
     <div class="mcard"><div class="top"><h3>Interaction quality</h3><span class="wt">15%</span></div><div class="q">Is the attention deep or shallow?</div>
-      <p>A mix of comment rate, engagement depth, and how many Reel viewers go on to like. With Reels the mix is 40 / 30 / 20 / 10. Without Reels it is 50 / 35 / 15. The 10 or 15 is a neutral placeholder.</p>
+      <p>A mix of comment rate, engagement depth, and how many Reel viewers go on to like, each judged for the account's size. With Reels the mix is 40 / 30 / 20 / 10. Without Reels it is 50 / 35 / 15. The 10 or 15 is a neutral placeholder.</p>
       <div class="ex"><span class="lb">Example</span>Comment rate 1.2× the median, depth 1.0×, view-to-like 0.8×. Quality works out near <b>1.0×</b>, which is a score of 50 on this part.</div></div>
   </div>
 
@@ -236,6 +237,7 @@ function renderHow() {
   <div class="faq">
     <details><summary>Does posting more make the score higher?</summary><p>Only a little. Posting frequency adjusts the Community part, and only up to about 12 posts a month. ${big ? `In ${flat} of the ${big} groups with 10 or more ranked accounts, posting more often did not line up with higher engagement for size.` : ''} More posts doesn't beat better posts.</p></details>
     <details><summary>Why is a small account ahead of a huge one?</summary><p>Because we judge engagement against size. A 20K account with a very active audience can beat a 2M account whose audience barely reacts. That's the point of the score.</p></details>
+    <details><summary>What does "Early read" mean?</summary><p>The account has fewer than ${EARLY_POSTS} own posts in ${LB.days} days. A few posts can be a lucky run or an unlucky one, so we nudge the score towards 50 until we have seen more. The fewer the posts, the bigger the nudge. It never hides an account that has 5 or more posts.</p></details>
     <details><summary>Why does my account say "Not ranked"?</summary><p>One of these: under 5K followers, fewer than 5 own posts in ${LB.days} days, likes hidden, no recent posts, or recent posts that are collabs owned by someone else. The reason is shown on the row.</p></details>
     <details><summary>Does a high score mean good for sales?</summary><p>No. It shows how the audience responds to content. It's a strong signal for creator and competitor research, but it doesn't see clicks, revenue or paid reach.</p></details>
     <details><summary>Can I compare a brand with a creator?</summary><p>Not directly. Brands and creators behave differently, so each has its own size curve and its own groups. Compare brand with brand, creator with creator.</p></details>
@@ -312,13 +314,13 @@ function renderLook(sc) {
 function advice(b, sc) {
   const out = [], lead = sc[0], rank = b.rank, above = rank > 1 ? sc[rank - 2] : null;
   const comps = [{ k: 'eng', name: 'engagement for your size', v: b.engIdx }, { k: 'conv', name: 'conversation', v: b.commentDepthIdx }];
-  if (b.hasReels && b.med.reachRate) comps.push({ k: 'reach', name: 'Reel reach', v: b.reachIdx });
+  if (b.hasReels && b.med.reachSz) comps.push({ k: 'reach', name: 'Reel reach', v: b.reachIdx });
   const weak = comps.reduce((a, c) => c.v < a.v ? c : a), strong = comps.reduce((a, c) => c.v > a.v ? c : a);
   const mc = medCtl(sc);
   if (weak.v < 0.85) {
     if (weak.k === 'eng') out.push({ k: 'gap', t: `Engagement is the biggest gap. A typical post earns ${Math.round(b.avgLikes)} likes and ${Math.round(b.avgComments)} comments, ${pct(b.engDepthRate, 2)} of followers. Accounts your size typically earn ${pct(expectedER(b), 2)}${lead.hd !== b.hd ? `, and ${esc(lead.name)} earns ${pct(lead.engDepthRate, 2)}` : ''}. Open your best posts from the last ${LB.days} days, find what they share, and make more of that.` });
     else if (weak.k === 'conv') out.push({ k: 'gap', t: `Few people talk back. ${pct(b.commentDepthRatio * 100)} of your likes turn into comments, against a ${pct(mc * 100)} group median. Close posts with one specific question and reply to comments in the first hour.` });
-    else out.push({ k: 'gap', t: `Your Reels reach ${pct(b.avgReelViews / b.followers * 100, 0)} of your followers per view, against ${pct(b.med.reachRate, 0)} typical in this group. The first two seconds decide that, so open on the payoff.` });
+    else out.push({ k: 'gap', t: `Your Reels reach ${pct(b.avgReelViews / b.followers * 100, 0)} of your followers per view, against ${pct(expectedM('reachRate', b) || b.med.reachRate, 0)} typical at your size. The first two seconds decide that, so open on the payoff.` });
   } else if (b.heatScore >= 60) {
     out.push({ k: 'win', t: `No weak spot. Strongest area is ${strong.name}${strong.v >= 1.95 ? ', well clear of the group' : ', at ' + ratioTxt(strong.v) + ' the group median'}.` });
   } else {
@@ -326,7 +328,7 @@ function advice(b, sc) {
   }
   if (above) {
     const cs = [{ n: 'engagement for size', a: above.engIdx, m: b.engIdx }, { n: 'conversation', a: above.commentDepthIdx, m: b.commentDepthIdx }];
-    if (above.hasReels && b.hasReels && above.med.reachRate) cs.push({ n: 'Reel reach', a: above.reachIdx, m: b.reachIdx });
+    if (above.hasReels && b.hasReels && above.med.reachSz) cs.push({ n: 'Reel reach', a: above.reachIdx, m: b.reachIdx });
     const d = cs.reduce((x, c) => (c.a - c.m) > (x.a - x.m) ? c : x);
     const need = (above.engDepthRate - b.engDepthRate) / 100 * b.followers;
     out.push({ k: 'fact', t: `${esc(above.name)} (#${rank - 1}, Heat ${above.heatScore}) is the nearest target. They lead mainly on ${d.n}.${need > 0 && need < 1.5 * (b.avgLikes + b.avgComments) ? ` Matching their engagement means about ${Math.round(need)} more likes and comments per post.` : ''}` });
@@ -351,7 +353,7 @@ function advice(b, sc) {
     else if (rho >= 0.25) out.push({ k: 'fact', t: `In this group, accounts that post more tend to earn more per post (correlation +${rho.toFixed(2)}). A pattern, not proof.` });
   }
   const main = out.slice(0, 3);
-  if (b.own < 8) main.push({ k: 'fact', t: `Early read: this is based on ${b.own} posts, so one viral post can move it.` });
+  if (b.own < EARLY_POSTS) main.push({ k: 'fact', t: `Early read: this is based on ${b.own} posts, so we nudge the score towards 50 until we have seen more. Raw score ${b.heatRaw}, shown ${b.heatScore}.` });
   return main;
 }
 const todoHtml = list => `<div class="todo">${list.map(x => `<div class="todo-i"><b class="${x.k}">${x.k === 'gap' ? 'Gap' : x.k === 'win' ? 'Strength' : 'Note'}</b><p>${x.t}</p></div>`).join('')}</div>`;
@@ -403,7 +405,7 @@ function rowHtml(b, rank, k, sc) {
   const bd = band(b.heatScore), em = engMul(b), cm = ctlMul(b, sc);
   return `<div class="row${me ? ' me' : ''}" data-open="${b.hd}">
     <div class="rk">${rank}</div>
-    <div class="who">${avHtml(b)}<div class="t"><div class="nm">${esc(b.name)}${me ? '<span class="you-chip">You</span>' : ''}</div><div class="hd">${esc(b.handle)} · ${fmtK(b.followers)}</div></div></div>
+    <div class="who">${avHtml(b)}<div class="t"><div class="nm">${esc(b.name)}${me ? '<span class="you-chip">You</span>' : ''}${b.own < EARLY_POSTS ? `<span class="early" title="Only ${b.own} posts in ${LB.days} days, so the score is nudged towards 50 until we see more" style="margin-left:6px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border:1px solid currentColor;border-radius:99px;opacity:.65;white-space:nowrap">Early read</span>` : ''}</div><div class="hd">${esc(b.handle)} · ${fmtK(b.followers)}</div></div></div>
     <div class="heat"><span class="pill ${bd}">${b.heatScore}</span></div>
     <div class="cell"><div class="v">${pct(b.engDepthRate, 2)}</div><div class="d ${em.c}">${em.t}</div></div>
     <div class="cell"><div class="v">${pct(b.commentDepthRatio * 100)}</div><div class="d ${cm.c}">${cm.t}</div></div>
@@ -459,7 +461,7 @@ function openDrawer(hd) {
   } else {
     const sc = scored(b.ladder), bd = band(b.heatScore);
     const em = engMul(b), cm = ctlMul(b, sc), above = b.rank > 1 ? sc[b.rank - 2] : null;
-    const bars = [['Engagement for size', b.engIdx * 50], ['Reel reach', b.hasReels && b.med.reachRate ? b.reachIdx * 50 : null], ['Community', b.activityIdx * 50], ['Interaction quality', b.iqScore]];
+    const bars = [['Engagement for size', b.engIdx * 50, b.tierAdjEngRate / (b.med.tierAdjEngRate || 1)], ['Reel reach', b.hasReels && b.med.reachSz ? b.reachIdx * 50 : null, b.reachSz != null && b.med.reachSz ? b.reachSz / b.med.reachSz : 0], ['Community', b.activityIdx * 50, (b.med.tierAdjCDR > 0 ? b.tierAdjCDR / b.med.tierAdjCDR : 1) * (0.6 + 0.4 * b.freqBoost)], ['Interaction quality', b.iqScore]];
     d.innerHTML = `<button class="dx" data-act="close" aria-label="Close">×</button>
       <div class="dh">${avHtml(b)}<div><h2>${esc(b.name)}</h2><p>${esc(b.handle)} · ${esc(tierShort(b))} tier · ${fmtK(b.followers)} followers</p></div></div>
       <div class="heat" style="gap:10px"><span class="pill ${bd}" style="font-size:24px">${b.heatScore}</span><span class="bandw ${bd}">${BAND[bd]}</span></div>
@@ -472,8 +474,8 @@ function openDrawer(hd) {
       ${b.commentDepthRatio > 0.15 ? '<p class="note">Very high comment ratio. This often comes from giveaway or contest posts, so treat the conversation number with care.</p>' : ''}
       <div class="dsec"><h3>What to do</h3>${todoHtml(advice(b, sc))}</div>
       ${postsHtml(b)}
-      <div class="dsec bars"><h3>How the score is built</h3>${bars.map(([n, v]) => `<div class="br"><span>${n}</span><div class="tr"><i style="width:${v == null ? 0 : Math.max(0, Math.min(100, v))}%"></i></div><span class="nv">${v == null ? 'n/a' : Math.round(Math.min(100, v))}</span></div>`).join('')}
-        <p class="note" style="margin-top:4px">Each bar is 0 to 100 against this group. 50 is the group median.</p></div>
+      <div class="dsec bars"><h3>How the score is built</h3>${bars.map(([n, v, m]) => `<div class="br"><span>${n}${m >= 1.995 ? ` <small style="opacity:.6;white-space:nowrap">${m.toFixed(1)}× the group, capped</small>` : ''}</span><div class="tr"><i style="width:${v == null ? 0 : Math.max(0, Math.min(100, v))}%"></i></div><span class="nv">${v == null ? 'n/a' : Math.round(Math.min(100, v))}</span></div>`).join('')}
+        <p class="note" style="margin-top:4px">Each bar is 0 to 100 against this group, judged for the account's size. 50 is the group median. 100 means double the median or more.</p></div>
       <div class="dact">
         <button class="btn" data-setyou="${b.hd}">${st.you === b.hd ? 'This is your account' : 'Set as my account'}</button>
         <button class="btn o" data-card="${b.hd}">Download report card</button>
@@ -624,7 +626,7 @@ function drawCmp(L, logoImg) {
 function fitTags(b) {
   const t = [], x = vsSize(b);
   if (x >= 1.5) t.push(['up', 'Punches above its size']);
-  if (b.hasReels && b.med.reachRate && b.reachRate >= b.med.reachRate * 1.5) t.push(['up', 'Strong Reel reach']);
+  if (b.hasReels && b.med.reachSz && b.reachIdx >= 1.5) t.push(['up', 'Strong Reel reach']);
   if (b.commentDepthRatio > 0.15) t.push(['wn', 'Check: giveaway-style comments']);
   else if (b.commentDepthRatio >= (medCtl(scored(b.ladder)) || 1) * 1.3) t.push(['up', 'Strong conversation']);
   if ((b.posts30d || 0) >= 8) t.push(['up', 'Posts often']);

@@ -36,6 +36,22 @@ rep("const rankable = brands.filter(b => (b.followers || 0) >= MICRO_THRESHOLD);
     "const okAcc    = b => !b.tracked && (b.followers || 0) >= MICRO_THRESHOLD && (b.own || 0) >= MIN_POSTS;\n  const rankable = brands.filter(okAcc);\n  const micro    = brands.filter(b => !okAcc(b) && (b.followers || 0) > 0);")
 rep("      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap, isMicro: false,",
     "      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap, isMicro: false,")
+# 4. few posts = less certainty: Heat is nudged towards 50 by own/(own+4). EARLY_POSTS flags the "Early read" tag.
+rep("const MIN_POSTS = 5;", "const MIN_POSTS = 5;")
+rep("    const h        = calcHeat(raw, med, iq, activity);",
+    "    const h        = calcHeat(raw, med, iq, activity);\n    h.heatRaw = h.heatScore; { const n = b.own || 0; h.heatScore = Math.round(50 + (h.heatScore - 50) * n / (n + SHRINK_K)); }")
+rep("const MIN_POSTS = 5;", "const MIN_POSTS = 5;\nconst SHRINK_K = 4;            // few posts: Heat is nudged towards 50 by own / (own + SHRINK_K)\nconst EARLY_POSTS = 12;        // under this, rows carry an Early read tag")
+# 5. size-adjust Reach and Interaction quality the way Engagement already is: judge each against accounts of similar size.
+rep("function calcRaw(b) {",
+    "let M_PTS = {}, M_CACHE = {};\nconst M_KEYS = ['engDepthRate', 'commentRate', 'viewConvRate', 'reachRate'];\nfunction rawMetrics(b) {\n  const f = b.followers || 1, L = b.avgLikes || 0, C = b.avgComments || 0, V = b.avgReelViews || 0;\n  return { engDepthRate: (L + C) / f * 100, commentRate: Math.min(C, 0.15 * L) / f * 100, viewConvRate: V > 0 ? (L + C) / V * 100 : null, reachRate: V > 0 ? V / f * 100 : null };\n}\nfunction expectedM(k, b) {\n  const t = b.btype || 'brand', pts = M_PTS[t] && M_PTS[t][k];\n  if (!pts || pts.length < 12) return null;\n  const ck = k + t + b.followers + (b.handle || ''); if (M_CACHE[ck]) return M_CACHE[ck];\n  const x = Math.log(b.followers);\n  const near = pts.filter(p => p[2] !== b.handle).map(p => [Math.abs(p[0] - x), p[1]]).sort((p, q) => p[0] - q[0]).slice(0, 21).map(p => p[1]);\n  return M_CACHE[ck] = median(near);\n}\n\nfunction calcRaw(b) {")
+rep("  return {\n    engDepthRate, commentRate, tierAdjEngRate, commentDepthRatio, tierAdjCDR,",
+    "  const rm = rawMetrics(b), sz = k => { if (rm[k] == null) return null; const e = expectedM(k, b); return e ? rm[k] / e : 1; };\n  const engSz = sz('engDepthRate'), cmtSz = sz('commentRate'), vcSz = sz('viewConvRate'), reachSz = sz('reachRate');\n  return {\n    engSz, cmtSz, vcSz, reachSz,\n    engDepthRate, commentRate, tierAdjEngRate, commentDepthRatio, tierAdjCDR,")
+rep("    posts30d:        median(brands.map(b => b.posts30d || 0)),",
+    "    engSz: median(r.map(x => x.engSz)),\n    cmtSz: median(r.map(x => x.cmtSz)),\n    vcSz: (() => { const v = r.filter(x => x.vcSz != null).map(x => x.vcSz); return v.length >= 3 ? median(v) : null; })(),\n    reachSz: (() => { const v = r.filter(x => x.reachSz != null).map(x => x.reachSz); return v.length >= 3 ? median(v) : null; })(),\n    posts30d:        median(brands.map(b => b.posts30d || 0)),")
+rep("const commentIdx  = idx(raw.commentRate,  med.commentRate);", "const commentIdx  = idx(raw.cmtSz, med.cmtSz);")
+rep("const engDepthIdx = idx(raw.engDepthRate, med.engDepthRate);", "const engDepthIdx = idx(raw.engSz, med.engSz);")
+rep("if (raw.hasReels && med.viewConvRate) {", "if (raw.hasReels && med.vcSz) {")
+rep("const viewConvIdx = idx(raw.viewConvRate, med.viewConvRate);", "const viewConvIdx = idx(raw.vcSz, med.vcSz);")
 rep("  }).sort((a, b) => b.heatScore - a.heatScore);", "  }).sort((a, b) => b.heatScore - a.heatScore || b.engDepthRate - a.engDepthRate);\n  ranked.forEach((b, i) => { b.rank = i + 1; b.pn = ranked.length; });")
 rep("    ...b, isMicro: true, heatScore: null, med, conf,",
     "    ...b, isMicro: true, heatScore: null, med, conf,\n    microReason: b.tracked ? b.tracked : (b.followers || 0) < MICRO_THRESHOLD ? 'Under 5K followers' : `Only ${b.own} post${b.own === 1 ? '' : 's'} in ${LB.days} days`,")
@@ -46,6 +62,7 @@ rep("reachRate:       median(r.map(x => x.reachRate)),",
     "reachRate:       (() => { const v = r.filter(x => x.reachRate != null).map(x => x.reachRate); return v.length >= 3 ? median(v) : null; })(),")
 rep("const ri = idx(raw.reachRate,       med.reachRate);",
     "const ri = (raw.reachRate != null && med.reachRate) ? idx(raw.reachRate, med.reachRate) : 1.0;")
+rep("const ri = (raw.reachRate != null && med.reachRate) ? idx(raw.reachRate, med.reachRate) : 1.0;", "const ri = (raw.reachSz != null && med.reachSz) ? idx(raw.reachSz, med.reachSz) : 1.0;")
 # giveaway guard: comment-to-like above 15% (contests, giveaways) counts as 15% in the score
 rep("const commentRate       = (b.avgComments / f) * 100;", "const commentRate       = (Math.min(b.avgComments, 0.15 * b.avgLikes) / f) * 100;")
 rep("const tierAdjCDR        = commentDepthRatio / getExpectedCDR(f);", "const tierAdjCDR        = Math.min(commentDepthRatio, 0.15) / getExpectedCDR(f);")

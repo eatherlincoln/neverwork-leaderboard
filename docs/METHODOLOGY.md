@@ -149,3 +149,19 @@ not a single spike.
 - Influencer Marketing Hub — creator engagement by tier 2026
 - InfluenceFlow — *Instagram Engagement Rate Benchmark 2026*: https://influenceflow.io/resources/instagram-engagement-rate-benchmark-complete-2026-guide-for-creators-brands/
 - Socialinsider — *2026 Instagram Organic Engagement Benchmarks* (35M posts): https://www.socialinsider.io/social-media-benchmarks/instagram
+
+## Few posts: the "Early read" nudge (added 19 Oct 2026)
+
+An account needs at least 5 own posts in the window to be ranked. Below about 12 posts the score is less certain, so Heat is nudged towards 50:
+
+    shown Heat = 50 + (raw Heat - 50) x posts / (posts + 4)
+
+At 12 posts an account keeps three-quarters of its distance from 50. At 30 posts it keeps about nine-tenths. Rows under 12 posts carry an "Early read" tag, and the account drawer shows the raw and shown score. Tested on the 90-day scan of 19 Oct 2026: 45 of 242 ranked accounts moved 5+ points and 18 changed band. The 2x cap on each part stays: raising it to 3x tied 20 accounts on 100.
+
+## Size-adjusted Reach and Quality (19 Oct 2026)
+
+Engagement and Community were already judged against accounts of similar size. Reach (25%) and Interaction quality (15%) were not, which let small accounts collect points for the normal habit of small audiences watching and commenting more. Now each of those inputs (Reel views / followers, comments / followers, engagement / followers, likes+comments / Reel views) is divided by the median of the 21 accounts nearest in size (same account type) before it is compared with the group median.
+
+Result on the 19 Oct 2026 data: the size lean in Heat fell from -0.23 to -0.07 (correlation with log followers). Share rated "Ahead" is now 31-33% in every size band; before it was 59% under 50K and 28% above 1M.
+
+The account drawer shows the real multiple when a bar is capped (for example "3.0x the group, capped") so a 100 reads as "at least double the middle", not "perfect".

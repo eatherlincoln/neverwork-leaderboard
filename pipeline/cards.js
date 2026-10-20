@@ -48,10 +48,10 @@ const rankIn = (L, v, b) => 1 + L.filter(a => a.hd !== b.hd && v(a) > v(b)).leng
 function badgesFor(b, card) {
   const sc = scored(b.ladder), out = [];
   const firm = (b.own || 0) >= BADGE_MIN_POSTS;
-  const reels = sc.filter(a => a.hasReels && a.reachRate != null);
+  const reels = sc.filter(a => a.hasReels && a.reachSz != null);
   const conv = sc.filter(a => a.commentDepthRatio <= 0.15);
   const cand = [{ k: 'eng', r: rankIn(sc, vsSize, b), n: sc.length, label: 'Engagement for its size', x: vsSize(b), xl: 'engagement for its size' }];
-  if (b.hasReels && b.reachRate != null && reels.length >= 5) cand.push({ k: 'reach', r: rankIn(reels, a => a.reachRate, b), n: reels.length, label: 'Reel reach in ' + groupNoun(b), x: b.med.reachRate ? b.reachRate / b.med.reachRate : 0, xl: 'median Reel reach' });
+  if (b.hasReels && b.reachSz != null && reels.length >= 5) cand.push({ k: 'reach', r: rankIn(reels, a => a.reachSz, b), n: reels.length, label: 'Reel reach in ' + groupNoun(b), x: b.med.reachSz && b.reachSz != null ? b.reachSz / b.med.reachSz : 0, xl: 'median Reel reach for its size' });
   if (b.commentDepthRatio <= 0.15 && conv.length >= 5) cand.push({ k: 'conv', r: rankIn(conv, a => a.commentDepthRatio, b), n: conv.length, label: 'Conversation in ' + groupNoun(b), x: b.commentDepthRatio / (medCtl(sc) || 1), xl: 'median conversation' });
   if (card && card.id === 'engagement' && card.title === 'Engagement') cand.shift();
   if (firm) cand.filter(c => c.r <= 3).sort((p, q) => p.r - q.r).forEach(c => out.push({ big: '#' + c.r, label: c.label, on: true }));
