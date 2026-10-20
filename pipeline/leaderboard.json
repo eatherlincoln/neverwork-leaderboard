@@ -1,8 +1,8 @@
 {
- "generatedAt": "2026-10-20T04:38:56.324Z",
+ "generatedAt": "2026-10-20T08:53:04.025Z",
  "days": 90,
  "scanned": 297,
- "ok": 272,
+ "ok": 274,
  "buckets": [
   {
    "key": "brand|Surf",
@@ -19993,6 +19993,160 @@
      "tier": "XL",
      "expER": 0.195,
      "rank": 5
+    }
+   ]
+  },
+  {
+   "key": "brand|Streetwear",
+   "benchmarkType": "brand",
+   "discipline": "Streetwear",
+   "n": 2,
+   "rows": [
+    {
+     "handle": "neweracap",
+     "name": "New Era",
+     "type": "Brand",
+     "category": "Apparel",
+     "followers": 2185879,
+     "er": 0.076,
+     "score": 85,
+     "grade": "A",
+     "conf": "High",
+     "own": 77,
+     "pic": "https://scontent.cdninstagram.com/v/t51.2885-19/476326766_987406723442310_5183826102990148490_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=1&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=ugS7XftqIcMQ7kNvwGwpsmN&_nc_oc=AdrN-NZjopt_iqCvmFerGnbuoarwxmmo9a_VmVtvrSkLXUO1Fm6wZ2LJA_bz2jvt18g&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_ss=70a8c&oh=00_AQMQA1wLr2c3ijc-yETvIGzmThLIdmU1isu5YKr4wF7xvQ&oe=6ADD0D9A",
+     "avgLikes": 3496.8,
+     "avgComments": 48.6,
+     "avgReelViews": 141695,
+     "posts": 77,
+     "typLikes": 1650.6,
+     "typComments": 16.6,
+     "hidden": 0,
+     "fmt": {
+      "reel": {
+       "n": 12,
+       "er": 0.44
+      },
+      "carousel": {
+       "n": 61,
+       "er": 0.11
+      },
+      "image": {
+       "n": 4,
+       "er": 0.132
+      }
+     },
+     "top": [
+      {
+       "url": "https://www.instagram.com/p/DctQF-pgGdP/",
+       "f": "reel",
+       "l": 37497,
+       "c": 83,
+       "v": 230654,
+       "d": "2026-08-31",
+       "cap": "The Billustration Collection returns. Follow @joshallenqb all season long as he wears a different cap every home game, each created by child",
+       "th": "https://scontent-phl2-1.cdninstagram.com/v/t51.82787-15/789060392_18619939039031168_2932030387700759243_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=106&ig_cache_key=Mzk3NTkwNDgyNTY0Nzg1MTM0MzE4NjE5OTM5MDM2MDMxMTY4.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNMSVBTLnhwaWRzLjcyMC5zZHIudmlkZW9fZGVmYXVsdF9jb3Zlcl9mcmFtZS5DMyJ9&_nc_ohc=OSeAjRDjIbMQ7kNvwGPLKnD&_nc_oc=AdqesbZrYN6ZbpFkUXt6ifiUu6H5CDFZZev5GGucJ0KuwJV4mCzAVHUpTWSfEKQxK5y4KB0_EGNeM0guq63_2KG8&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-phl2-1.cdninstagram.com&_nc_gid=4v98LUEW-ut2X7KtDWzbww&_nc_ss=7a20f&oh=00_AQOL5coA25tQR3jJqcY6Nc8Pf6UdBnSweKxeigB2VrDQGQ&oe=6ADD1359"
+      },
+      {
+       "url": "https://www.instagram.com/p/Dbi0lW6mtiE/",
+       "f": "reel",
+       "l": 26193,
+       "c": 189,
+       "v": 244713,
+       "d": "2026-08-03",
+       "cap": "Introducing the Official 2026 NFL Sidelines Collection. Engineered to reflect the energy of game day and worn throughout the season by NFL p",
+       "th": "https://instagram.fmad18-1.fna.fbcdn.net/v/t51.82787-15/762937352_18610345228031168_1628029664582964037_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=110&_nc_map=urlgen_bucketless&ig_cache_key=Mzk1NDk1NDY4ODQyOTQ4MDA2ODE4NjEwMzQ1MjI1MDMxMTY4.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNMSVBTLnhwaWRzLjEwODAuc2RyLnZpZGVvX2RlZmF1bHRfY292ZXJfZnJhbWUuQzMifQ%3D%3D&_nc_ohc=RIJjA4bwS64Q7kNvwG90uml&_nc_oc=AdpFdi52XwPI52OwpZYw0LoLmTuXg--SiR68DWbQ2MsYvFGi_dHYXTlUUsIZmlW2S78&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fmad18-1.fna&_nc_gid=5UbuhQG4101iliB_qXaaqQ&_nc_ss=7a20f&oh=00_AQOmmH-5bsfqkI758_Qk2rON1iDvJoq7PCmZQD4ZXIq5MA&oe=6ADD010F"
+      },
+      {
+       "url": "https://www.instagram.com/p/DcOf6wbidt0/",
+       "f": "reel",
+       "l": 15120,
+       "c": 119,
+       "v": 101121,
+       "d": "2026-08-19",
+       "cap": "There's a big circle on @_micahparsons11's calendar, but @joshallenqb has other plans 😭 (🎥 @sportsillustrated)",
+       "th": "https://instagram.fsdu33-1.fna.fbcdn.net/v/t51.82787-15/779931885_18616010686031168_328517660581184312_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=102&_nc_map=urlgen_bucketless&ig_cache_key=Mzk2NzI0ODY5ODkzMzEwNzU3MjE4NjE2MDEwNjgwMDMxMTY4.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNMSVBTLnhwaWRzLjEwODAuc2RyLnZpZGVvX2RlZmF1bHRfY292ZXJfZnJhbWUuQzMifQ%3D%3D&_nc_ohc=p7D3UgTq2OoQ7kNvwHYuzvi&_nc_oc=Adpiiq5nix7Dsvmd4kjIAPQJXnPuz2AJ9UtjNrjFCdP9pa1-SZp8UGBh3dbiMsJG1jQ&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fsdu33-1.fna&_nc_gid=A-Ogg9oAS4C3aQNUhT0j4w&_nc_ss=7a20f&oh=00_AQM_hYT1QfWAevMnrkLMxAhc8HQTW64hqTQhFRpKwraBXQ&oe=6ADCE3F2"
+      }
+     ],
+     "perMonth": 25.9,
+     "convoIndex": 2,
+     "reachIndex": 1.621,
+     "cadenceIndex": 0.997,
+     "tier": "Mega",
+     "expER": 0.044,
+     "rank": 1
+    },
+    {
+     "handle": "worship.supplies",
+     "name": "Worship Supplies",
+     "type": "Brand",
+     "category": "Apparel",
+     "followers": 18944,
+     "er": 0.117,
+     "score": 43,
+     "grade": "D",
+     "conf": "Medium",
+     "own": 21,
+     "pic": "https://scontent.cdninstagram.com/v/t51.2885-19/184482307_872832976906712_8571225447267463779_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=109&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=qJQDSotDI4oQ7kNvwFt6UcM&_nc_oc=AdpA591KVU6H79IbyPXcBAz4F0kDloLrnTXrLUlm5Mgu-IqCOX96TBraCiTmWXzBEGHyGG7NqWIwisFL0jxaVZLs&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_ss=70a8c&oh=00_AQMiAI_6MloVal0CzOIPSnp-_i9vVI54BpN8O8T_WWZa1w&oe=6ADCEFF6",
+     "avgLikes": 28.2,
+     "avgComments": 1,
+     "avgReelViews": 407,
+     "posts": 71,
+     "typLikes": 21.1,
+     "typComments": 1,
+     "hidden": 50,
+     "fmt": {
+      "reel": {
+       "n": 24,
+       "er": 0.219
+      },
+      "carousel": {
+       "n": 42,
+       "er": 0.153
+      },
+      "image": {
+       "n": 5,
+       "er": 0.103
+      }
+     },
+     "top": [
+      {
+       "url": "https://www.instagram.com/p/Dbz7RDegWYc/",
+       "f": "carousel",
+       "l": 172,
+       "c": 1,
+       "v": 0,
+       "d": "2026-08-09",
+       "cap": "@callumfullick spotted wearing our new Sonic Long Boardshort ⛓️ Online now.",
+       "th": "https://scontent-ams2-1.cdninstagram.com/v/t51.82787-15/769375448_18091274441403491_5399484558668606393_n.webp?_nc_cat=111&ig_cache_key=Mzk1OTc2Njc0OTEyNTQ1ODc2Mw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTA4MC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=gi0cWkdYAZkQ7kNvwEkpVGu&_nc_oc=AdpIeJI2IVoWC2DQG4PIJvs6L_ajrbigNqIDYRU94XSLQRqTimzemjcAASF46gZl9tQ&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-ams2-1.cdninstagram.com&_nc_gid=dCSamh8Au4hZXinm1UzaZw&_nc_ss=7a20f&oh=00_AQPErLF68d6thChr4DG3unhB4OaxRQTo2SfHgNvUeQSR7w&oe=6ADCF50D"
+      },
+      {
+       "url": "https://www.instagram.com/p/Dcx3bTmhqz_/",
+       "f": "reel",
+       "l": 43,
+       "c": 5,
+       "v": 564,
+       "d": "2026-09-02",
+       "cap": "Few more clips with @zanehetherington",
+       "th": "https://scontent-cdg6-1.cdninstagram.com/v/t51.82787-15/790491383_18093784076403491_237508781391956843_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=106&ig_cache_key=Mzk3NzIwMzcxNDk3NjI5NjE5MTE4MDkzNzg0MDcwNDAzNDkx.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNMSVBTLnhwaWRzLjcyMC5zZHIudmlkZW9fZGVmYXVsdF9jb3Zlcl9mcmFtZS5DMyJ9&_nc_ohc=I6V9CiFGDZUQ7kNvwG8VyjN&_nc_oc=AdrF4MYKynZdjEvNzGMQivp95aQ1pqjONt22M2DP521TNQi0f4eO7m9vmeZGKPUwD8w&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-cdg6-1.cdninstagram.com&_nc_gid=sRPYp7fWdk3aEF0Vp6BlrA&_nc_ss=7a20f&oh=00_AQOSCxW1jJKBlVvLqfoxWbqtifFA6l5jM-gcPNQ6pa5dng&oe=6ADCF549"
+      },
+      {
+       "url": "https://www.instagram.com/p/DcLUV89ASAs/",
+       "f": "carousel",
+       "l": 32,
+       "c": 4,
+       "v": 0,
+       "d": "2026-08-18",
+       "cap": "@maddox.oreilly wearing our new Obsidian Jacket in Black.",
+       "th": "https://instagram.fwaw3-1.fna.fbcdn.net/v/t51.82787-15/777665875_18092209718403491_8045414342367459198_n.webp?_nc_cat=105&_nc_map=urlgen_bucketless&ig_cache_key=Mzk2NjM1MTkyOTg5NDEwMDA5OA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMTA4MC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=S6nOi4dfzEwQ7kNvwG9bgTA&_nc_oc=Adp8ROXckl9aQLJSJt6DlB6VuUlmPwJTeOEipsTXfSNIXfn70JGCAjnjerBaq3nM85I&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fwaw3-1.fna&_nc_gid=V1tCALUj1t91ypVdB5XP5g&_nc_ss=7a20f&oh=00_AQNQ6btP_EEzySpAdcZ_mJUrUFYiquA64woKNilmrQIMOg&oe=6ADCFCF8"
+      }
+     ],
+     "perMonth": 23.7,
+     "convoIndex": 2,
+     "reachIndex": 0.119,
+     "cadenceIndex": 1.13,
+     "tier": "Micro",
+     "expER": 0.244,
+     "rank": 2
     }
    ]
   }
