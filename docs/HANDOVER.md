@@ -14,7 +14,8 @@
 
 ## Built and working
 - Requests tab: Status column (In Master / Duplicate request / New), Notify checkbox, Emailed column.
-- Apps Script menu "IG Directory": Promote ticked rows, Promote requests, Email requesters, Set up Requests columns.
+- Apps Script menu "IG Directory": Promote requests, Email requesters, Set up Requests columns. "Promote ticked rows" pointed at the old Pending tab and now errors; remove it next time the script is open.
+- Requests is the only intake tab. Pending (fed by the old IG-Analysis classifier, last row 19 Aug) was deleted 22 Oct 2026. Its unpromoted rows katinusa, ocean_earth79, badboyryry_, iambrittmathews were added to Master by hand and go live on the 1 Nov refresh.
 - New Era and Worship Supplies are live (run #15).
 - Scheduled task trig_019APYC5UEzf3nmSApTorhuo (monthly reminder, next fire 1 Nov, 7:52am Brisbane).
 
@@ -55,11 +56,20 @@ Known problems to resolve:
 - Test rows Bellroy, Nike, Wasted Talent in Requests are unpromoted. Ask whether to promote or leave.
 - Emailing New Era and Worship requesters: only on Lincoln's go-ahead.
 
+## Taxonomy (Lincoln cleaning up, weekend of 25 Oct)
+- Category does not affect scores. engine.js expectedER() uses type|discipline peers plus size only. Category is a label and filter.
+- Ladders are grouped benchmarkType|discipline. iambrittmathews (Creator, Lifestyle) is alone on creator|Lifestyle until Lincoln adds more lifestyle creators.
+- Labels are inconsistent: surf boards are "Surfboards" but skate/snow boards are "Hardgoods"; Burton and Vans Snow are "Tech/Hardware"; sls is "Junior/Rising". The Controlled Values tab doesn't match Master ("Surfing" vs "Surf", "Headwear & Bags" vs "Bags", no "Surfboards" or "Pro Tour"). Lincoln to settle one list, update Controlled Values, then clean Master.
+
+## Uncommitted work on Lincoln's Mac
+- `git stash@{0}` "pipeline edits 22 Oct, not reviewed": changes to app.js, build-leaderboard.js, build2.py, cards.js, engine.js, scan.js from the previous session. Review before shipping (`git stash pop`). Pushing them redeploys the site.
+- `docs/POST-VALUE.md` untracked, purpose unknown.
+
 ## Files (in the old session's workspace, not carried over)
 Wrapped decks, year JSON and card renders were built there. Re-run if needed.
 
 ## Scheduled tasks for this project
-- Weekly "IG Leaderboard Directory Weekly Build" (trig_01P2CGoHKgHzQL53cJhHxoWH): DELETED 22 Oct 2026. It ran against the parent IG-Analysis folder, not this repo. The monthly GitHub Actions run now rebuilds the directory from the Master tab (pipeline/rebuild-directory.js, with a fallback to last month's directory). Its Pending-tab check (rows missing Type/Discipline/Category, wrong Type) moved into the monthly reminder task below.
-- Monthly "Brand Heat monthly: new brand requests" (trig_019APYC5UEzf3nmSApTorhuo): 1st of the month 7:52am Brisbane. Next 1 Nov. Each run starts a fresh session. Reports the Requests tab and the Pending tab (added 22 Oct 2026), read-only.
+- Weekly "IG Leaderboard Directory Weekly Build" (trig_01P2CGoHKgHzQL53cJhHxoWH): DELETED 22 Oct 2026. It ran against the parent IG-Analysis folder, not this repo. The monthly GitHub Actions run now rebuilds the directory from the Master tab (pipeline/rebuild-directory.js, with a fallback to last month's directory).
+- Monthly "Brand Heat monthly: new brand requests" (trig_019APYC5UEzf3nmSApTorhuo): 1st of the month 7:52am Brisbane. Next 1 Nov. Each run starts a fresh session. Reports the Requests tab only, read-only.
 - The monthly GitHub Actions "Monthly leaderboard refresh" does the full scan on the 1st.
-- Checked: no "7 days" or weekly promise in index.html or the pipeline. Stale mention only in docs/PROMOTE-BUTTON-SETUP.md line 91 ("go live at the next weekly rebuild"). Fix to "next monthly refresh, or run the workflow with scan ticked and the handles in 'only'".
+- Checked: no "7 days" or weekly promise in index.html or the pipeline. docs/PROMOTE-BUTTON-SETUP.md is retired (it documents the deleted Pending tab).

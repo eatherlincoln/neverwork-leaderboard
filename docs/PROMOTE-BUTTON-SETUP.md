@@ -1,3 +1,5 @@
+> **Retired 22 Oct 2026.** The Pending tab this documents was deleted. New accounts come in through the Requests tab; use IG Directory > Promote requests. Kept for history only.
+
 # Promote button — tick a Pending row, send it to Master (≈3 min)
 
 Adds an **IG Directory → Promote ticked rows** menu to your sheet. You tick the rows you've
