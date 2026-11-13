@@ -76,7 +76,9 @@ Wrapped decks, year JSON and card renders were built there. Re-run if needed.
 
 ## Session 13 Nov 2026
 - 1 Nov refresh: 291/301 scored (274 last run), 8 inactive, 2 failed. No mid-month full rescan; Apify credit kept for Stab.
-- 686 failed because Apify reads all-digit usernames as IDs. scan.js now sends all-digit handles as full profile URLs (actorInput helper). Needs a targeted run (scan ticked, only = 686) to confirm.
+- 686 failed because Apify's profile/post scrapers read all-digit usernames as account IDs, even as full URLs (run AK9hP0DBK2ZfLd6cp returned @andreamunafo). scan.js now routes all-digit handles through apify~instagram-scraper with directUrls (scrapeSplit helper); everyone else is unchanged. Confirm with a targeted run (scan ticked, only = 686).
+- APIFY_TOKEN secret was dead (401). Replaced with a new token `neverwork-leaderboard-github`, used by GitHub only.
+- Apify usage was $80 of $100 on 13 Nov, mostly Stab scrapes. Check credit before the 1 Dec full scan.
 - iambrittmathews removed from Master (handle no longer exists). Lincoln to build a proper creator/influencer list later.
 - Workflow: ubuntu-24.04 pinned, checkout/setup-node/setup-python on v6, Node 24, Python 3.12 (Node 20 deprecation + ubuntu-latest moving to Ubuntu 26).
 - Stale June clone at Projects/Never-Work/neverwork-leaderboard. Don't work there; move to delete/.

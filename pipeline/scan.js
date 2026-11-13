@@ -29,9 +29,31 @@ async function api(url, opts, tries = 4) {
   }
   throw last;
 }
-// Apify reads an all-digit username (e.g. 686) as a numeric ID and returns nothing.
-// Send those as full profile URLs instead. Matching downstream still uses the bare handle.
-const actorInput = handles => handles.map(h => /^\d+$/.test(h) ? `https://www.instagram.com/${h}/` : h);
+// Apify's profile and post scrapers read an all-digit username (e.g. 686) as a numeric account ID and return
+// the wrong account, even when given the full profile URL. Those handles go through the general Instagram
+// Scraper instead, which opens the profile page directly. Everyone else stays on the usual scrapers.
+const isNumeric = h => /^\d+$/.test(h);
+const igUrl = h => `https://www.instagram.com/${h}/`;
+const NUMERIC_ACTOR = 'apify~instagram-scraper';
+
+// Runs the usual actor for normal handles and NUMERIC_ACTOR for all-digit handles, then merges the items.
+// Empty groups never start a run. strict = throw unless every run SUCCEEDED (otherwise only a timeout throws).
+async function scrapeSplit(handles, { actor, input, numericInput, fields, maxSec, label, strict }) {
+  const normal = handles.filter(h => !isNumeric(h));
+  const numeric = handles.filter(isNumeric);
+  const jobs = [];
+  if (normal.length) jobs.push([actor, input(normal)]);
+  if (numeric.length) jobs.push([NUMERIC_ACTOR, numericInput(numeric.map(igUrl))]);
+  const sets = await Promise.all(jobs.map(async ([a, inp]) => {
+    const run = await startActor(a, inp);
+    const done = await waitRun(run.id, maxSec);
+    if (!done) throw new Error(label + ' timed out');
+    if (strict && done.status !== 'SUCCEEDED') throw new Error(label + ' ' + done.status);
+    return done.defaultDatasetId ? await dataset(done.defaultDatasetId, fields) : [];
+  }));
+  return sets.flat();
+}
+
 async function startActor(actor, input) {
   const r = await api(`${APIFY}/acts/${actor}/runs?token=${TOKEN}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
@@ -78,11 +100,11 @@ function rowFrom(h, m, profile) {
 
 async function scanProfiles(handles, days) {
   need();
-  const run = await startActor('apify~instagram-profile-scraper', { usernames: actorInput(handles) });
-  const done = await waitRun(run.id);
-  if (!done) throw new Error('profile scrape timed out');
-  const profs = done.defaultDatasetId ? await dataset(done.defaultDatasetId,
-    ['username', 'followersCount', 'verified', 'biography', 'fullName', 'latestPosts', 'profilePicUrl']) : [];
+  const profs = await scrapeSplit(handles, {
+    actor: 'apify~instagram-profile-scraper', input: hs => ({ usernames: hs }),
+    numericInput: urls => ({ directUrls: urls, resultsType: 'details', resultsLimit: 1 }),
+    fields: ['username', 'followersCount', 'verified', 'biography', 'fullName', 'latestPosts', 'profilePicUrl'],
+    maxSec: 900, label: 'profile scrape' });
   const byHandle = {};
   profs.forEach(p => { if (p.username) byHandle[p.username.toLowerCase()] = p; });
   const cutoffMs = Date.now() - days * 864e5;
@@ -106,13 +128,14 @@ async function deepScan(rows, days) {
   need();
   const handles = rows.map(r => r.handle);
   const fol = {}; rows.forEach(r => { fol[r.handle] = r.followers; });
-  const run = await startActor('apify~instagram-post-scraper', { username: actorInput(handles), resultsLimit: 200,
-    onlyPostsNewerThan: days + ' days', dataDetailLevel: 'detailedData' });
-  const done = await waitRun(run.id, 1500);
-  if (!done || done.status !== 'SUCCEEDED') throw new Error('deep scrape ' + (done ? done.status : 'timed out'));
-  const items = await dataset(done.defaultDatasetId, ['ownerUsername', 'timestamp', 'likesCount', 'commentsCount', 'videoViewCount',
-    'videoPlayCount', 'type', 'productType', 'displayUrl', 'url', 'shortCode', 'caption', 'isPinned', 'paidPartnership',
-    'coauthorProducers', 'taggedUsers', 'mentions', 'inputUrl']);
+  const items = await scrapeSplit(handles, {
+    actor: 'apify~instagram-post-scraper',
+    input: hs => ({ username: hs, resultsLimit: 200, onlyPostsNewerThan: days + ' days', dataDetailLevel: 'detailedData' }),
+    numericInput: urls => ({ directUrls: urls, resultsType: 'posts', resultsLimit: 200, onlyPostsNewerThan: days + ' days' }),
+    fields: ['ownerUsername', 'timestamp', 'likesCount', 'commentsCount', 'videoViewCount',
+      'videoPlayCount', 'type', 'productType', 'displayUrl', 'url', 'shortCode', 'caption', 'isPinned', 'paidPartnership',
+      'coauthorProducers', 'taggedUsers', 'mentions', 'inputUrl'],
+    maxSec: 1500, label: 'deep scrape', strict: true });
   return handles.map(h => {
     const posts = items.filter(p => (p.inputUrl || '').toLowerCase().replace(/\/+$/, '').endsWith('/' + h));
     if (!posts.length) return { handle: h, ok: false, reason: 'deep scan found no posts' };
@@ -124,10 +147,14 @@ async function deepScan(rows, days) {
 
 async function postsCheck(handles, days) {
   need();
-  const run = await startActor('apify~instagram-post-scraper', { username: actorInput(handles), resultsLimit: 12 });
-  const done = await waitRun(run.id, 600);
-  const items = done && done.defaultDatasetId ? await dataset(done.defaultDatasetId,
-    ['ownerUsername', 'timestamp', 'likesCount', 'commentsCount', 'videoViewCount', 'type', 'inputUrl']) : [];
+  let items = [];
+  try {
+    items = await scrapeSplit(handles, {
+      actor: 'apify~instagram-post-scraper', input: hs => ({ username: hs, resultsLimit: 12 }),
+      numericInput: urls => ({ directUrls: urls, resultsType: 'posts', resultsLimit: 12 }),
+      fields: ['ownerUsername', 'timestamp', 'likesCount', 'commentsCount', 'videoViewCount', 'type', 'inputUrl'],
+      maxSec: 600, label: 'posts check' });
+  } catch (e) { if (!/timed out/.test(e.message)) throw e; }   // a timed-out check just means we can't explain the miss, as before
   const cutoff = Date.now() - days * 864e5;
   return handles.map(h => {
     const own = items.filter(p => (p.ownerUsername || '').toLowerCase() === h && p.timestamp);
