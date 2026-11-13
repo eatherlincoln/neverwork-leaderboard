@@ -73,3 +73,12 @@ Wrapped decks, year JSON and card renders were built there. Re-run if needed.
 - Monthly "Brand Heat monthly: new brand requests" (trig_019APYC5UEzf3nmSApTorhuo): 1st of the month 7:52am Brisbane. Next 1 Nov. Each run starts a fresh session. Reports the Requests tab only, read-only.
 - The monthly GitHub Actions "Monthly leaderboard refresh" does the full scan on the 1st.
 - Checked: no "7 days" or weekly promise in index.html or the pipeline. docs/PROMOTE-BUTTON-SETUP.md is retired (it documents the deleted Pending tab).
+
+## Session 13 Nov 2026
+- 1 Nov refresh: 291/301 scored (274 last run), 8 inactive, 2 failed. No mid-month full rescan; Apify credit kept for Stab.
+- 686 failed because Apify reads all-digit usernames as IDs. scan.js now sends all-digit handles as full profile URLs (actorInput helper). Needs a targeted run (scan ticked, only = 686) to confirm.
+- iambrittmathews removed from Master (handle no longer exists). Lincoln to build a proper creator/influencer list later.
+- Workflow: ubuntu-24.04 pinned, checkout/setup-node/setup-python on v6, Node 24, Python 3.12 (Node 20 deprecation + ubuntu-latest moving to Ubuntu 26).
+- Stale June clone at Projects/Never-Work/neverwork-leaderboard. Don't work there; move to delete/.
+- Inactive accounts worth dropping from Master: dakine_surf (last post Sep 2024), kira_kimura, wenlong_yang44, wrangleraustralia.
+- Stash "pipeline edits 22 Oct" touches scan.js (1 line). Expect a small conflict on pop.

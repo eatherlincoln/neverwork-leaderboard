@@ -29,6 +29,9 @@ async function api(url, opts, tries = 4) {
   }
   throw last;
 }
+// Apify reads an all-digit username (e.g. 686) as a numeric ID and returns nothing.
+// Send those as full profile URLs instead. Matching downstream still uses the bare handle.
+const actorInput = handles => handles.map(h => /^\d+$/.test(h) ? `https://www.instagram.com/${h}/` : h);
 async function startActor(actor, input) {
   const r = await api(`${APIFY}/acts/${actor}/runs?token=${TOKEN}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
@@ -75,7 +78,7 @@ function rowFrom(h, m, profile) {
 
 async function scanProfiles(handles, days) {
   need();
-  const run = await startActor('apify~instagram-profile-scraper', { usernames: handles });
+  const run = await startActor('apify~instagram-profile-scraper', { usernames: actorInput(handles) });
   const done = await waitRun(run.id);
   if (!done) throw new Error('profile scrape timed out');
   const profs = done.defaultDatasetId ? await dataset(done.defaultDatasetId,
@@ -103,7 +106,7 @@ async function deepScan(rows, days) {
   need();
   const handles = rows.map(r => r.handle);
   const fol = {}; rows.forEach(r => { fol[r.handle] = r.followers; });
-  const run = await startActor('apify~instagram-post-scraper', { username: handles, resultsLimit: 200,
+  const run = await startActor('apify~instagram-post-scraper', { username: actorInput(handles), resultsLimit: 200,
     onlyPostsNewerThan: days + ' days', dataDetailLevel: 'detailedData' });
   const done = await waitRun(run.id, 1500);
   if (!done || done.status !== 'SUCCEEDED') throw new Error('deep scrape ' + (done ? done.status : 'timed out'));
@@ -121,7 +124,7 @@ async function deepScan(rows, days) {
 
 async function postsCheck(handles, days) {
   need();
-  const run = await startActor('apify~instagram-post-scraper', { username: handles, resultsLimit: 12 });
+  const run = await startActor('apify~instagram-post-scraper', { username: actorInput(handles), resultsLimit: 12 });
   const done = await waitRun(run.id, 600);
   const items = done && done.defaultDatasetId ? await dataset(done.defaultDatasetId,
     ['ownerUsername', 'timestamp', 'likesCount', 'commentsCount', 'videoViewCount', 'type', 'inputUrl']) : [];
