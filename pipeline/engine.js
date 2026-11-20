@@ -1,4 +1,9 @@
 /* ============================================================================
+   NOTE (Nov 2026): in this repo the scan uses computeMetrics() for the raw numbers only
+   (likes, comments, Reel views, posts, formats, top posts). The score, grade, findings and
+   write-up below are the retired IG-Analysis model. The live Heat score is built in the
+   browser from pipeline/base-live.html + build2.py + app.js.
+
    IG-Analysis engine v2  —  "Brand Heat" model, tuned for talent/creators.
    Universal: runs in the browser AND in Node (serverless backend).
 

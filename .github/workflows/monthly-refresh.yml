@@ -82,7 +82,7 @@ jobs:
               print("::error::Scan came back short. Kept last month's data and stopped."); sys.exit(1)
           EOF
 
-      - name: Cache report-card thumbnails
+      - name: Cache report-card thumbnails and missing avatars
         run: python3 pipeline/cache_card_media.py pipeline/leaderboard.json "" .
 
       - name: Build the site
@@ -92,7 +92,7 @@ jobs:
         run: |
           git config user.name "leaderboard-bot"
           git config user.email "leaderboard-bot@users.noreply.github.com"
-          git add -A index.html pipeline card-thumbs brand-logos
+          git add -A index.html pipeline card-thumbs brand-logos instagram_avatars/images
           if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
           git commit -m "Monthly refresh $(date -u +%Y-%m-%d)"
           git pull --rebase -X theirs origin main || { git rebase --abort; echo '::error::Could not rebase onto main'; exit 1; }

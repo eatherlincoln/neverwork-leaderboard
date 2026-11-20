@@ -28,7 +28,7 @@ function prevRanks() {
   if (PREV_RANK) return PREV_RANK;
   PREV_RANK = {};
   if (typeof PREV_LB === 'undefined' || !PREV_LB) return PREV_RANK;
-  PREV_LB.buckets.forEach(bk => {
+  splitBuckets(PREV_LB.buckets).forEach(bk => {   // same groups as this month, or the places gained are wrong
     const key = bk.discipline + '|' + bk.type;
     const brands = bk.rows.map(r => ({
       name: r.name, handle: '@' + r.handle, followers: r.followers || 0, avgLikes: typical(r)[0], avgComments: typical(r)[1],

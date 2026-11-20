@@ -24,15 +24,18 @@ function typical(r) {
 }
 const GIVEAWAY = 0.15;
 const INDUSTRY_DATA = {}, ALLRANKED = {}, ALLBY = {};
-(function () {
+// The site's groups are not the scan's buckets: Surfboards and Media are pulled out of their discipline, and Lifestyle + Streetwear are merged.
+// Last month's snapshot goes through the same split (cards.js), so the Climber card compares like with like.
+function splitBuckets(buckets) {
   const split = [];
-  LB.buckets.forEach(bk => {
+  buckets.forEach(bk => {
     const m = {};
     bk.rows.forEach(r => { const dsc = (bk.type === 'brand' && r.category === 'Surfboards') ? 'Surfboards' : (bk.type === 'brand' && r.category === 'Media') ? 'Media' : (bk.discipline === 'Lifestyle' || bk.discipline === 'Streetwear') ? MERGED : bk.discipline; (m[dsc] = m[dsc] || []).push(r); });
     Object.keys(m).forEach(dsc => { const ex = split.find(x => x.discipline === dsc && x.type === bk.type); if (ex) ex.rows = ex.rows.concat(m[dsc]); else split.push({ discipline: dsc, type: bk.type, rows: m[dsc] }); });
   });
-  LB.buckets = split;
-})();
+  return split;
+}
+LB.buckets = splitBuckets(LB.buckets);
 LB.buckets.forEach(bk => {
   const key = bk.discipline + '|' + bk.type, label = (bk.discipline === 'Surfboards' ? 'Surfboard' : bk.discipline) + ' ' + TYPE_NOUN[bk.type];
   INDUSTRY_DATA[key] = { label, brands: bk.rows.map(r => ({
@@ -563,36 +566,6 @@ function wrapText(ctx, text, x, y, w, lh) { const words = text.split(' '); let l
 function savePng(c, name) { c.toBlob(bl => { const u = URL.createObjectURL(bl), l = document.createElement('a'); l.href = u; l.download = name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000); }, 'image/png'); }
 const SANS = '"Helvetica Neue",Helvetica,Inter,Arial,sans-serif', SERIF = '"IvyPresto Display",Georgia,serif';
 const GREEN = '#7EB801', SIGNAL = '#E8683A', INK = '#10110F', CREAM = '#F4F0E6', DIM = '#AAA79D', LINE = '#33362F';
-function downloadCard(hd) { const b = ALLBY[hd]; if (b && !b.isMicro) logoImage(img => drawCard(b, img)); }
-function drawCard(b, logoImg) {
-  const W = 1080, H = 1350, M = 80, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const x = c.getContext('2d'), bd = band(b.heatScore), em = vsSize(b), sc = scored(b.ladder);
-  x.fillStyle = INK; x.fillRect(0, 0, W, H); x.textBaseline = 'alphabetic';
-  x.drawImage(logoImg, M, 84, 360, 360 * 125 / 800);
-  x.font = '600 22px ' + SANS; x.fillStyle = DIM; x.textAlign = 'right'; x.fillText((monthLabel + ' report card').toUpperCase(), W - M, 128); x.textAlign = 'left';
-  x.fillStyle = CREAM; x.font = '600 76px ' + SERIF; const y2 = wrapText(x, b.name, M, 300, W - 2 * M, 86);
-  x.font = '400 28px ' + SANS; x.fillStyle = DIM; x.fillText(b.handle + '  ·  ' + b.ladderLabel, M, y2 + 54);
-  const col = bd === 'a' ? GREEN : bd === 'b' ? SIGNAL : CREAM;
-  x.fillStyle = col; x.font = '600 300px ' + SERIF; x.fillText(String(b.heatScore), M, y2 + 380);
-  const sw = x.measureText(String(b.heatScore)).width;
-  x.font = '700 44px ' + SANS; x.fillText(BAND[bd].toUpperCase(), M + sw + 36, y2 + 330);
-  x.fillStyle = DIM; x.font = '400 30px ' + SANS; x.fillText('#' + b.rank + ' of ' + b.pn + ' in ' + b.ladderLabel, M + sw + 36, y2 + 380);
-  const top = y2 + 520, cw = (W - 2 * M - 40) / 2, items = [
-    ['ENGAGEMENT', pct(b.engDepthRate, 2), ratioTxt(em) + ' typical for its size'],
-    ['CONVERSATION', pct(b.commentDepthRatio * 100), 'of likes become comments'],
-    ['POSTS A MONTH', P(b.posts30d), b.own + ' posts scored (estimate)'],
-    ['FOLLOWERS', fmtK(b.followers), tierShort(b) + ' tier']];
-  items.forEach((it, i) => { const cx = M + (i % 2) * (cw + 40), cy = top + Math.floor(i / 2) * 190;
-    x.strokeStyle = LINE; x.lineWidth = 2; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + cw, cy); x.stroke();
-    x.fillStyle = DIM; x.font = '600 20px ' + SANS; x.fillText(it[0], cx, cy + 40);
-    x.fillStyle = CREAM; x.font = '600 64px ' + SERIF; x.fillText(it[1], cx, cy + 110);
-    x.fillStyle = DIM; x.font = '400 24px ' + SANS; x.fillText(it[2], cx, cy + 148); });
-  x.fillStyle = DIM; x.font = '400 22px ' + SANS;
-  x.fillText('Scored against ' + sc.length + ' ranked peers. 60+ ahead, 40 to 59 in the pack, under 40 behind.', M, H - 120);
-  x.fillText('Source: public posts, ' + LB.days + ' days to ' + dateLabel + '.', M, H - 90);
-  x.fillStyle = CREAM; x.font = '600 22px ' + SANS; x.fillText('leaderboard.thisisneverwork.com', M, H - 52);
-  savePng(c, 'neverwork-report-card-' + b.hd.replace(/[^a-z0-9_.-]/gi, '') + '.png');
-}
 function drawCmp(L, logoImg) {
   const W = 1080, H = 1350, M = 80, c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d');

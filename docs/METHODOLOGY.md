@@ -1,4 +1,13 @@
-# IG-Analysis — methodology
+# Methodology
+
+> **Read this first (20 Nov 2026).** Most of this file describes the retired IG-Analysis report-card model
+> (A to F grades, tier tables, the "health score", earned media, placing unknown accounts). The live site does not use it.
+> **What the live Brand Heat score does** is on the site itself (the "How the score works" tab, built from `pipeline/app.js`)
+> and in the last two sections of this file ("Few posts" and "Size-adjusted Reach and Quality"), which are current.
+> The old model still runs inside `pipeline/engine.js` during a scan, but only its raw numbers reach the site
+> (likes, comments, Reel views, posts, formats, top posts). Its score and grade are written to `leaderboard.json` and never shown.
+
+# IG-Analysis — methodology (retired model)
 
 How every number is calculated, and why. Built on the NeverWork "Brand Heat"
 model, tuned for talent/creators. All formulas live in one file (`engine.js`)

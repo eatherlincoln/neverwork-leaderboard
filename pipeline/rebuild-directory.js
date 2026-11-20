@@ -3,9 +3,8 @@
    Reads the curated tab (Handle | Display Name | Type | Discipline | Category),
    extracts the handle from each IG URL, and rewrites directory.js in place.
 
-   The Google-Sheets host isn't reachable from the workspace shell, so this script
-   does NOT fetch — the CSV is supplied by the caller (the weekly agent uses
-   web_fetch, then pipes it here):
+   This script does NOT fetch. The monthly GitHub Actions workflow downloads the
+   Master tab as CSV and passes the file in:
 
      node rebuild-directory.js path/to/sheet.csv
      cat sheet.csv | node rebuild-directory.js

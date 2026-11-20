@@ -34,10 +34,7 @@ rep("const MICRO_THRESHOLD = 5000; // Brands below this are excluded from scorin
     "const MICRO_THRESHOLD = 5000; // below this: tracked, not ranked\nconst MIN_POSTS = 5;           // fewer own posts in the window: tracked, not ranked")
 rep("const rankable = brands.filter(b => (b.followers || 0) >= MICRO_THRESHOLD);\n  const micro    = brands.filter(b => (b.followers || 0) > 0 && (b.followers || 0) < MICRO_THRESHOLD);",
     "const okAcc    = b => !b.tracked && (b.followers || 0) >= MICRO_THRESHOLD && (b.own || 0) >= MIN_POSTS;\n  const rankable = brands.filter(okAcc);\n  const micro    = brands.filter(b => !okAcc(b) && (b.followers || 0) > 0);")
-rep("      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap, isMicro: false,",
-    "      ...b, ...raw, ...iq, ...activity, ...h, med, conf, mainGap, isMicro: false,")
 # 4. few posts = less certainty: Heat is nudged towards 50 by own/(own+4). EARLY_POSTS flags the "Early read" tag.
-rep("const MIN_POSTS = 5;", "const MIN_POSTS = 5;")
 rep("    const h        = calcHeat(raw, med, iq, activity);",
     "    const h        = calcHeat(raw, med, iq, activity);\n    h.heatRaw = h.heatScore; { const n = b.own || 0; h.heatScore = Math.round(50 + (h.heatScore - 50) * n / (n + SHRINK_K)); }")
 rep("const MIN_POSTS = 5;", "const MIN_POSTS = 5;\nconst SHRINK_K = 4;            // few posts: Heat is nudged towards 50 by own / (own + SHRINK_K)\nconst EARLY_POSTS = 12;        // under this, rows carry an Early read tag")
@@ -74,7 +71,7 @@ rep("const tierAdjEngRate    = engDepthRate / t.mid;", "const tierAdjEngRate    
 # ── report-card extras: cached media + last month's snapshot ──────
 import os
 here = os.path.dirname(os.path.abspath(__file__))
-deploy = os.environ.get('NW_DEPLOY', os.path.join(here, '..', 'neverwork-leaderboard'))
+deploy = os.environ.get('NW_DEPLOY', os.path.join(here, '..'))   # repo root
 def listing(sub):
     d = os.path.join(deploy, sub)
     return {os.path.splitext(f)[0]: f for f in sorted(os.listdir(d)) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.svg'))} if os.path.isdir(d) else {}
@@ -85,10 +82,18 @@ json.dump(LB, open(os.path.join(hist, month + '.json'), 'w', encoding='utf-8'), 
 older = sorted(f[:7] for f in os.listdir(hist) if f.endswith('.json') and f[:7] < month)
 PREV = json.load(open(os.path.join(hist, older[-1] + '.json'), encoding='utf-8')) if older else None
 cards = open(os.path.join(here, 'cards.js'), encoding='utf-8').read()
+# Page weight. The history file above keeps everything; the page only gets what it reads.
+#   - top-post thumbnail links (`th`) are only for cache_card_media.py and expire within days
+#   - last month is only used to work out last month's ranks (Climber card)
+PREV_KEEP = ['er','handle','name','category','followers','avgLikes','avgComments','avgReelViews','perMonth','own','typLikes','typComments','hidden','tracked']
+def slim_top(r):
+    return {**r, 'top': [{k: v for k, v in t.items() if k != 'th'} for t in r['top']]} if r.get('top') else r
+PAGE_LB = {**LB, 'buckets': [{**b, 'rows': [slim_top(r) for r in b['rows']]} for b in LB['buckets']]}
+PAGE_PREV = {**PREV, 'buckets': [{**b, 'rows': [{k: r[k] for k in PREV_KEEP if r.get(k) is not None} for r in b['rows']]} for b in PREV['buckets']]} if PREV else None
 print('media:', len(MEDIA['logos']), 'logos,', len(MEDIA['thumbs']), 'thumbs · history:', month, '· previous:', older[-1] if older else 'none')
 
 # ── assemble ────────────────────────────────────────────────────
-out = (tpl.replace('/*__LB__*/', 'const LB = ' + json.dumps(LB, separators=(',', ':')) + ';\nconst PREV_LB = ' + json.dumps(PREV, separators=(',', ':')) + ';\nconst MEDIA = ' + json.dumps(MEDIA, separators=(',', ':')) + ';')
+out = (tpl.replace('/*__LB__*/', 'const LB = ' + json.dumps(PAGE_LB, separators=(',', ':')) + ';\nconst PREV_LB = ' + json.dumps(PAGE_PREV, separators=(',', ':')) + ';\nconst MEDIA = ' + json.dumps(MEDIA, separators=(',', ':')) + ';')
           .replace('/*__MODEL__*/', model)
           .replace('/*__LOGO__*/', logo_line)
           .replace('/*__APP__*/', app + '\n' + cards))

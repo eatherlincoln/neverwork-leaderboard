@@ -76,7 +76,22 @@ async function scan(handles, attempt = 1) {
     handles = [...new Set(target)].filter(h => byHandle[h]);
     if (ONLY.length) { const bad = ONLY.filter(h => !byHandle[h]); if (bad.length) console.warn(`  not in the directory, ignored: ${bad.join(', ')}`); }
     const retrySet = new Set(handles);
-    prev.buckets.forEach(b => b.rows.forEach(r => { if (!retrySet.has(r.handle)) keptRows.push({ key: b.key, row: r }); else prevRetryRows[r.handle] = { key: b.key, row: r }; }));
+    // Rows we keep still follow the Sheet: an account removed from Master is dropped, and a changed name,
+    // type, discipline or category moves with it. Without this, only a full (paid) scan picked up Sheet edits.
+    const dropped = [], moved = [];
+    const fresh = (key, row) => {
+      const d = byHandle[row.handle];
+      if (!d) { dropped.push(row.handle); return null; }
+      const bt = (d.type === 'Athlete' || d.type === 'Creator') ? 'creator' : 'brand', k = `${bt}|${d.discipline}`;
+      if (k !== key) moved.push(`${row.handle} (${key} -> ${k})`);
+      return { key: k, row: { ...row, name: d.name, type: d.type, category: d.category } };
+    };
+    prev.buckets.forEach(b => b.rows.forEach(r => {
+      const f = fresh(b.key, r); if (!f) return;
+      if (!retrySet.has(r.handle)) keptRows.push(f); else prevRetryRows[r.handle] = f;
+    }));
+    if (dropped.length) console.log(`  no longer in the directory, dropped: ${dropped.join(', ')}`);
+    if (moved.length) console.log(`  moved group to match the directory: ${moved.join(', ')}`);
     if (!handles.length) { console.log('Nothing to retry.'); process.exit(0); }
   }
 
@@ -166,6 +181,7 @@ async function scan(handles, attempt = 1) {
       handle: r.handle, name: d.name, type: d.type, category: d.category,
       followers: r.followers, er: r.er, score: r.score, grade: r.grade, conf: r.conf, own: r.own,
       pic: r.pic || '',
+      deep: r.deep, seen: r.seen,   // deep = every post in the window was pulled; seen = posts the scraper returned. For coverage checks.
       avgLikes: r.avgLikes, avgComments: r.avgComments, avgReelViews: r.avgReelViews, posts: r.posts,
       typLikes: r.typLikes, typComments: r.typComments, hidden: r.hidden, fmt: r.fmt, top: r.top,
       perMonth: r.perMonth, convoIndex: r.convoIndex, reachIndex: r.reachIndex, cadenceIndex: r.cadenceIndex,

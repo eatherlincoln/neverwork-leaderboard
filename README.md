@@ -9,7 +9,7 @@ Live at leaderboard.thisisneverwork.com. This folder is the whole project: one r
 | `pipeline/` | Everything that builds it: `scan.js` (Apify), `engine.js` (the Heat maths), `build-leaderboard.js`, `app.js`, `v2.html`, `cards.js` |
 | `pipeline/directory.js` | The account list. Rebuilt from the Google Sheet (Master tab) each run. Edit the Sheet, not this. |
 | `pipeline/leaderboard.json` | Latest scan results. `pipeline/history/` holds monthly snapshots. |
-| `card-thumbs/`, `brand-logos/`, `instagram_avatars/` | Images |
+| `card-thumbs/`, `brand-logos/`, `instagram_avatars/images/` | Images. Thumbs and missing avatars are saved by the monthly job. Logos are added by hand, named `<handle>.png` or `.jpg`. |
 | `.github/workflows/monthly-refresh.yml` | The monthly job |
 | `docs/` | Methodology and one-offs |
 | `delete/` | Not in git. Old files kept in case; safe to bin. |

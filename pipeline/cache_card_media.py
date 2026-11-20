@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Cache the images the report cards need, on the leaderboard's own domain.
+"""Cache the images the site and report cards need, on the leaderboard's own domain.
 
-    python3 cache_card_media.py ../leaderboard.json ~/Downloads/brand-logos ../neverwork-leaderboard
+    python3 pipeline/cache_card_media.py pipeline/leaderboard.json "" .                       (what the monthly workflow runs)
+    python3 pipeline/cache_card_media.py pipeline/leaderboard.json ~/Downloads/brand-logos .  (by hand, to load new logos)
 
-Run it on your Mac right after each monthly scan (Instagram image links expire within days,
+Runs straight after each scan in the workflow (Instagram image links expire within days,
 and browsers won't let a page draw images from instagram.com into a downloadable PNG).
 
-  1. Best-post thumbnails  -> <deploy>/card-thumbs/<handle>.jpg   (downloaded from the scan's links)
-  2. Brand logos           -> <deploy>/brand-logos/<handle>.<ext> (matched from your Drive logo folder)
+  1. Best-post thumbnails  -> <deploy>/card-thumbs/<handle>.jpg              (downloaded from the scan's links)
+  2. Avatars               -> <deploy>/instagram_avatars/images/<handle>.jpg (only for accounts that don't have one yet)
+  3. Brand logos           -> <deploy>/brand-logos/<handle>.<ext>            (matched from your Drive logo folder, by hand only)
 
 The logo folder is the Drive folder downloaded as a zip and unzipped. Files are matched to handles by
 name, e.g. creatures-of-leisure-logo.png -> creaturesofleisure. Anything it can't match is listed at the
@@ -24,7 +26,7 @@ def slug(s):
     return re.sub(r'[^a-z0-9]', '', (s or '').lower())
 
 def main():
-    lb_path, logo_dir, deploy = sys.argv[1], os.path.expanduser(sys.argv[2]) if len(sys.argv) > 2 else '', sys.argv[3] if len(sys.argv) > 3 else '../neverwork-leaderboard'
+    lb_path, logo_dir, deploy = sys.argv[1], os.path.expanduser(sys.argv[2]) if len(sys.argv) > 2 else '', sys.argv[3] if len(sys.argv) > 3 else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
     lb = json.load(open(lb_path, encoding='utf-8'))
     rows = [r for b in lb['buckets'] for r in b['rows']]
 
@@ -51,7 +53,25 @@ def main():
     if fail:
         print('  (failed links have usually expired: re-run straight after a fresh scan)')
 
-    # 2. logos
+    # 2. avatars: new accounts never had one, so their rows showed initials. Existing files are left alone.
+    adir = os.path.join(deploy, 'instagram_avatars', 'images'); os.makedirs(adir, exist_ok=True)
+    got = miss = 0
+    for r in rows:
+        h = r['handle']
+        out = os.path.join(adir, ('quiksilver' if h.startswith('quiksilver') else h) + '.jpg')   # same rule as avFile() in app.js
+        if not r.get('pic') or os.path.exists(out):
+            continue
+        try:
+            req = urllib.request.Request(r['pic'], headers={'User-Agent': 'Mozilla/5.0'})
+            data = urllib.request.urlopen(req, timeout=20).read()
+            if len(data) < 500:
+                raise ValueError('empty image')
+            open(out, 'wb').write(data); got += 1
+        except Exception:
+            miss += 1
+    print(f'avatars: {got} new, {miss} missing and not fetched (their links only work for a day or two after that account is scanned)')
+
+    # 3. logos
     if not logo_dir:
         print('logos: skipped (no logo folder given)'); return
     files = [f for f in os.listdir(logo_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.svg'))]
