@@ -8,7 +8,7 @@ const initialsOf = n => n.replace(/[^A-Za-z0-9 ]/g,' ').trim().split(/\s+/).slic
 const TYPE_NOUN = { brand: 'brands', creator: 'athletes & creators' };
 const MERGED = 'Lifestyle & Streetwear';
 const DISC_ORDER = ['Surf','Surfboards','Skate','Snow','Outdoor','Multi-Sport','Adventure',MERGED,'Media'];
-const BAND = { a: 'Ahead', p: 'In the pack', b: 'Behind' };
+const BAND = { a: 'Ahead', p: 'In the pack', b: 'Chasing' };
 const band = h => h >= 60 ? 'a' : h < 40 ? 'b' : 'p';
 const FMT_NAME = { reel: 'Reel', carousel: 'Carousel', image: 'Photo' };
 const ratioTxt = x => x >= 10 ? Math.round(x) + '×' : x.toFixed(1) + '×';
@@ -182,9 +182,9 @@ function renderHow() {
     ${sRow('a', '75 to 89', 'Strong', 'Clearly ahead of the group. Worth studying.', c75)}
     ${sRow('a', '60 to 74', 'Ahead', 'Beats the middle. Healthy and growing audience behaviour.', c60)}
     ${sRow('p', '40 to 59', 'In the pack', 'Close to the middle of the group. Most accounts sit here.', c40)}
-    ${sRow('b', 'Under 40', 'Behind', 'Trails the group. The audience is quieter than it should be for its size.', c0)}
+    ${sRow('b', 'Under 40', 'Chasing', 'Trails the group. The audience is quieter than it should be for its size.', c0)}
   </div>
-  <p class="hp">On the leaderboard, <b>Ahead</b> means Heat 60 or more, <b>In the pack</b> is 40 to 59, and <b>Behind</b> is under 40. "Hot" means Ahead. "Not" means Behind.</p>
+  <p class="hp">On the leaderboard, <b>Ahead</b> means Heat 60 or more, <b>In the pack</b> is 40 to 59, and <b>Chasing</b> is under 40. "Hot" means Ahead. "Not" means Chasing.</p>
 
   <h2>The formula</h2>
   <p>Four parts. Each one is the account's number, judged for its size, divided by the group median. A 1.0 means "same as the middle". A 2.0 means "twice the middle". Then we weight them and scale so the middle lands on 50.</p>
@@ -286,9 +286,9 @@ function renderHero(sc, um, label) {
   $('#hero').innerHTML = `
     <div class="eyebrow">${esc(label)} · ${sc.length} ranked · ${window.WIN}</div>
     <h1><em>${esc(lead.name)}</em> leads ${esc(label)}.</h1>
-    <div class="tally"><span><i class="dot a"></i>${n.a} ahead</span><span><i class="dot p"></i>${n.p} in the pack</span><span><i class="dot b"></i>${n.b} behind</span></div>
-    <div class="split" role="img" aria-label="${n.a} ahead, ${n.p} in the pack, ${n.b} behind"><i class="a" style="flex:${n.a}"></i><i class="p" style="flex:${n.p}"></i><i class="b" style="flex:${n.b}"></i></div>
-    <p class="legend">Heat 60+ is ahead, 40 to 59 is in the pack, under 40 is behind. Scored against this group only.${sc.length < 8 ? ' Small group, so read it as directional.' : ''}</p>`;
+    <div class="tally"><span><i class="dot a"></i>${n.a} ahead</span><span><i class="dot p"></i>${n.p} in the pack</span><span><i class="dot b"></i>${n.b} chasing</span></div>
+    <div class="split" role="img" aria-label="${n.a} ahead, ${n.p} in the pack, ${n.b} chasing"><i class="a" style="flex:${n.a}"></i><i class="p" style="flex:${n.p}"></i><i class="b" style="flex:${n.b}"></i></div>
+    <p class="legend">Heat 60+ is ahead, 40 to 59 is in the pack, under 40 is chasing. Scored against this group only.${sc.length < 8 ? ' Small group, so read it as directional.' : ''}</p>`;
 }
 
 function lookCards(sc) {
@@ -420,7 +420,7 @@ const avHtml = b => `<div class="av"><img src="instagram_avatars/images/${avFile
 
 function renderList(k, sc, um, label) {
   const n = { a: 0, p: 0, b: 0 }; sc.forEach(b => n[band(b.heatScore)]++);
-  const chips = [['all', 'All', sc.length], ['a', 'Ahead', n.a], ['p', 'In the pack', n.p], ['b', 'Behind', n.b], ['u', 'Not ranked', um.length]];
+  const chips = [['all', 'All', sc.length], ['a', 'Ahead', n.a], ['p', 'In the pack', n.p], ['b', 'Chasing', n.b], ['u', 'Not ranked', um.length]];
   $('#bandChips').innerHTML = chips.map(c => `<button class="chip${st.band === c[0] ? ' on' : ''}" data-band="${c[0]}" ${c[2] ? '' : 'disabled'}>${c[1]} <span>${c[2]}</span></button>`).join('');
   $('#listTitle').textContent = 'Ranking · ' + label;
   let list;
@@ -604,7 +604,7 @@ function fitTags(b) {
   else if (b.commentDepthRatio >= (medCtl(scored(b.ladder)) || 1) * 1.3) t.push(['up', 'Strong conversation']);
   if ((b.posts30d || 0) >= 8) t.push(['up', 'Posts often']);
   if (x <= 0.7) t.push(['wn', 'Engagement low for its size']);
-  if (b.heatScore < 40 && !t.some(a => a[0] === 'up')) t.push(['wn', 'Behind its group']);
+  if (b.heatScore < 40 && !t.some(a => a[0] === 'up')) t.push(['wn', 'Chasing its group']);
   return t;
 }
 function toggleShort(hd) {

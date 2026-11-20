@@ -44,6 +44,7 @@ const PREV_MONTH = () => (typeof PREV_LB !== 'undefined' && PREV_LB) ? new Date(
 // ── facts for one account ─────────────────────────────────────
 const groupNoun = b => b.ladderLabel.charAt(0).toLowerCase() + b.ladderLabel.slice(1);   // "surf brands"
 const kindNoun = b => b.btype === 'creator' ? 'creators' : 'brands';
+const their = (b, s) => b.btype === 'creator' ? s.replace(/\bits\b/g, 'their') : s;   // a person is not an "it"
 const rankIn = (L, v, b) => 1 + L.filter(a => a.hd !== b.hd && v(a) > v(b)).length;
 function badgesFor(b, card) {
   const sc = scored(b.ladder), out = [];
@@ -59,7 +60,7 @@ function badgesFor(b, card) {
       .forEach(c => out.push({ big: ratioTxt(c.x), label: c.xl, on: true }));
   if (out.length < 2 && b.top && b.top[0]) out.push({ big: fmtK(b.top[0].l), label: 'likes on its best post', on: false });
   if (out.length < 2) out.push({ big: P(b.posts30d), label: 'posts a month', on: false });
-  return out.slice(0, 2);
+  return out.slice(0, 2).map(o => ({ ...o, label: their(b, o.label) }));
 }
 function cardsFor(b) {
   const cards = [], x = vsSize(b), top = b.top && b.top[0];
@@ -147,7 +148,17 @@ function heroGlyph(x, kind, X, base, s) {   // thin vector "×" and "↑", so th
 }
 const playIcon = (x, cx, cy, r) => { x.beginPath(); x.moveTo(cx - r * 0.4, cy - r * 0.6); x.lineTo(cx + r * 0.65, cy); x.lineTo(cx - r * 0.4, cy + r * 0.6); x.closePath(); x.fill(); };
 function heartIcon(x, cx, cy, r) { x.beginPath(); x.moveTo(cx, cy + r * 0.9); x.bezierCurveTo(cx - r * 1.6, cy - r * 0.1, cx - r * 0.7, cy - r * 1.2, cx, cy - r * 0.35); x.bezierCurveTo(cx + r * 0.7, cy - r * 1.2, cx + r * 1.6, cy - r * 0.1, cx, cy + r * 0.9); x.fill(); }
-const cleanCap = s => String(s || '').split('\n')[0].replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, ' ').replace(/#\S+/g, '').replace(/\b(film(ed)?|shot|photo(s|graphy)?|edit(ed)?|video|camera|cam|captured|lens)\s*(by)?\s*:?\s*@\S+/gi, '').replace(/[|·•]+\s*$/, '').replace(/\s+/g, ' ').trim();
+// Caption for the best-post row: the hook only. Drops emoji, hashtags, photo credits, anything after a divider (———, ___, ***),
+// and a list of tags at the end ("Powered by my team @a @b @c"). Handles inside a sentence stay: they are usually the subject.
+// If nothing readable is left, the card falls back to "Reel from 21 Sep".
+const cleanCap = s => {
+  let t = String(s || '').split('\n')[0].replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, ' ').replace(/#\S+/g, '')
+    .replace(/\b(film(ed)?|shot|photo(s|graphy)?|edit(ed)?|video|camera|cam|captured|lens)\s*(by)?\s*:?\s*@\S+/gi, '');
+  t = t.replace(/(?:^|\s)(?:(?:[—–]\s*){2,}|[-_~=*]{3,})(?:\s.*)?$/, '');            // divider: keep what came before it
+  const tags = /(?:\s*@[\w.]*[\s,|]*){2,}$/;                                           // two or more @handles closing the caption
+  if (tags.test(t)) t = t.replace(tags, '').replace(/(?:[\s,.:;|&+-]*\b(?:powered by|supported by|presented by|sponsored by|brought to you by|thanks to|thank you to|thanks|thank you|big love to|shout ?out to|with|w\/|by|to|from|my team|team|crew|and|ft|feat|x)\b)+[\s,.:;|&+-]*$/i, '');
+  return t.replace(/[|·•,:;&+\s-]+$/, '').replace(/\s+/g, ' ').trim();
+};
 const shortDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : '';
 
 // ── one card ──────────────────────────────────────────────────
@@ -174,7 +185,7 @@ function renderCard(b, card, media) {
   else if (card.hero.pre) { x.fillStyle = GREEN; x.font = '400 ' + Math.round(hs * 0.6) + 'px ' + CARD_SANS; x.fillText(card.hero.pre, hx, base); hx += x.measureText(card.hero.pre).width + 8; }
   x.fillStyle = GREEN; x.font = '600 ' + hs + 'px ' + CARD_SERIF; x.fillText(card.hero.num, hx, base); hx += x.measureText(card.hero.num).width;
   if (card.hero.post === 'x') heroGlyph(x, 'x', hx + 18, base, hs);
-  x.fillStyle = CREAM; fitSize(x, card.sub, 400, CARD_SANS, 40, 30, W - 2 * M); x.fillText(card.sub, M, 722);
+  const sub = their(b, card.sub); x.fillStyle = CREAM; fitSize(x, sub, 400, CARD_SANS, 40, 30, W - 2 * M); x.fillText(sub, M, 722);
   // status row
   const bd = band(b.heatScore), stat = bd === 'a' ? '▲ AHEAD' : bd === 'b' ? 'CHASING' : 'IN THE PACK';
   x.font = '700 21px ' + CARD_SANS; const cw = x.measureText(stat).width + 3 * stat.length + 28;

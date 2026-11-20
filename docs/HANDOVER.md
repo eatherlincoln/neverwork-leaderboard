@@ -27,6 +27,13 @@ Bugs fixed:
 - No meta description or canonical link on the page. Added to `v2.html`.
 - 5 name typos fixed in the Master tab: John Elliott, Gabriela Bryan, Lakey Peterson, Molly Picklum, Tati Weston-Webb. Live at the next scan run.
 
+Later on 20 Nov (Lincoln's calls, shipped the same night):
+- Under 40 is called "Chasing" everywhere, site and cards. "Behind" is gone as a band name.
+- Athlete and creator cards say "their", not "its". Site rows still say "for its size" for people; not changed.
+- Card captions: cut at a divider (———) and drop a list of tags at the end, so Sally Fitzgibbons reads "Trestles", not her sponsor list.
+- Card bug fixed: long names shrink (floor 36px, was 60) instead of pushing the logo off the edge.
+- Master: "Quiksilver Australia & New Zealand" renamed "Quiksilver ANZ".
+
 Tidy-ups: removed the old report-card code in `app.js` that `cards.js` had replaced, two no-op lines in `build2.py`, stale comments and paths, `__pycache__` and `sheet.csv` added to `.gitignore`. `docs/METHODOLOGY.md` now says up front that most of it describes the retired IG-Analysis model. Scan rows now carry `deep` and `seen` so coverage can be checked after a run.
 
 To ship (Lincoln, Terminal, in the repo folder):
@@ -76,8 +83,7 @@ Known problems to resolve:
 - Hidden likes are dropped silently (22 of 127 Quik posts).
 - Brand counts differ. The footer says "291 of 301 tracked accounts scored" but only 255 are ranked (under 5 posts, under 5K followers and giveaway-heavy accounts are scored by the scan and then left unranked by the site). Ranked vs scanned vs listed is not labelled.
 - Collab posts: only posts owned by the account count. Collabs owned by someone else don't.
-- Jargon: "Median Reel reach for its size", "Median conversation", "Heat 71". Band names on cards (Ahead / In the pack / Chasing) don't match the site (Ahead / In the pack / Behind).
-- Card bug: long names push the logo off the right edge.
+- Jargon: "Median Reel reach for its size", "Median conversation", "Heat 71".
 - "Posts a month ~18 each, 583 in total" tile: 583 is a sum of monthly rates; group median is 12 (found in audit).
 
 ## Year-long data lessons (Quik ANZ test)
