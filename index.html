@@ -666,7 +666,7 @@ const initialsOf = n => n.replace(/[^A-Za-z0-9 ]/g,' ').trim().split(/\s+/).slic
 const TYPE_NOUN = { brand: 'brands', creator: 'athletes & creators' };
 const MERGED = 'Lifestyle & Streetwear';
 const DISC_ORDER = ['Surf','Surfboards','Skate','Snow','Outdoor','Multi-Sport','Adventure',MERGED,'Media'];
-const BAND = { a: 'Ahead', p: 'In the pack', b: 'Behind' };
+const BAND = { a: 'Ahead', p: 'In the pack', b: 'Chasing' };
 const band = h => h >= 60 ? 'a' : h < 40 ? 'b' : 'p';
 const FMT_NAME = { reel: 'Reel', carousel: 'Carousel', image: 'Photo' };
 const ratioTxt = x => x >= 10 ? Math.round(x) + '×' : x.toFixed(1) + '×';
@@ -840,9 +840,9 @@ function renderHow() {
     ${sRow('a', '75 to 89', 'Strong', 'Clearly ahead of the group. Worth studying.', c75)}
     ${sRow('a', '60 to 74', 'Ahead', 'Beats the middle. Healthy and growing audience behaviour.', c60)}
     ${sRow('p', '40 to 59', 'In the pack', 'Close to the middle of the group. Most accounts sit here.', c40)}
-    ${sRow('b', 'Under 40', 'Behind', 'Trails the group. The audience is quieter than it should be for its size.', c0)}
+    ${sRow('b', 'Under 40', 'Chasing', 'Trails the group. The audience is quieter than it should be for its size.', c0)}
   </div>
-  <p class="hp">On the leaderboard, <b>Ahead</b> means Heat 60 or more, <b>In the pack</b> is 40 to 59, and <b>Behind</b> is under 40. "Hot" means Ahead. "Not" means Behind.</p>
+  <p class="hp">On the leaderboard, <b>Ahead</b> means Heat 60 or more, <b>In the pack</b> is 40 to 59, and <b>Chasing</b> is under 40. "Hot" means Ahead. "Not" means Chasing.</p>
 
   <h2>The formula</h2>
   <p>Four parts. Each one is the account's number, judged for its size, divided by the group median. A 1.0 means "same as the middle". A 2.0 means "twice the middle". Then we weight them and scale so the middle lands on 50.</p>
@@ -944,9 +944,9 @@ function renderHero(sc, um, label) {
   $('#hero').innerHTML = `
     <div class="eyebrow">${esc(label)} · ${sc.length} ranked · ${window.WIN}</div>
     <h1><em>${esc(lead.name)}</em> leads ${esc(label)}.</h1>
-    <div class="tally"><span><i class="dot a"></i>${n.a} ahead</span><span><i class="dot p"></i>${n.p} in the pack</span><span><i class="dot b"></i>${n.b} behind</span></div>
-    <div class="split" role="img" aria-label="${n.a} ahead, ${n.p} in the pack, ${n.b} behind"><i class="a" style="flex:${n.a}"></i><i class="p" style="flex:${n.p}"></i><i class="b" style="flex:${n.b}"></i></div>
-    <p class="legend">Heat 60+ is ahead, 40 to 59 is in the pack, under 40 is behind. Scored against this group only.${sc.length < 8 ? ' Small group, so read it as directional.' : ''}</p>`;
+    <div class="tally"><span><i class="dot a"></i>${n.a} ahead</span><span><i class="dot p"></i>${n.p} in the pack</span><span><i class="dot b"></i>${n.b} chasing</span></div>
+    <div class="split" role="img" aria-label="${n.a} ahead, ${n.p} in the pack, ${n.b} chasing"><i class="a" style="flex:${n.a}"></i><i class="p" style="flex:${n.p}"></i><i class="b" style="flex:${n.b}"></i></div>
+    <p class="legend">Heat 60+ is ahead, 40 to 59 is in the pack, under 40 is chasing. Scored against this group only.${sc.length < 8 ? ' Small group, so read it as directional.' : ''}</p>`;
 }
 
 function lookCards(sc) {
@@ -1078,7 +1078,7 @@ const avHtml = b => `<div class="av"><img src="instagram_avatars/images/${avFile
 
 function renderList(k, sc, um, label) {
   const n = { a: 0, p: 0, b: 0 }; sc.forEach(b => n[band(b.heatScore)]++);
-  const chips = [['all', 'All', sc.length], ['a', 'Ahead', n.a], ['p', 'In the pack', n.p], ['b', 'Behind', n.b], ['u', 'Not ranked', um.length]];
+  const chips = [['all', 'All', sc.length], ['a', 'Ahead', n.a], ['p', 'In the pack', n.p], ['b', 'Chasing', n.b], ['u', 'Not ranked', um.length]];
   $('#bandChips').innerHTML = chips.map(c => `<button class="chip${st.band === c[0] ? ' on' : ''}" data-band="${c[0]}" ${c[2] ? '' : 'disabled'}>${c[1]} <span>${c[2]}</span></button>`).join('');
   $('#listTitle').textContent = 'Ranking · ' + label;
   let list;
@@ -1262,7 +1262,7 @@ function fitTags(b) {
   else if (b.commentDepthRatio >= (medCtl(scored(b.ladder)) || 1) * 1.3) t.push(['up', 'Strong conversation']);
   if ((b.posts30d || 0) >= 8) t.push(['up', 'Posts often']);
   if (x <= 0.7) t.push(['wn', 'Engagement low for its size']);
-  if (b.heatScore < 40 && !t.some(a => a[0] === 'up')) t.push(['wn', 'Behind its group']);
+  if (b.heatScore < 40 && !t.some(a => a[0] === 'up')) t.push(['wn', 'Chasing its group']);
   return t;
 }
 function toggleShort(hd) {
@@ -1425,6 +1425,7 @@ const PREV_MONTH = () => (typeof PREV_LB !== 'undefined' && PREV_LB) ? new Date(
 // ── facts for one account ─────────────────────────────────────
 const groupNoun = b => b.ladderLabel.charAt(0).toLowerCase() + b.ladderLabel.slice(1);   // "surf brands"
 const kindNoun = b => b.btype === 'creator' ? 'creators' : 'brands';
+const their = (b, s) => b.btype === 'creator' ? s.replace(/\bits\b/g, 'their') : s;   // a person is not an "it"
 const rankIn = (L, v, b) => 1 + L.filter(a => a.hd !== b.hd && v(a) > v(b)).length;
 function badgesFor(b, card) {
   const sc = scored(b.ladder), out = [];
@@ -1440,7 +1441,7 @@ function badgesFor(b, card) {
       .forEach(c => out.push({ big: ratioTxt(c.x), label: c.xl, on: true }));
   if (out.length < 2 && b.top && b.top[0]) out.push({ big: fmtK(b.top[0].l), label: 'likes on its best post', on: false });
   if (out.length < 2) out.push({ big: P(b.posts30d), label: 'posts a month', on: false });
-  return out.slice(0, 2);
+  return out.slice(0, 2).map(o => ({ ...o, label: their(b, o.label) }));
 }
 function cardsFor(b) {
   const cards = [], x = vsSize(b), top = b.top && b.top[0];
@@ -1528,7 +1529,17 @@ function heroGlyph(x, kind, X, base, s) {   // thin vector "×" and "↑", so th
 }
 const playIcon = (x, cx, cy, r) => { x.beginPath(); x.moveTo(cx - r * 0.4, cy - r * 0.6); x.lineTo(cx + r * 0.65, cy); x.lineTo(cx - r * 0.4, cy + r * 0.6); x.closePath(); x.fill(); };
 function heartIcon(x, cx, cy, r) { x.beginPath(); x.moveTo(cx, cy + r * 0.9); x.bezierCurveTo(cx - r * 1.6, cy - r * 0.1, cx - r * 0.7, cy - r * 1.2, cx, cy - r * 0.35); x.bezierCurveTo(cx + r * 0.7, cy - r * 1.2, cx + r * 1.6, cy - r * 0.1, cx, cy + r * 0.9); x.fill(); }
-const cleanCap = s => String(s || '').split('\n')[0].replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, ' ').replace(/#\S+/g, '').replace(/\b(film(ed)?|shot|photo(s|graphy)?|edit(ed)?|video|camera|cam|captured|lens)\s*(by)?\s*:?\s*@\S+/gi, '').replace(/[|·•]+\s*$/, '').replace(/\s+/g, ' ').trim();
+// Caption for the best-post row: the hook only. Drops emoji, hashtags, photo credits, anything after a divider (———, ___, ***),
+// and a list of tags at the end ("Powered by my team @a @b @c"). Handles inside a sentence stay: they are usually the subject.
+// If nothing readable is left, the card falls back to "Reel from 21 Sep".
+const cleanCap = s => {
+  let t = String(s || '').split('\n')[0].replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, ' ').replace(/#\S+/g, '')
+    .replace(/\b(film(ed)?|shot|photo(s|graphy)?|edit(ed)?|video|camera|cam|captured|lens)\s*(by)?\s*:?\s*@\S+/gi, '');
+  t = t.replace(/(?:^|\s)(?:(?:[—–]\s*){2,}|[-_~=*]{3,})(?:\s.*)?$/, '');            // divider: keep what came before it
+  const tags = /(?:\s*@[\w.]*[\s,|]*){2,}$/;                                           // two or more @handles closing the caption
+  if (tags.test(t)) t = t.replace(tags, '').replace(/(?:[\s,.:;|&+-]*\b(?:powered by|supported by|presented by|sponsored by|brought to you by|thanks to|thank you to|thanks|thank you|big love to|shout ?out to|with|w\/|by|to|from|my team|team|crew|and|ft|feat|x)\b)+[\s,.:;|&+-]*$/i, '');
+  return t.replace(/[|·•,:;&+\s-]+$/, '').replace(/\s+/g, ' ').trim();
+};
 const shortDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : '';
 
 // ── one card ──────────────────────────────────────────────────
@@ -1555,7 +1566,7 @@ function renderCard(b, card, media) {
   else if (card.hero.pre) { x.fillStyle = GREEN; x.font = '400 ' + Math.round(hs * 0.6) + 'px ' + CARD_SANS; x.fillText(card.hero.pre, hx, base); hx += x.measureText(card.hero.pre).width + 8; }
   x.fillStyle = GREEN; x.font = '600 ' + hs + 'px ' + CARD_SERIF; x.fillText(card.hero.num, hx, base); hx += x.measureText(card.hero.num).width;
   if (card.hero.post === 'x') heroGlyph(x, 'x', hx + 18, base, hs);
-  x.fillStyle = CREAM; fitSize(x, card.sub, 400, CARD_SANS, 40, 30, W - 2 * M); x.fillText(card.sub, M, 722);
+  const sub = their(b, card.sub); x.fillStyle = CREAM; fitSize(x, sub, 400, CARD_SANS, 40, 30, W - 2 * M); x.fillText(sub, M, 722);
   // status row
   const bd = band(b.heatScore), stat = bd === 'a' ? '▲ AHEAD' : bd === 'b' ? 'CHASING' : 'IN THE PACK';
   x.font = '700 21px ' + CARD_SANS; const cw = x.measureText(stat).width + 3 * stat.length + 28;
