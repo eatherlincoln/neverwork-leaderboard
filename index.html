@@ -1543,7 +1543,7 @@ function renderCard(b, card, media) {
   const markH = 64, markMax = 190;
   if (media.logo) media.logo = trimmed(media.logo);
   const markW = media.logo ? Math.min(markMax, markH * media.logo.width / media.logo.height) : media.avatar ? markH : 0;
-  x.fillStyle = CREAM; const ns = fitSize(x, b.name, 600, CARD_SERIF, 104, 60, W - 2 * M - (markW ? markW + 28 : 0));
+  x.fillStyle = CREAM; const ns = fitSize(x, b.name, 600, CARD_SERIF, 104, 36, W - 2 * M - (markW ? markW + 28 : 0));   // floor was 60, which let long names push the logo off the card
   x.fillText(b.name, M, 318);
   const nameW = x.measureText(b.name).width;
   if (media.logo) brandMark(x, media.logo, M + nameW + 28, 318 - ns * 0.68 - (markH - ns * 0.68) / 2 + 6, markH, markMax, false);
